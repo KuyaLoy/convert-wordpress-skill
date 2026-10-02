@@ -1,0 +1,17 @@
+[
+  {
+    "slug": "example-service",
+    "title": "Example Service",
+    "template": "page-templates/service.php",
+    "order": 0,
+    "group": "service",
+    "fields": {
+      "hero_h1": "Example Service",
+      "hero_em": "A short emphasis line.",
+      "hero_sub": "Short intro copy, exactly as the static page shows it.",
+      "hero_image": "media:/photos/team.jpg",
+      "faqs": [ { "question": "What is included?", "answer": "The static page's answer, exactly." } ]
+    },
+    "seo": { "title": "Example Service | {{SITE_NAME}}", "description": "The static page's meta description." }
+  }
+]

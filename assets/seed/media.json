@@ -1,0 +1,9 @@
+[
+  {
+    "src": "/photos/team.jpg",
+    "alt": "The team at work",
+    "width": 2048,
+    "height": 1365,
+    "variants": { "640": "/_img/photos/team.jpg-640.webp", "1080": "/_img/photos/team.jpg-1080.webp" }
+  }
+]

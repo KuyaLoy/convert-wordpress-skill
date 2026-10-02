@@ -1,0 +1,10 @@
+{
+  "logo_source": "/assets/logo-mark.png",
+  "options": {
+    "title-404-wpseo": "Page not found | {{SITE_NAME}}"
+  },
+  "page_meta": {
+    "/about/": { "_yoast_wpseo_schema_page_type": "AboutPage", "_kitk_schema_name": "About {{SITE_NAME}}" },
+    "/contact-us/": { "_yoast_wpseo_schema_page_type": "ContactPage", "_kitk_schema_name": "Contact {{SITE_NAME}}" }
+  }
+}

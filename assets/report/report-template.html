@@ -1,0 +1,130 @@
+<!doctype html>
+<!--
+  Final live check report (client-facing). Fill every [[...]] with a verified fact from the live checks, delete the
+  rows and blocks that do not apply, keep the words plain (no sprint or story numbers, no tool names, no internal
+  notes). Before the PDF: grep -n "\[\[" report.html must print nothing.
+  Screenshots (same folder): node shots.mjs https://{{DOMAIN}} /:1440:home-desktop /thank-you/:1440:thankyou-desktop
+  /[[a page]]/:390:page-mobile /[[another page]]/:1440:page2-desktop ; email screenshots from the inbox as
+  email-form.png, email-popup.png, email-chat.png.
+  PDF: node pdf.mjs report.html Final-Live-Check.pdf [Editing-Guide.pdf]
+-->
+<html lang="en"><head><meta charset="utf-8"><title>{{SITE_NAME}} - Final Live Check</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root { --brand: {{BRAND_COLOUR}}; --ink: #1d2523; --muted: #5b6662; --line: #e3e7e5; --soft: #f4f6f5; }
+@page { size: A4; margin: 16mm 15mm 16mm; }
+* { box-sizing: border-box; }
+body { font-family: Inter, Arial, sans-serif; color: var(--ink); font-size: 10.2pt; line-height: 1.45; margin: 0; }
+.head { background: var(--brand); color: #fff; border-radius: 10px; padding: 18px 22px; margin-bottom: 14px; }
+.head h1 { margin: 0 0 4px; font-size: 20pt; font-weight: 800; }
+.head p { margin: 0; opacity: .92; }
+.head .meta { margin-top: 8px; font-size: 9pt; opacity: .85; }
+.ok { display: inline-block; background: #fff; color: var(--brand); border: 2px solid var(--brand); font-weight: 700;
+  border-radius: 99px; padding: 1px 10px; font-size: 8.6pt; }
+h2 { font-size: 13pt; color: var(--brand); margin: 18px 0 6px; padding-bottom: 4px; border-bottom: 2px solid var(--line); }
+.summary { background: var(--soft); border-left: 4px solid var(--brand); padding: 10px 14px; border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; margin: 6px 0; }
+th, td { text-align: left; vertical-align: top; padding: 5px 8px; border-bottom: 1px solid var(--line); }
+th { background: var(--soft); font-size: 9pt; color: var(--muted); font-weight: 600; }
+td.r { white-space: nowrap; width: 70px; }
+.pass { color: var(--brand); font-weight: 700; }
+.note { color: var(--muted); font-size: 9pt; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 8px; }
+.shots { display: grid; grid-template-columns: 1fr 1fr 0.42fr; gap: 8px; margin-top: 8px; }
+.shots .tall { grid-row: span 2; }
+figure { margin: 0; }
+figure img { width: 100%; border: 1px solid var(--line); border-radius: 6px; display: block; }
+figcaption { font-size: 8.4pt; color: var(--muted); margin-top: 3px; }
+.page { page-break-before: always; }
+ul { margin: 4px 0; padding-left: 18px; }
+li { margin: 2px 0; }
+.foot { margin-top: 14px; font-size: 8.4pt; color: var(--muted); }
+.block { break-inside: avoid; }
+tr { break-inside: avoid; }
+.grid3 img { height: 64mm; object-fit: cover; object-position: top; }
+.shots img { height: 46mm; object-fit: cover; object-position: top; }
+.shots .tall img { height: 100mm; }
+</style></head><body>
+
+<div class="head">
+  <h1>{{SITE_NAME}}: Final Live Check</h1>
+  <p>New website on WordPress at <b>{{DOMAIN}}</b></p>
+  <div class="meta">Checked [[date, with the time zone]] &nbsp;|&nbsp; Prepared by {{DEVELOPER}}</div>
+</div>
+
+<div class="summary">
+  <span class="ok">ALL CHECKS PASSED</span><br>
+  The website is live on WordPress with the same design and content as before. Every page, form and tracking
+  code was checked on the live site. Pages, forms and emails can now be edited in WordPress.
+</div>
+
+<section class="block">
+<h2>What was checked on the live site</h2>
+<table>
+<tr><th>Check</th><th>What we found</th><th>Result</th></tr>
+<tr><td>Pages</td><td>All [[n]] pages in the sitemap plus the thank-you page open correctly. Each page has its own title, description and one main heading.</td><td class="r pass">Pass</td></tr>
+<tr><td>Old links</td><td>[[n]] old website links tested. Each one redirects to the right new page. Campaign page URLs have not changed.</td><td class="r pass">Pass</td></tr>
+<tr><td>Google Tag Manager</td><td>{{GTM_ID}} is at the top of the page head and right after the body tag on all [[n]] pages, including the thank-you page.</td><td class="r pass">Pass</td></tr>
+<tr><td>Conversion tracking</td><td>On the thank-you page, [[the tags that fire there]] fire. The conversion fires only on the thank-you page.</td><td class="r pass">Pass</td></tr>
+<tr><td>Enquiry forms</td><td>[[The forms]] each tested once. All passed the spam check, and all the emails were received.</td><td class="r pass">Pass</td></tr>
+<tr><td>Spam protection</td><td>[[Google reCAPTCHA and a hidden spam trap]] protect every form.</td><td class="r pass">Pass</td></tr>
+<tr><td>Google search</td><td>Search engines can index the site. The sitemap lists every page; the thank-you page is hidden from Google.</td><td class="r pass">Pass</td></tr>
+<tr><td>Security</td><td>Setup files and private folders are blocked from the public. Secure https works, and the other address forms reach it in one redirect.</td><td class="r pass">Pass</td></tr>
+<tr><td>Speed (phone)</td><td>[[Lighthouse scores: performance, accessibility, best practices, SEO, with one plain sentence on what limits speed]]</td><td class="r">[[score]]</td></tr>
+</table>
+</section>
+
+<section class="block">
+<h2>Website task: [[the task's name]]</h2>
+<table>
+<tr><th>Requested</th><th>On the live site</th><th>Result</th></tr>
+<tr><td>[[Each request from the task, in its own words]]</td><td>[[Where it is on the live site]]</td><td class="r pass">Done</td></tr>
+</table>
+</section>
+
+<section class="block">
+<h2>Tracking task: [[the tracking task's name]]</h2>
+<table>
+<tr><th>Requested</th><th>On the live site</th><th>Result</th></tr>
+<tr><td>GTM code as high in the head as possible</td><td>Straight after the required meta tags, on every page</td><td class="r pass">Done</td></tr>
+<tr><td>GTM noscript right after the body tag</td><td>On every page</td><td class="r pass">Done</td></tr>
+<tr><td>GTM firing on /thank-you/</td><td>Loads there, and the conversion fires there</td><td class="r pass">Done</td></tr>
+<tr><td>Campaign page URLs stay the same</td><td>All kept; old links redirect</td><td class="r pass">Done</td></tr>
+<tr><td>Email enquiry test received</td><td>[[n]] test enquiries sent and received (next page)</td><td class="r pass">Done</td></tr>
+</table>
+</section>
+
+<section class="block">
+<h2>Next steps</h2>
+<ul>
+  <li>Enquiry emails go to [[the inbox]][[, with copies to ...]]. Let us know if this should change.</li>
+  <li>The editing guide at the end of this report shows how to change pages, forms and emails.</li>
+  <li>[[Anything optional or still open, in plain words]]</li>
+</ul>
+</section>
+
+<div class="page"></div>
+<h2>Test enquiries sent on the live site</h2>
+<table>
+<tr><th>Form</th><th>Page</th><th>Went to thank-you page</th><th>Email received</th></tr>
+<tr><td>Quote form</td><td>[[/page/]]</td><td class="pass">Yes</td><td class="pass">Yes, [[time]]</td></tr>
+<tr><td>Pop-up form</td><td>[[/page/]]</td><td class="pass">Yes</td><td class="pass">Yes, [[time]]</td></tr>
+<tr><td>Chat</td><td>[[/page/]]</td><td class="note">The chat shows its own thank-you message</td><td class="pass">Yes, [[time]]</td></tr>
+</table>
+<p class="note">Every test was named "TEST {{DEVELOPER}} - please ignore". The emails went to [[the inbox]].</p>
+<div class="grid3">
+  <figure><img src="email-form.png" alt="Quote form email"><figcaption>Quote form email</figcaption></figure>
+  <figure><img src="email-popup.png" alt="Pop-up form email"><figcaption>Pop-up form email</figcaption></figure>
+  <figure><img src="email-chat.png" alt="Chat email"><figcaption>Chat email</figcaption></figure>
+</div>
+
+<h2>The live site</h2>
+<div class="shots">
+  <figure><img src="home-desktop.png" alt="Home page on a desktop"><figcaption>Home page, desktop</figcaption></figure>
+  <figure><img src="thankyou-desktop.png" alt="Thank-you page"><figcaption>Thank-you page, where the conversion fires</figcaption></figure>
+  <figure class="tall"><img src="page-mobile.png" alt="[[page]] on a phone"><figcaption>[[Page]] on a phone</figcaption></figure>
+  <figure><img src="page2-desktop.png" alt="[[page]] on a desktop"><figcaption>[[Page]], desktop</figcaption></figure>
+</div>
+
+<div class="foot">[[Pages n to m: Website Editing Guide (how to edit the website).]]</div>
+</body></html>

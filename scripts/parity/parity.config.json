@@ -1,0 +1,58 @@
+{
+  "wp": "http://{{LOCAL_HOST}}",
+  "ref": "",
+  "refCandidates": [
+    "http://{{SITE_DIR}}-ref.test",
+    "https://{{DOMAIN}}"
+  ],
+  "widths": {
+    "quick": [
+      375,
+      390,
+      768,
+      1024,
+      1440,
+      1920
+    ],
+    "full": [
+      320,
+      375,
+      390,
+      414,
+      1440,
+      1920
+    ]
+  },
+  "breakpointsFromCss": "",
+  "maxDiff": 0.001,
+  "keepImages": "fail",
+  "block": [
+    "googletagmanager\\.com",
+    "google-analytics\\.com",
+    "googleadservices",
+    "doubleclick",
+    "clarity\\.ms",
+    "facebook\\.net",
+    "callrail",
+    "tctm\\.co",
+    "wildjar",
+    "recaptcha",
+    "/assets/chat-widget\\.js"
+  ],
+  "hide": [
+    "#wpadminbar"
+  ],
+  "reveal": {
+    "selector": ".reveal",
+    "addClass": "in"
+  },
+  "clock": "2026-01-15T10:00:00Z",
+  "textRegions": {
+    "header": "header",
+    "main": "main",
+    "footer": "footer"
+  },
+  "mask": [
+    "iframe"
+  ]
+}

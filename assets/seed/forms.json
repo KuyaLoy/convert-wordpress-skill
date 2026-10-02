@@ -1,0 +1,22 @@
+{
+  "quote": {
+    "title": "Quote Form",
+    "form_file": "quote-form.txt",
+    "body_file": "lead-email.html",
+    "subject": "New Enquiry from [name] - [service]",
+    "sender": "{{LEAD_FROM}}",
+    "recipient": "{{LEAD_TO}}",
+    "bcc": "{{LEAD_BCC}}",
+    "reply_to": "[email]"
+  },
+  "chat": {
+    "title": "Chat Lead",
+    "form_file": "chat-form.txt",
+    "body_file": "lead-email.html",
+    "subject": "New Chat Enquiry from [name] - [service]",
+    "sender": "{{LEAD_FROM}}",
+    "recipient": "{{LEAD_TO}}",
+    "bcc": "{{LEAD_BCC}}",
+    "reply_to": "[email]"
+  }
+}

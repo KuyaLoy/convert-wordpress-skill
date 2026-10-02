@@ -1,0 +1,8 @@
+<p>Fields the chat widget sends (the widget asks the questions). Name and phone are required, as on the static site.</p>
+[text* name maxlength:500]
+[text* phone maxlength:500]
+[text postcode maxlength:500]
+[text service maxlength:500]
+[text when maxlength:500]
+[textarea msg maxlength:5000]
+[text source maxlength:500]

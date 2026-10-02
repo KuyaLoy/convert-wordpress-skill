@@ -1,0 +1,10 @@
+# BEGIN Private project files
+# Planning, handoff and setup files live in the WordPress root while the site is built, but they are not part of the
+# site: deny them (and the debug log). They are also left out of the Duplicator package.
+<FilesMatch "^(BUILD-MAP|handoff|ai-handoff-summary|PLAN)\.md$|^debug\.log$">
+	Require all denied
+</FilesMatch>
+<IfModule mod_alias.c>
+	RedirectMatch 403 ^/(_plan|_setup)(/|$)
+</IfModule>
+# END Private project files

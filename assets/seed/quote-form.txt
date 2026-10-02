@@ -1,0 +1,8 @@
+[hidden source]
+<label class="hp" aria-hidden="true">Leave this empty[text company tabindex:-1 autocomplete:off]</label>
+<div class="field"><label for="name">Your Name</label>[text* name id:name autocomplete:name placeholder "e.g. Sam Lee"]</div>
+<div class="field"><label for="phone">Phone</label>[tel* phone id:phone autocomplete:tel placeholder "Your phone number"]</div>
+<div class="field"><label for="email">Email</label>[email email id:email autocomplete:email placeholder "you@example.com"]</div>
+<div class="field"><label for="service">Service</label>[select* service id:service first_as_label "Select a service"]</div>
+<div class="field"><label for="msg">How can we help?</label>[textarea msg id:msg placeholder "Tell us a little about the job"]</div>
+<button type="submit" class="btn">Send</button>

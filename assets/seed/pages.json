@@ -1,0 +1,21 @@
+[
+  {
+    "slug": "about",
+    "title": "About",
+    "kind": "page",
+    "seo": { "title": "About | {{SITE_NAME}}", "description": "The static page's meta description.", "noindex": false },
+    "crumbs": {},
+    "sections": [
+      { "acf_fc_layout": "page_head", "eyebrow": "About Us", "h1": "About", "em": "{{SITE_NAME}}", "sub": "Intro copy." },
+      { "acf_fc_layout": "final_cta", "heading": "Ready when you are", "text": "Call {phone} today." }
+    ]
+  },
+  {
+    "slug": "thank-you",
+    "title": "Thank You",
+    "kind": "page",
+    "seo": { "title": "Thank you | {{SITE_NAME}}", "description": "", "noindex": true },
+    "crumbs": { "hide": 1 },
+    "sections": [ { "acf_fc_layout": "page_head", "eyebrow": "", "h1": "Thank you", "em": "", "sub": "We will call you back soon." } ]
+  }
+]

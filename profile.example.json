@@ -1,0 +1,70 @@
+{
+  "_about": "Defaults for one developer or agency. Copy to profile.local.json (git ignores it) and fill it in. The skill reads it at intake; the site's own answers win.",
+  "developer": "Your name (test leads are named 'TEST <developer> - please ignore')",
+  "agency": "",
+  "reply_style": [
+    "Plain words, short sentences.",
+    "One step at a time for manual steps; wait for 'done'."
+  ],
+  "lead": {
+    "bcc": []
+  },
+  "task_tracker": {
+    "name": "",
+    "how_to_read": "",
+    "report_format": "PDF"
+  },
+  "stakeholder": {
+    "role": "account manager",
+    "channel": "chat message"
+  },
+  "admin_username": "",
+  "local": {
+    "_about": "Your local stack. Examples: Laragon on Windows (D:/laragon/www, .test), Local, MAMP, XAMPP, DDEV, wp-env.",
+    "stack": "Laragon",
+    "www": "D:/laragon/www",
+    "tld": ".test",
+    "db_user": "root",
+    "db_tool": "phpMyAdmin (http://localhost/phpmyadmin) or HeidiSQL"
+  },
+  "host": {
+    "_about": "Where sites go live. cPanel with Duplicator Pro is the kit's default; other hosts work too (references/launch.md).",
+    "panel": "cPanel",
+    "migration": "Duplicator Pro"
+  },
+  "tracking": {
+    "method": "GTM container in the head and the noscript after <body>",
+    "plugin": ""
+  },
+  "extra_plugins": [
+    {
+      "name": "Yoast SEO",
+      "why": "titles, descriptions, sitemap",
+      "when": "SEO sprint"
+    },
+    {
+      "name": "Redirection",
+      "why": "old URLs as 301s, editable in wp-admin",
+      "when": "SEO sprint"
+    },
+    {
+      "name": "Contact Form CFDB7",
+      "why": "keeps every enquiry in the database",
+      "when": "forms or launch"
+    },
+    {
+      "name": "Converter for Media",
+      "why": "WebP for images uploaded later",
+      "when": "launch"
+    },
+    {
+      "name": "Duplicator Pro",
+      "why": "the move to live",
+      "when": "launch"
+    }
+  ],
+  "plugin_zips": {
+    "_about": "Paths on this machine to plugin zips you bought (never the licence keys: those go in each site's wp-config.php, pasted by you).",
+    "acf_pro": ""
+  }
+}

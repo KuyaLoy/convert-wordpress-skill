@@ -1,0 +1,14 @@
+{
+  "primary": {
+    "name": "Primary",
+    "items": [
+      { "title": "Services", "slug": "services", "children": [ { "title": "Example Service", "slug": "example-service", "icon": "build" } ] },
+      { "title": "About", "slug": "about" },
+      { "title": "Contact us", "slug": "contact-us", "classes": "nav-cta" }
+    ]
+  },
+  "footer_legal": {
+    "name": "Footer: Legal",
+    "items": [ { "title": "Privacy", "slug": "privacy-policy" }, { "title": "Terms", "slug": "terms" } ]
+  }
+}

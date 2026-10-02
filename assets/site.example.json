@@ -1,0 +1,35 @@
+{
+  "site_name": "Example Co",
+  "legal_name": "Example Co Ltd",
+  "domain": "example.com",
+  "site_dir": "example",
+  "wp_root": "D:/laragon/www/example",
+  "local_host": "example.test",
+  "theme": "example",
+  "prefix": "example",
+  "key": "ex",
+  "starter": "barebones",
+  "developer": "the developer",
+  "brand_colour": "#1F4E79",
+  "schema_type": "Organization",
+  "area_served": "",
+  "country_code": "",
+  "price_range": "",
+  "og_locale": "en_US",
+  "html_attributes": "lang=\"en\"",
+  "timezone": "UTC",
+  "form_class": "contact-form",
+  "chat_selector": "",
+  "phone_display": "+1 555 0100",
+  "phone_tel": "+15550100",
+  "email": "hello@example.com",
+  "gtm": "GTM-XXXXXXX",
+  "font_links": [
+    "<link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap\" rel=\"stylesheet\">"
+  ],
+  "lead": {
+    "to": "office@example.com",
+    "bcc": [],
+    "from": "Example Co <no-reply@example.com>"
+  }
+}

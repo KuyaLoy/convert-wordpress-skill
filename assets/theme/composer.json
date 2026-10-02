@@ -1,0 +1,21 @@
+{
+    "name": "{{THEME}}/{{THEME}}-theme",
+    "description": "{{SITE_NAME}} WordPress theme. Composer is used for development checks only.",
+    "type": "wordpress-theme",
+    "license": "GPL-2.0-or-later",
+    "require-dev": {
+        "wp-coding-standards/wpcs": "^3.1",
+        "phpcompatibility/php-compatibility": "^10.0@alpha",
+        "phpcompatibility/phpcompatibility-wp": "^3.0@alpha"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "scripts": {
+        "lint": "phpcs"
+    },
+    "minimum-stability": "alpha",
+    "prefer-stable": true
+}

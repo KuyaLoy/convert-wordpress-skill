@@ -1,0 +1,10 @@
+{
+  "business_name": "{{SITE_NAME}}",
+  "legal_name": "{{LEGAL_NAME}}",
+  "phone_display": "{{PHONE_DISPLAY}}",
+  "phone_tel": "{{PHONE_TEL}}",
+  "email": "{{EMAIL}}",
+  "address": { "locality": "", "region": "", "postcode": "", "country": "AU" },
+  "schema_image": "/assets/logo-mark.png",
+  "qf_service_options": [ { "label": "General enquiry" }, { "label": "Not sure, need advice" } ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "{{THEME}}-parity",
+  "private": true,
+  "type": "module",
+  "description": "1:1 checks: WordPress against the static reference. Local only, never deployed.",
+  "scripts": {
+    "parity": "node parity.mjs",
+    "quick": "node parity.mjs --widths=quick",
+    "full": "node parity.mjs --widths=full",
+    "self": "node parity.mjs --self --widths=390,1440"
+  },
+  "dependencies": {
+    "pixelmatch": "^7.1.0",
+    "playwright": "^1.55.0",
+    "pngjs": "^7.0.0"
+  }
+}

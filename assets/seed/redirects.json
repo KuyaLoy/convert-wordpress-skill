@@ -1,0 +1,5 @@
+[
+  { "from": "/old-about-page/", "to": "/about/", "group": "Old site pages" },
+  { "from": "/category/news/", "to": "/blog/", "group": "Old site archives" },
+  { "from": "^/old-theme-part(/.*)?$", "to": "/", "regex": true, "group": "Old site archives" }
+]
