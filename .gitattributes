@@ -12,3 +12,7 @@
 *.woff2 binary
 *.pdf binary
 *.zip binary
+
+# The website and the GitHub workflow are not part of the skill: release archives leave them out
+site/ export-ignore
+.github/ export-ignore

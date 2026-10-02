@@ -23,3 +23,4 @@ each agent.
 - Record every change in `CHANGELOG.md`: under Unreleased while you work, then under a new version (Semantic
   Versioning) when it is released.
 - Licence: GPL-2.0-or-later.
+- `site/` is the website (see `site/README.md`), not part of the skill: never read it while converting a site.

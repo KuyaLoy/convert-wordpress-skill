@@ -8,6 +8,8 @@ It works with any source (plain HTML, Next.js, React, Astro, Vue, Gatsby, Nuxt, 
 and any country or language, and with any agent that reads skills: Claude, Codex, Cursor, Gemini CLI, Antigravity,
 Grok Build and others.
 
+Website: https://kuyaloy.github.io/convert-wordpress-skill/
+
 ## What it does
 
 - **Studies the source first:** the stack, the routes, Tailwind or plain CSS, forms, tracking, fonts, languages and

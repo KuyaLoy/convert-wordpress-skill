@@ -1,0 +1,41 @@
+name: Share your setup
+description: You ran the skill on a setup we have not tested. Tell us how it went.
+labels: [setup report]
+body:
+  - type: markdown
+    attributes:
+      value: Every setup report helps the next person. Leave out client names, passwords and personal data.
+  - type: input
+    id: agent
+    attributes:
+      label: Your AI agent
+      placeholder: Claude Code, Codex, Cursor, Gemini CLI...
+    validations:
+      required: true
+  - type: input
+    id: computer
+    attributes:
+      label: Your computer and local WordPress tool
+      placeholder: Windows 11 with XAMPP, macOS with MAMP, Linux with DDEV...
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: What the old site was built with
+      placeholder: Plain HTML, Next.js, Astro, PHP and Tailwind...
+  - type: dropdown
+    id: result
+    attributes:
+      label: How far did you get?
+      options:
+        - The plan (Sprint 0)
+        - Part of the build
+        - The whole build
+        - Live
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: What worked, what did not

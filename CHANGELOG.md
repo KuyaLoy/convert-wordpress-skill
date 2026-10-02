@@ -5,6 +5,13 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+### Added
+
+- The website in `site/`: a landing page in a retro pixel style (Next.js static export, Tailwind 4, 8bitcn/ui,
+  Pixelarticons), published to GitHub Pages by `.github/workflows/pages.yml`. Its patch notes are read from this
+  file. Release archives leave `site/` and `.github/` out.
+- CONTRIBUTING.md and two issue templates: Report a problem, Share your setup.
+
 ## [0.3.0] - 2026-10-03
 
 ### Added

@@ -1,0 +1,38 @@
+name: Report a problem
+description: Something in the skill did not work as described.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for reporting. Never paste passwords, licence keys, API keys or anyone's personal data here.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you asked the agent, what it did, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: The error
+      description: Paste the error lines (text, not a screenshot), with secrets removed.
+      render: text
+  - type: input
+    id: agent
+    attributes:
+      label: Your AI agent
+      placeholder: Claude Code, Codex, Cursor, Gemini CLI...
+    validations:
+      required: true
+  - type: input
+    id: setup
+    attributes:
+      label: Your computer and local WordPress tool
+      placeholder: Windows 11 with Laragon, macOS with Local...
+  - type: input
+    id: version
+    attributes:
+      label: Skill version
+      description: The top version in CHANGELOG.md of your copy.
+      placeholder: "0.3.0"
