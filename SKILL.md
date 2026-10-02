@@ -231,8 +231,8 @@ package with the filters from `python3 _plan/tools/launch/duplicator-filters.py 
 for _tw) > database and PHP on the host > the old site moved into a sibling folder (rollback = move it back) >
 installer > `installer.php` answers 404 and no archive is left > wp-config `production`, debug off > `.htaccess` from
 `htaccess-live.txt` > wp-admin: search engines allowed, permalinks saved, reCAPTCHA keys and ACF licence (the
-developer), tracking, the live plugins (S1-02) active, debug.log read once, the plugin list noted. Rollback if a check
-fails and cannot be fixed quickly. Details: `references/launch.md`.
+developer), tracking, the live plugins (S1-02) active, debug.log read once, the plugin list noted. Rollback if a
+check fails and cannot be fixed quickly. Details: `references/launch.md`.
 
 ## Live QA and the report
 

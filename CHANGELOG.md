@@ -5,6 +5,10 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-03
+
+Tested on a real PHP and Tailwind landing page, Sprint 0 and all of Sprint 1.
+
 ### Changed
 
 - Starter plugins: ACF PRO, Contact Form 7 and Yoast SEO (Yoast was a later install).
