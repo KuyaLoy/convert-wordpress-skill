@@ -11,8 +11,7 @@ behaves the same at every screen size, keeps every URL and SEO signal, and lets 
 wp-admin: content in ACF PRO fields, forms and emails in Contact Form 7. Any stack, any kind of business, any
 country and language.
 
-Its lessons come from a reference build (a 36-page business site converted from a Next.js static export, live in
-2026) and from testing the kit on a real WordPress install.
+Its lessons come from real builds: a 36-page Next.js export (live in 2026) and a PHP and Tailwind landing page.
 
 ## The kit
 
@@ -117,9 +116,10 @@ update both handoff files.
 ## Start: intake
 
 1. **An existing project?** Read `ai-handoff-summary.md`, run gate.py, continue from the Next action.
-2. **Read what is there** before asking: the profile, the task tracker's tasks (through a connector, or the
-   developer pastes them), the source.
-3. **Study the source:** `python3 <kit>/scripts/analyze-source.py <source> --json <wp_root>/_plan/analyze.json
+2. **Get the source** given with the command (`/convert-to-wordpress <git URL, zip or folder>`) or in words; none
+   given: ask for it. Ask, then `python3 <kit>/scripts/get-source.py <source>`: a working copy `<name>-source`
+   (shallow clone, safe unzip or copy; the original is never touched). Read the profile and the task tracker's tasks.
+3. **Study the copy:** `python3 <kit>/scripts/analyze-source.py <name>-source --json <wp_root>/_plan/analyze.json
    --site-draft <wp_root>/_plan/site.json`: the stack, Tailwind (so the starter), routes, forms, tracking, fonts,
    libraries, secrets to never copy, and the golden master (`references/source-types.md`).
 4. **Ask once**, in one batch (a question tool if your agent has one, otherwise a short numbered list), only what
@@ -127,9 +127,8 @@ update both handoff files.
    local stack, folder and URL; how to create the database; the old site and its URLs (if one is replaced); lead
    email recipients; country, language(s) and right-to-left; the host and how the site moves to live.
 5. **Finish** the drafted `site.json` with the answers (every field: `references/setup.md`).
-6. **Create the project:** `python3 <kit>/scripts/new-site.py <wp_root>/_plan/site.json --plan-only`. It writes
-   `_plan/` (plan templates and tools), `_setup/`, BUILD-MAP.md, both handoff files and the private-files block in
-   `.htaccess`. Then Sprint 0.
+6. **Create the project:** `python3 <kit>/scripts/new-site.py <wp_root>/_plan/site.json --plan-only` (plan,
+   tools, BUILD-MAP.md, handoff files, private-files block). Then Sprint 0, up to its gate and the developer's go.
 
 ## Sprint 0: Planning (no code)
 
@@ -243,16 +242,16 @@ node _plan/tools/report/shots.mjs https://<domain> /:1440:home-desktop /thank-yo
 node _plan/tools/report/pdf.mjs _setup/launch/report.html Final-Live-Check.pdf [Editing-Guide.pdf]
 ```
 
-live-qa.py exits 3 when the host's bot filter blocks scripts: run `live-qa-console.js` in a real browser tab. Three
-test leads (inline form, pop-up, chat) named `TEST <developer> - please ignore`, sent with the real submit button,
-after the developer agrees; the developer confirms the emails and the host's delivery log. Fill `report.html` with
-verified facts only (`grep -n "\[\[" report.html` prints nothing), make one PDF, and draft the task comment and the
-stakeholder message (login with `[PASTE PASSWORD HERE]`). Details: `references/qa-report.md`.
+Three test leads (inline form, pop-up, chat) named `TEST <developer> - please ignore`, sent with the real submit
+button, after the developer agrees; the developer confirms the emails and the host's delivery log. Fill
+`report.html` with verified facts only (`grep -n "\[\[" report.html` prints nothing), make one PDF, and draft the
+task comment and the stakeholder message (login with `[PASTE PASSWORD HERE]`). Details: `references/qa-report.md`.
 
 ## Scripts at a glance
 
 | Script (in the project: `_plan/tools/...`) | Does |
 |---|---|
+| `scripts/get-source.py` | The working copy of the source: git clone, safe unzip or copy |
 | `scripts/analyze-source.py` | Studies the source: stack, routes, Tailwind, forms, tracking, the golden-master method |
 | `scripts/new-site.py` | `--plan-only` for Sprint 0; then prepares the starter theme and copies the kit in |
 | `scripts/snapshot-routes.mjs` | Rendered HTML of every route, for client-rendered or server sources |
@@ -261,8 +260,6 @@ stakeholder message (login with `[PASTE PASSWORD HERE]`). Details: `references/q
 | `scripts/seed/export.mjs`, `export-pages.py` | Static content into `_setup/seed/` for Tools > Seeder |
 | `scripts/build-map/gate.py`, `render.py` | The sprint gate; the private board page |
 | `scripts/parity/` (the theme's `tests/parity/`) | Pixel, text, SEO and DOM diffs; breakpoints; mirror and server for cloud runs |
-| `scripts/launch/duplicator-filters.py` | The Duplicator Pro filter list |
-| `scripts/report/` | Live QA (script and browser console), tracking proof, screenshots, PDF |
 
 ## Done means
 

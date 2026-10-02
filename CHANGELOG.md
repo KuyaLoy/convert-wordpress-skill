@@ -5,6 +5,22 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-03
+
+### Added
+
+- One-command start: `/convert-to-wordpress <git URL, zip or folder>`. New `scripts/get-source.py` makes the
+  working copy `<name>-source` (shallow git clone, safe unzip with a single top folder unwrapped, or a copy without
+  node_modules and .git), writes `.source.json` (origin, commit or SHA-256, date) and lists secret files. The
+  original is never touched.
+- analyze-source.py creates the folders for `--json` and `--site-draft`.
+- README: how to start, with sample commands and plain-word prompts.
+
+### Fixed
+
+- analyze-source.py reads the `<html>` attributes (lang, dir) from the home page (`index.html` nearest the top),
+  not the first HTML file found.
+
 ## [0.2.0] - 2026-10-03
 
 Tested on a real PHP and Tailwind landing page, Sprint 0 and all of Sprint 1.

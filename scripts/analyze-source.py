@@ -142,8 +142,13 @@ def main():
             built[d] = {'html_files': len(htmls), 'sampled_with_text': rendered, 'sampled': min(20, len(htmls))}
     r['built_output'] = built
     # The <html> attributes (lang, dir) of the first rendered page: WordPress must print the same.
-    first = next((x for d in ('out', 'dist', 'build', 'public', '') for x in walk(os.path.join(base, d) if d else base)
-                  if x.endswith('.html')), None) if built or r['stack'] == 'static-html' else None
+    first = None
+    if built or r['stack'] == 'static-html':
+        for d in ('out', 'dist', 'build', 'public', ''):
+            hs = [x for x in walk(os.path.join(base, d) if d else base) if x.endswith('.html')]
+            if hs:  # the home page first: index.html nearest the top
+                first = sorted(hs, key=lambda x: (os.path.basename(x) != 'index.html', x.count(os.sep), x))[0]
+                break
     if not first and r['stack'] == 'php':
         cands = [x for x in walk(base, skip_built=True) if x.endswith('.php') and re.search(r'<html\b[^>]*\blang=', read(x, 600_000))]
         first = sorted(cands, key=lambda x: (0 if re.search(r'header|index|layout|head', os.path.basename(x)) else 1, len(x)))[0] if cands else None
@@ -316,6 +321,7 @@ def main():
         draft['_from_source'] = ('starter, gtm, html_attributes and font_links come from analyze-source.py; '
                                  'every other value is the example and must come from the intake')
         out = sys.argv[sys.argv.index('--site-draft') + 1]
+        os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
         if os.path.exists(out):
             print(f'site draft: {out} exists, not overwritten')
         else:
@@ -323,6 +329,7 @@ def main():
             print(f'site draft: {out} written (fill the rest from the intake)')
     if '--json' in sys.argv:
         out = sys.argv[sys.argv.index('--json') + 1]
+        os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
         json.dump(r, open(out, 'w', encoding='utf-8'), indent=2)
     print(f"stack: {s}" + (f" (Next {r['next']['version']}, static export {r['next']['static_export']}, conditional export {r['next']['conditional_export']})" if s == 'nextjs' else ''))
     if s == 'nextjs':

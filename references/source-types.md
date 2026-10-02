@@ -16,7 +16,8 @@ get it, served unchanged, that every WordPress page is compared against.
 
 ## Study first
 
-1. `python3 <kit>/scripts/analyze-source.py <source> --json <wp_root>/_plan/analyze.json --site-draft
+1. `python3 <kit>/scripts/get-source.py <git URL, zip or folder>` makes the working copy `<name>-source` (ask
+   first: a clone or an unzip is a download). Then `python3 <kit>/scripts/analyze-source.py <name>-source --json <wp_root>/_plan/analyze.json --site-draft
    <wp_root>/_plan/site.json` (read only). It reports the stack, the build scripts, built output already there,
    Tailwind (and so the starter theme), routes and dynamic routes, content sources, forms and the code that sends
    mail, tracking ids (placeholders like GTM-XXXXXXX are skipped), fonts (Google and self-hosted), icons and

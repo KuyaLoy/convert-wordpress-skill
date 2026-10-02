@@ -21,7 +21,8 @@ If the project exists, read `ai-handoff-summary.md` and continue from its Next a
 there first (the source, the task, the profile), then ask once, in one batch, only what you could not find:
 
 1. Site name and live domain.
-2. The source: folder, repo or zip; its built output if any; whether the static site is live now, and where.
+2. The source: folder, repo or zip (usually given with the command: `/convert-to-wordpress <git URL, zip or
+   folder>`); its built output if any; whether the static site is live now, and where.
 3. The task tracker: which tasks belong to this build (website, tracking, SEO) and how to read them (a connector,
    or the developer pastes them). Pull out: requested pages, the GTM ID, where tags must fire (`/thank-you/`),
    rules such as "campaign URLs stay the same", lead recipients, deadlines. The task's requirements are in scope;
@@ -75,7 +76,8 @@ host, extra plugins, reply style. site.json wins where both set a value.
 | Folder | What | Rule |
 |---|---|---|
 | `<www>/<site>` | WordPress, the plan (`_plan/`), setup files (`_setup/`), BUILD-MAP and handoff | The only folder the build writes |
-| The source | The designer's code | Read only. Build or `npm install` only in a copy |
+| The source | The designer's code (a folder, a repo or a zip) | Never touched |
+| `<www>/<name>-source` | The working copy `get-source.py` makes (shallow clone, safe unzip or copy, with `.source.json`: where it came from, the commit or SHA-256) | Builds and `npm install` happen here only |
 | `<www>/<site>-ref` | The golden master: the static build, served unchanged | Never edited |
 
 The private files (`_plan`, `_setup`, BUILD-MAP.md, the handoff files, debug.log) are blocked by the root

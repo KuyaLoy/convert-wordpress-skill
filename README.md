@@ -52,9 +52,17 @@ the Bcc list for lead emails, your task tracker, your local stack, your host, th
 
 ## Use
 
-Ask your agent to convert a site, for example "convert this site to WordPress" with the source folder, or invoke
-the skill by name (`/convert-to-wordpress` in Claude Code, `$convert-to-wordpress` in Codex). It reads what is
-there, asks what it cannot find, and starts Sprint 0.
+Give the skill the site to convert, as a git URL, a zip or a folder:
+
+```
+/convert-to-wordpress https://github.com/you/your-site      Claude Code (Codex: $convert-to-wordpress ...)
+/convert-to-wordpress D:/sites/my-site.zip
+/convert-to-wordpress ./my-site
+```
+
+Or in plain words: "Convert the site in D:/sites/my-site to WordPress". It makes a working copy (the original is
+never touched), studies it, asks only what it cannot find out, writes the plan and Sprint 0, and stops at the gate
+for your go. Later: "continue the WordPress conversion" (it reads the handoff summary), "where are we?", "go".
 
 ## Requirements
 

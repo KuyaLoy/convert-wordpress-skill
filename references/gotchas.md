@@ -125,3 +125,7 @@ project's handoff.md (Failed Attempts) as they happen.
   (underscoretw.com) and gives the same zip.
 - Research links found before a context reset are lost: write sources (with the date checked) into ARCHITECTURE.md
   as you go. Re-check plugin versions right before installing.
+- The first HTML file a folder walk finds is often not the home page (about.html sorts before index.html): read
+  site-wide facts such as the `<html lang dir>` attributes from `index.html` nearest the top.
+- Work on a copy of the source (`get-source.py`), never the folder the developer gave: an `npm install` or a build
+  changes it, and a source folder can be tied to a live site.
