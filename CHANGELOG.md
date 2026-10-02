@@ -22,6 +22,9 @@ follows [Keep a Changelog](https://keepachangelog.com).
   files holding secrets or personal data (never copied).
 - `--site-draft` writes a first site.json from the source; new-site.py fills SOURCE-NOTES.md section 1 from
   `_plan/analyze.json`.
+- new-site.py writes the parity `routes.json` from the source's routes and sets the reveal rule for AOS.
+- Setup guide: the direct underscoretw.com download for when `wp package install` fails. Gotchas: PHP source URLs,
+  env stubs for the golden master, cache-busting queries, AOS in screenshots.
 
 ## [0.1.0] - 2026-10-02
 

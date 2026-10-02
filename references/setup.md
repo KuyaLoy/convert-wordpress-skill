@@ -119,7 +119,10 @@ confirms (decision D2 on the board). Both are classic PHP themes under GPL-2.0-o
 - **_tw** (underscoretw.com; Tailwind 4 and esbuild): generate it with the slug and prefix, never copy the raw repo
   (its names stay `_tw`). With WP-CLI (needs PHP in the shell): `wp package install underscoretw/scaffold`, then
   `wp scaffold _tw <theme> --theme_name="<Site>" --prefix=<prefix>`. Or on underscoretw.com: Generate, unzip into
-  `wp-content/themes/`. WordPress loads `<theme>/theme`; the folder around it holds the Tailwind and build files.
+  `wp-content/themes/`. When `wp package install` fails (some proxies break Composer's GitHub access), the same zip
+  comes straight from the generator (POST to the home page with `underscoretw_cli=1`, as the WP-CLI package does):
+  `curl -X POST https://underscoretw.com/ -d underscoretw_generate=1 -d underscoretw_cli=1 --data-urlencode
+  "underscoretw_name=<Site>" -d underscoretw_slug=<theme> -d underscoretw_prefix=<prefix> -o <theme>.zip`. WordPress loads `<theme>/theme`; the folder around it holds the Tailwind and build files.
 
 Then:
 

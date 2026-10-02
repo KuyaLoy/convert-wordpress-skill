@@ -347,6 +347,25 @@ def source_rows(text):
         text = text.rstrip() + ('\n\n## 6. Secrets and personal data in the source (never copied, never read)\n\n'
                                 + '\n'.join(f'- `{x}`' for x in an['private_files']) + '\n')
     return text
+
+
+def parity_tune(dst, text):
+    # The parity routes and the reveal rule from what analyze-source.py found.
+    if not an:
+        return text
+    if dst.endswith(os.path.join('parity', 'routes.json')):
+        routes = [x for x in an.get('routes', []) if '[' not in x and ':' not in x]
+        if routes:
+            if not any('thank' in x for x in routes):
+                routes.append('/thank-you/')
+            return json.dumps(routes + ['/parity-missing-page/']) + '\n'
+    if dst.endswith(os.path.join('parity', 'parity.config.json')) and 'AOS' in (an.get('libraries') or []):
+        cfg = json.loads(text)
+        cfg['reveal'] = {'selector': '[data-aos]', 'addClass': 'aos-animate'}
+        return json.dumps(cfg, indent=2) + '\n'
+    return text
+
+
 for src, dst in plan:
     if not os.path.exists(src):
         continue
@@ -364,7 +383,7 @@ for src, dst in plan:
             shutil.copy2(dst, bak)
     written.append(r)
     if src.endswith(TEXT) or os.path.basename(src).startswith('.'):
-        write(dst, source_rows(fill(read(src))) if dst.endswith('SOURCE-NOTES.md') else fill(read(src)))
+        write(dst, source_rows(fill(read(src))) if dst.endswith('SOURCE-NOTES.md') else parity_tune(dst, fill(read(src))))
     elif not a.dry_run:
         os.makedirs(os.path.dirname(dst), exist_ok=True)
         shutil.copyfile(src, dst)

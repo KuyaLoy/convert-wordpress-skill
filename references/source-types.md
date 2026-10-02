@@ -36,7 +36,7 @@ get it, served unchanged, that every WordPress page is compared against.
 | Source | Golden master | How |
 |---|---|---|
 | Plain HTML | The files themselves | Serve the folder unchanged (`serve.py <folder> <port>`) |
-| PHP pages (index.php plus partials, often Tailwind) | Rendered HTML per route | Serve a copy as its own local site (`<site>-ref.test`), then `node snapshot-routes.mjs http://<site>-ref.test golden/ <routes>`; `.htaccess` decides the real URLs (`/thankyou` or `/thankyou/`); the CSS is the compiled file the pages load |
+| PHP pages (index.php plus partials, often Tailwind) | Rendered HTML per route | Serve a copy as its own local site (`<site>-ref.test`), then `node snapshot-routes.mjs http://<site>-ref.test golden/ <routes>`; `.htaccess` decides the real URLs (`/thankyou` or `/thankyou/`); the CSS is the compiled file the pages load. If the pages need an env file to run, give the copy a stub with blank values (never the real `.env`) |
 | Next.js, static export (`output: 'export'`, maybe only when an env var is set) | `out/` | In a copy: `npm ci`, the export build (read the scripts: often `build:static` or an env flag), serve `out/` |
 | Next.js, server build | Rendered HTML per route | `npm run build && npm start` in a copy, then `node snapshot-routes.mjs http://localhost:3000 golden/ sitemap`; pixels from the running app |
 | React or Vue SPA (Vite, CRA) | The running app plus snapshots | `npm run build && npm run preview` (Vite, port 4173) or `npx serve -s build`; snapshots per route (React Router paths). SPAs need a history fallback: serve.py does not do that |

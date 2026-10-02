@@ -70,6 +70,16 @@ project's handoff.md (Failed Attempts) as they happen.
 - React prints no whitespace between tags: strip it in templates (inline-block gaps), tab-only gaps and the buffer
   edges included.
 
+- PHP sources: `.htaccess` strips `.php` and may drop the trailing slash (`/thankyou`, not `/thankyou/`). Keep the
+  same URLs in WordPress, or 301 the old form; the PHP built-in server needs a router that does what `.htaccess`
+  does.
+- PHP sources load `config/env.php` and `.env` before anything else: the golden-master copy gets a stub that
+  returns blank values. The real files hold SMTP and reCAPTCHA keys and stay on the developer's machine.
+- Asset URLs with a cache-busting query (`style.min.css?v=1790926827`) change on every build: the DOM diff
+  compares the path, not the query.
+- AOS hides `[data-aos]` until it adds `aos-animate`: the parity reveal rule must add that class (new-site.py sets
+  it when analyze-source.py finds AOS), or every screenshot is blank below the fold.
+
 ## Live and hosting
 
 - LiteSpeed can serve a soft 404 (status 200) on a repeat request: check the 404 twice.
