@@ -7,6 +7,7 @@ then run the seeder twice: the second run must say "same" everywhere.
 | Script | Reads | Writes |
 |---|---|---|
 | `export.mjs` | the static content modules (bundled), the static `out/` and `public/` | `media.json` + `files/`, `settings.json`, `menus.json`, `template-pages.json`, `content.json` |
+| `php-content.php` | a PHP source's content variables (`data/*.php`, config) | `content.mjs` for `export.mjs` (secrets and recipients left out) |
 | `export-pages.py` | the static build's HTML | `pages.json` (Page Sections rows for the one-off pages) |
 
 The other seed files are written by hand from the examples in `_setup/seed/` (the skill's `assets/seed/`): `forms.json`, `quote-form.txt`,

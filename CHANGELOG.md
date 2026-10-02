@@ -28,6 +28,8 @@ follows [Keep a Changelog](https://keepachangelog.com).
   Google font links.
 - `tests/parity/swaptest.py`: the S1-05 swap test as a tool (the golden master with the theme CSS, one origin).
   `tests/parity/region-check.mjs`: the S1-07 pixel check of header, footer and pop-up before pages exist.
+- `seed/php-content.php`: a PHP source's content variables as content.mjs for export.mjs (secrets and lead
+  recipients left out).
 - Setup guide: the direct underscoretw.com download for when `wp package install` fails. Gotchas: PHP source URLs,
   env stubs for the golden master, cache-busting queries, AOS in screenshots.
 

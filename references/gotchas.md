@@ -89,6 +89,12 @@ project's handoff.md (Failed Attempts) as they happen.
 - Google Fonts preconnects on a site with self-hosted fonts are extra head tags: KITWP_PRECONNECT_FONTS is on only
   when site.json has Google font links.
 
+- PHP sources keep content in PHP variables (`data/global-content.php`): `seed/php-content.php` turns them into the
+  content.mjs that export.mjs reads. Their config also holds lead recipients (Bcc, CC, CRM inboxes): those are
+  never exported or printed; site.json's lead block gets them from the intake.
+- The example seed files are examples: the media step fails on the example image until export.mjs writes real
+  files. Settings and menus seeded twice: the second run says "same".
+
 ## Live and hosting
 
 - LiteSpeed can serve a soft 404 (status 200) on a repeat request: check the 404 twice.
