@@ -102,6 +102,7 @@ values = {
     # ignore on the line before it (the closing ?> eats its newline, so the page shows only the link).
     'FONT_LINKS': '\n'.join('<?php // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet ?>\n' + l
                             for l in site.get('font_links', [])),
+    'PRECONNECT_FONTS': 'true' if any('fonts.googleapis' in l for l in site.get('font_links', [])) else 'false',
     'PHONE_DISPLAY': site.get('phone_display', ''),
     'PHONE_TEL': site.get('phone_tel', ''),
     'EMAIL': site.get('email', ''),

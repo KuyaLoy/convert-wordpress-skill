@@ -80,6 +80,15 @@ project's handoff.md (Failed Attempts) as they happen.
 - AOS hides `[data-aos]` until it adds `aos-animate`: the parity reveal rule must add that class (new-site.py sets
   it when analyze-source.py finds AOS), or every screenshot is blank below the fold.
 
+- Swap test with the theme on another origin than the page: the fonts are blocked (no CORS header) and the diff
+  looks like a broken CSS. swaptest.py copies the theme assets next to the pages so both load from one origin.
+- Region screenshots of a footer under an empty WordPress `<main>`: the footer sits at another fractional offset
+  (text 1 px off) and fixed overlays (cookie bar, chat button) land on different parts of it. Hide `main` and the
+  overlays on both sides (region-check.mjs does by default for `main`).
+- Some static sources never close `</body></html>`: split the golden master at `</main>` and take the rest.
+- Google Fonts preconnects on a site with self-hosted fonts are extra head tags: KITWP_PRECONNECT_FONTS is on only
+  when site.json has Google font links.
+
 ## Live and hosting
 
 - LiteSpeed can serve a soft 404 (status 200) on a repeat request: check the 404 twice.

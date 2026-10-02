@@ -23,8 +23,15 @@ again. Fields replace content, never structure, classes or order.
 ## Foundation: CSS, head, clean-up, global layout
 
 - **CSS:** Barebones: the static build's compiled CSS byte for byte (Vite `cssMinify: false`). _tw: the same
-  Tailwind version and tokens, compiled from the theme (`references/source-types.md`). Either way the swap test
-  (the static build with the theme CSS swapped in) must diff 0.000%.
+  Tailwind version and tokens, compiled from the theme (`references/source-types.md`). A source with several
+  stylesheets or critical CSS inlined in its `<head>`: copy its compiled files into the theme with the same
+  `assets/` layout and list them in `config.php`: `KITWP_STYLESHEETS` (in the static order; the starter's own
+  stylesheet is then left out) and `KITWP_INLINE_CSS` (printed in a `<style>` before them, `url(assets/` turned
+  into theme URLs). Self-hosted fonts the static head preloads: `KITWP_PRELOAD_FONTS`. Either way the swap test
+  must diff 0.000%: `tests/parity/swaptest.py` writes the golden master with the theme's CSS swapped in, served from
+  one origin, and `parity.mjs` compares it with the golden master.
+- **Global layout check (S1-07):** before the pages exist, compare regions, not pages: `region-check.mjs` (pixels
+  of header, footer, pop-up, with `main` and fixed overlays hidden on both sides) and `domdiff.py` (structure).
 - **Nothing else styles the page** (`cleanup.php`): block library, classic and global styles (and the footer copy),
   block supports, the image auto-sizes CSS, CF7's CSS, emoji, and the head extras. The admin bar is hidden on the
   front end (it shifts the layout).

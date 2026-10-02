@@ -15,8 +15,10 @@
  * @return void
  */
 function kitwp_head_tags() {
-	echo '<link rel="preconnect" href="https://fonts.googleapis.com">' . "\n";
-	echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">' . "\n";
+	if ( KITWP_PRECONNECT_FONTS ) {
+		echo '<link rel="preconnect" href="https://fonts.googleapis.com">' . "\n";
+		echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">' . "\n";
+	}
 	echo '<meta name="theme-color" content="' . esc_attr( KITWP_BRAND_COLOUR ) . '">' . "\n";
 	if ( ! has_site_icon() ) {
 		// The static favicon set, from the theme's assets/brand/ (a file that is not there yet is left out).
@@ -56,6 +58,11 @@ add_filter( 'language_attributes', 'kitwp_html_attributes' );
  * @return void
  */
 function kitwp_head_preloads() {
+	foreach ( KITWP_PRELOAD_FONTS as $kitwp_file ) {
+		if ( file_exists( get_stylesheet_directory() . '/' . ltrim( $kitwp_file, '/' ) ) ) {
+			echo '<link rel="preload" href="' . esc_url( kitwp_asset( $kitwp_file ) ) . '" as="font" type="font/' . esc_attr( pathinfo( $kitwp_file, PATHINFO_EXTENSION ) ) . "\" crossorigin>\n";
+		}
+	}
 	foreach ( KITWP_PRELOAD_ASSETS as $kitwp_file ) {
 		if ( file_exists( get_stylesheet_directory() . '/' . ltrim( $kitwp_file, '/' ) ) ) {
 			echo '<link rel="preload" as="image" href="' . esc_url( kitwp_asset( $kitwp_file ) ) . "\">\n";
@@ -81,3 +88,48 @@ function kitwp_head_preloads() {
 	}
 }
 add_action( 'wp_head', 'kitwp_head_preloads', 0 );
+
+/**
+ * The static site's stylesheets (KITWP_STYLESHEETS) in its order, in place of the starter's own stylesheet.
+ *
+ * @return void
+ */
+function kitwp_static_styles() {
+	if ( ! KITWP_STYLESHEETS ) {
+		return;
+	}
+	$kitwp_theme_uri = get_template_directory_uri();
+	foreach ( wp_styles()->queue as $kitwp_handle ) {
+		$kitwp_src = (string) ( wp_styles()->registered[ $kitwp_handle ]->src ?? '' );
+		if ( 0 === strpos( $kitwp_src, $kitwp_theme_uri ) || 0 === strpos( $kitwp_src, get_stylesheet_directory_uri() ) ) {
+			wp_dequeue_style( $kitwp_handle );
+		}
+	}
+	foreach ( KITWP_STYLESHEETS as $kitwp_i => $kitwp_file ) {
+		$kitwp_path = get_stylesheet_directory() . '/' . ltrim( $kitwp_file, '/' );
+		if ( file_exists( $kitwp_path ) ) {
+			wp_enqueue_style( 'kitwp-static-' . $kitwp_i, kitwp_asset( $kitwp_file ), [], (string) filemtime( $kitwp_path ) );
+		}
+	}
+}
+add_action( 'wp_enqueue_scripts', 'kitwp_static_styles', 20 );
+
+/**
+ * The static site's inline <style> (KITWP_INLINE_CSS), before the stylesheets, as on the static page.
+ *
+ * @return void
+ */
+function kitwp_inline_styles() {
+	$kitwp_css = '';
+	foreach ( KITWP_INLINE_CSS as $kitwp_file ) {
+		$kitwp_path = get_stylesheet_directory() . '/' . ltrim( $kitwp_file, '/' );
+		if ( file_exists( $kitwp_path ) ) {
+			$kitwp_css .= (string) file_get_contents( $kitwp_path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a theme file.
+		}
+	}
+	if ( '' !== $kitwp_css ) {
+		$kitwp_css = str_replace( [ 'url(assets/', "url('assets/", 'url("assets/' ], [ 'url(' . kitwp_asset( 'assets/' ), "url('" . kitwp_asset( 'assets/' ), 'url("' . kitwp_asset( 'assets/' ) ], $kitwp_css );
+		echo '<style>' . wp_strip_all_tags( $kitwp_css ) . "</style>\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the theme's own CSS, tags stripped.
+	}
+}
+add_action( 'wp_head', 'kitwp_inline_styles', 7 );

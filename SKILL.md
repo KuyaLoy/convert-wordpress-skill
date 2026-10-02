@@ -176,13 +176,13 @@ update both handoff files.
    `composer install`, PHPCS clean.
 4. **S1-04 Golden master served, parity tools ready:** the theme's `tests/parity/` (its README has every command);
    the golden master against itself must diff 0.000%.
-5. **S1-05 Design system 1:1:** the static CSS (Barebones: the built CSS byte for byte; _tw: the same Tailwind
-   version and tokens). The swap test (the static build with the theme's CSS) must diff 0.000%. Nothing else styles
-   the page (`cleanup.php`).
+5. **S1-05 Design system 1:1:** the static CSS byte for byte (`KITWP_STYLESHEETS`, `KITWP_INLINE_CSS`), or for
+   _tw the same Tailwind version and tokens. Swap test (`swaptest.py`): 0.000%. Nothing else styles the page.
 6. **S1-06 ACF foundation:** field groups from `_plan/tools/acf/build_field_groups.py` into `acf-json/` (stable
    keys; `modified` bumped only for changed groups), each group's own Sync link; Theme Settings read by field key.
 7. **S1-07 Global layout:** header, footer, mobile bar, pop-up: copied markup with React-style tight whitespace,
    behaviour in vanilla JS with the same state classes; the head as static (`head.php`, `<html lang dir>`).
+   `region-check.mjs` (pixels) and `domdiff.py` per region: 0.
 8. **S1-08 Seeder foundation:** Tools > Seeder (local only) for media, settings and menus; run it twice: the second
    run says "same" everywhere.
 

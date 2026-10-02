@@ -23,6 +23,11 @@ follows [Keep a Changelog](https://keepachangelog.com).
 - `--site-draft` writes a first site.json from the source; new-site.py fills SOURCE-NOTES.md section 1 from
   `_plan/analyze.json`.
 - new-site.py writes the parity `routes.json` from the source's routes and sets the reveal rule for AOS.
+- Kit: `KITWP_STYLESHEETS` and `KITWP_INLINE_CSS` ship the static site's own compiled CSS (several files and
+  critical CSS in the head), in its order; `KITWP_PRELOAD_FONTS`; Google Fonts preconnects only when the site has
+  Google font links.
+- `tests/parity/swaptest.py`: the S1-05 swap test as a tool (the golden master with the theme CSS, one origin).
+  `tests/parity/region-check.mjs`: the S1-07 pixel check of header, footer and pop-up before pages exist.
 - Setup guide: the direct underscoretw.com download for when `wp package install` fails. Gotchas: PHP source URLs,
   env stubs for the golden master, cache-busting queries, AOS in screenshots.
 

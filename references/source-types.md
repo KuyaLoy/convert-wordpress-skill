@@ -80,6 +80,10 @@ Tailwind anywhere in the source (a dependency, a config, `@tailwind` or `@import
 theme starts from _tw. The CSS still has to be 1:1, proven by the swap test: the static build with the theme's
 compiled CSS in place of its own must diff 0.000%.
 
+- **A Tailwind source that ships its own compiled CSS** (committed `min/` files, several stylesheets, critical CSS
+  inlined in the head): the safest 1:1 is those compiled files verbatim (`KITWP_STYLESHEETS`, `KITWP_INLINE_CSS`,
+  references/build.md), with the source's build config kept in the theme for later class changes. Record it as a
+  decision. _tw's own Preflight and Typography then never load.
 - **Tailwind v4 source:** use the same version. Copy the source's `@theme` tokens, custom CSS, `@utility` and
   `@plugin` lines into _tw's `tailwind.css` and `tailwind/` files. Tailwind scans the theme's PHP; classes that only
   exist in ACF values or JavaScript need `@source inline("...")`. Leave out _tw's Typography defaults if the static

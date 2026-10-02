@@ -9,6 +9,8 @@ sitemap, `/thank-you/`, and a missing URL for the 404).
 | `parity.mjs` | Pixel diff (pixelmatch), visible text diff and SEO diff per route and width; HTML report in `report/` |
 | `parity.config.json` | WordPress and reference hosts, quick and full widths, blocked requests, hidden and masked elements, reveal class, frozen clock |
 | `breakpoints.mjs` | Full-run widths from the static CSS: every breakpoint and 1 px past it (`breakpointsFromCss` in the config) |
+| `swaptest.py` | S1-05 swap test: the golden master with the theme's CSS swapped in (same origin), to run `parity.mjs` against |
+| `region-check.mjs` | S1-07: pixel diff of single regions (header, footer, pop-up) before the pages under them exist |
 | `domdiff.py` | DOM diff of regions (header, main, footer, pop-up) between a static page and a WordPress snapshot |
 | `domdiff.config.json` | Optional: the site's regions and local hosts (see the defaults at the top of domdiff.py) |
 | `mkmirror.py` | Builds a static mirror of the WordPress pages from `_setup/snapshots/` for cloud runs |
@@ -26,6 +28,16 @@ node parity.mjs --routes=/,/about/ --widths=390,1440
 ```
 
 Screenshots are kept only for failing rows (`--keep=all` keeps every one). The reference build kept them all: 1.7 GB.
+
+## The swap test (S1-05) and the global layout (S1-07)
+
+```
+python3 swaptest.py --ref http://<site>-ref.test --map swap.json   # see the top of swaptest.py for swap.json
+python3 serve.py swap 8772 &
+REF=http://<site>-ref.test WP=http://127.0.0.1:8772 node parity.mjs --widths=quick     # must be 0.000%
+node region-check.mjs http://<site>-ref.test http://<site>.test / header,footer 390,768,1440 main,#consent
+python3 domdiff.py golden/home.html snapshot/home.html header footer
+```
 
 ## In the cloud (cannot reach .test)
 

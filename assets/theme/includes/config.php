@@ -56,6 +56,25 @@ const KITWP_RECAPTCHA_LAZY = false;
 const KITWP_IMAGE_WIDTHS       = [ 256, 384, 640, 828, 1080, 1200, 1920, 2048 ];
 const KITWP_FIRST_DEVICE_SIZE  = 640;
 
+/**
+ * The static site's own stylesheets, byte for byte and in its order, as theme files (copied from its build, for
+ * example [ 'assets/css/style.min.css', 'assets/css/responsive.min.css' ]). Empty: the starter's stylesheet
+ * (Barebones' built CSS, _tw's style.css). Filled: the starter's stylesheet is left out. Proven by the swap test.
+ */
+const KITWP_STYLESHEETS = [];
+
+/**
+ * The static site's inline <style> in <head> (critical CSS), as theme files printed in order. "url(assets/" in
+ * them becomes the theme's assets URL, so the theme keeps the static site's assets/ layout.
+ */
+const KITWP_INLINE_CSS = [];
+
+/** Google Fonts preconnects: only when the static head has them (sites with self-hosted fonts do not). */
+const KITWP_PRECONNECT_FONTS = 'true' === '{{PRECONNECT_FONTS}}';
+
+/** Font files preloaded on every page, as the static head (theme files, for example 'assets/fonts/Brand-Bold.woff2'). */
+const KITWP_PRELOAD_FONTS = [];
+
 /** Theme files preloaded on every page, as the static head (usually the logos). */
 const KITWP_PRELOAD_ASSETS = [ 'assets/brand/logo.svg' ];
 
