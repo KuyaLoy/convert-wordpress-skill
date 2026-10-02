@@ -309,6 +309,44 @@ plan += [
 PROTECTED = ('BUILD-MAP.md', 'handoff.md', 'ai-handoff-summary.md', '_setup/seed/', '_setup/launch/')
 stamp = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
 written, kept, backed = [], [], []
+
+# analyze-source.py --json <wp_root>/_plan/analyze.json fills section 1 of SOURCE-NOTES.md.
+an_path = os.path.join(os.path.dirname(os.path.abspath(a.site_json)), "analyze.json")
+an = json.load(open(an_path, encoding='utf-8')) if os.path.exists(an_path) else None
+
+
+def source_rows(text):
+    if not an:
+        return text
+    j = lambda xs, n=8: ', '.join(map(str, (xs or [])[:n])) or '-'
+    tw = an.get('tailwind')
+    nx = an.get('next') or {}
+    rows = {
+        'Stack': an.get('stack', '?') + (f" (Next {nx.get('version')}, static export {nx.get('static_export')})" if nx else ''),
+        'Build command and output': ', '.join(f'{k}: {v}' for k, v in (an.get('scripts') or {}).items() if 'build' in k)
+                                    + ('; built: ' + ', '.join(an['built_output']) if an.get('built_output') else '') or '-',
+        'Tailwind': (f"yes, {tw.get('dependency') or 'version?'}, config {tw.get('config') or 'none'}" if tw else 'no')
+                    + f" -> {an.get('starter_theme')}",
+        'Routes': f"{len(an.get('routes', []))}: {j(an.get('routes'), 30)}"
+                  + (f"; dynamic: {j(an.get('dynamic_routes'))}" if an.get('dynamic_routes') else ''),
+        'Content': j(an.get('content_sources')),
+        'Images': f"next/image imports {an.get('next_image_imports', 0)}" + (f", widths {nx.get('srcset_widths')}" if nx else ''),
+        'Fonts': j(an.get('fonts')),
+        'Icons': j((an.get('icons') or []) + (an.get('libraries') or [])),
+        'Forms': j(an.get('forms')) + (f"; mail sent by {j(an.get('mail_handlers'), 3)}" if an.get('mail_handlers') else ''),
+        'Tracking': j(an.get('tracking')),
+        'Redirects': j(an.get('redirect_sources')),
+    }
+    for k, v in rows.items():
+        text = re.sub(r'^\| ' + re.escape(k) + r' \|[^\n]*\|$', lambda m: f'| {k} | {v.replace("|", "/")} |', text, count=1, flags=re.M)
+    gm = an.get('golden_master')
+    if gm:
+        text = text.replace("How it is produced and where it is served (see the skill's references/source-types.md).",
+                            f'From analyze-source.py: {gm}', 1)
+    if an.get('private_files'):
+        text = text.rstrip() + ('\n\n## 6. Secrets and personal data in the source (never copied, never read)\n\n'
+                                + '\n'.join(f'- `{x}`' for x in an['private_files']) + '\n')
+    return text
 for src, dst in plan:
     if not os.path.exists(src):
         continue
@@ -326,7 +364,7 @@ for src, dst in plan:
             shutil.copy2(dst, bak)
     written.append(r)
     if src.endswith(TEXT) or os.path.basename(src).startswith('.'):
-        write(dst, fill(read(src)))
+        write(dst, source_rows(fill(read(src))) if dst.endswith('SOURCE-NOTES.md') else fill(read(src)))
     elif not a.dry_run:
         os.makedirs(os.path.dirname(dst), exist_ok=True)
         shutil.copyfile(src, dst)

@@ -1,13 +1,13 @@
 # {{SITE_NAME}}: notes from the source
 
 Written {{DATE}} from the code the designer handed over. `python3 _plan/tools/analyze-source.py <source>` output
-goes in section 1; read the repo's own docs for the rest.
+fills section 1 (with `--json _plan/analyze.json`, new-site.py writes it in); read the repo's own docs for the rest.
 
 ## 1. What the source is
 
 | Item | Found |
 |---|---|
-| Stack | (plain HTML / Next.js export / Next.js server / React SPA / Astro / Vue / other) |
+| Stack | (plain HTML / PHP / Next.js export / Next.js server / React SPA / Astro / Vue / other) |
 | Build command and output | |
 | Tailwind | (version, config) -> starter theme |
 | Routes | (count, dynamic routes and their real paths) |

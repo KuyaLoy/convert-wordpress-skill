@@ -40,7 +40,8 @@ there first (the source, the task, the profile), then ask once, in one batch, on
 
 ## site.json and the profile
 
-Copy `assets/site.example.json` to `<wp_root>/_plan/site.json` and fill it from the intake. Then create the project
+`analyze-source.py --site-draft <wp_root>/_plan/site.json` writes a first one (starter, GTM, html attributes, fonts
+from the source); without it, copy `assets/site.example.json`. Fill the rest from the intake. Then create the project
 (Sprint 0: plan, board, handoff files, tools; no WordPress needed yet):
 
 ```

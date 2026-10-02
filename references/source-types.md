@@ -16,9 +16,14 @@ get it, served unchanged, that every WordPress page is compared against.
 
 ## Study first
 
-1. `python3 _plan/tools/analyze-source.py <source>` (read only). It reports the stack, the build scripts, built
-   output already there, Tailwind (and so the starter theme), routes and dynamic routes, content sources, forms,
-   tracking ids, fonts, icons, images, redirect sources, and the golden-master method.
+1. `python3 <kit>/scripts/analyze-source.py <source> --json <wp_root>/_plan/analyze.json --site-draft
+   <wp_root>/_plan/site.json` (read only). It reports the stack, the build scripts, built output already there,
+   Tailwind (and so the starter theme), routes and dynamic routes, content sources, forms and the code that sends
+   mail, tracking ids (placeholders like GTM-XXXXXXX are skipped), fonts (Google and self-hosted), icons and
+   front-end libraries, images, redirect sources, files holding secrets or personal data, and the golden-master
+   method. `--site-draft` writes a first site.json (starter, GTM, html attributes, fonts; never overwrites);
+   new-site.py copies analyze.json into section 1 of SOURCE-NOTES.md.
+   Files it lists as secrets or personal data (`.env`, `env.php`, lead files) are never read, copied or seeded.
 2. Read what it points at: `package.json`, the framework config (`next.config.*`, `vite.config.*`,
    `astro.config.*`, `nuxt.config.*`, `svelte.config.*`), the layout and page files, the content modules, the
    repo's README and docs.
@@ -31,6 +36,7 @@ get it, served unchanged, that every WordPress page is compared against.
 | Source | Golden master | How |
 |---|---|---|
 | Plain HTML | The files themselves | Serve the folder unchanged (`serve.py <folder> <port>`) |
+| PHP pages (index.php plus partials, often Tailwind) | Rendered HTML per route | Serve a copy as its own local site (`<site>-ref.test`), then `node snapshot-routes.mjs http://<site>-ref.test golden/ <routes>`; `.htaccess` decides the real URLs (`/thankyou` or `/thankyou/`); the CSS is the compiled file the pages load |
 | Next.js, static export (`output: 'export'`, maybe only when an env var is set) | `out/` | In a copy: `npm ci`, the export build (read the scripts: often `build:static` or an env flag), serve `out/` |
 | Next.js, server build | Rendered HTML per route | `npm run build && npm start` in a copy, then `node snapshot-routes.mjs http://localhost:3000 golden/ sitemap`; pixels from the running app |
 | React or Vue SPA (Vite, CRA) | The running app plus snapshots | `npm run build && npm run preview` (Vite, port 4173) or `npx serve -s build`; snapshots per route (React Router paths). SPAs need a history fallback: serve.py does not do that |

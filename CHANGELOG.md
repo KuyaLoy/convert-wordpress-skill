@@ -13,6 +13,16 @@ follows [Keep a Changelog](https://keepachangelog.com).
   Done means). Duplicator Pro stays the move to live.
 - The profile's `extra_plugins` now holds only optional plugins of your own or your agency's.
 
+### Added (from a trial run on a real PHP and Tailwind landing page)
+
+- analyze-source.py reads server-rendered PHP sites (index.php plus partials): routes from the PHP files and
+  `.htaccess`, the golden master by snapshots, the `<html lang>` from the header partial.
+- It reads `package.json` even without a framework (build scripts, Tailwind version), skips placeholder tracking ids
+  (GTM-XXXXXXX), lists self-hosted fonts, front-end libraries (Swiper, AOS, GSAP...), the code that sends mail, and
+  files holding secrets or personal data (never copied).
+- `--site-draft` writes a first site.json from the source; new-site.py fills SOURCE-NOTES.md section 1 from
+  `_plan/analyze.json`.
+
 ## [0.1.0] - 2026-10-02
 
 First public version.

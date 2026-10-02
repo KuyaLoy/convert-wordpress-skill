@@ -4,7 +4,7 @@
     python3 analyze-source.py <source folder> [--json report.json]
 
 Read-only. Reports, with the evidence it found:
-- the stack: plain HTML, Next.js (static export or server), React with Vite or Create React App, Gatsby, Astro,
+- the stack: plain HTML, server-rendered PHP, Next.js (static export or server), React with Vite or Create React App, Gatsby, Astro,
   Vue/Nuxt, Svelte/SvelteKit, Remix, or unknown; the package manager and the build scripts;
 - the built output that is already there (out/, dist/, build/, .next/) and whether it holds rendered HTML;
 - Tailwind (version, config, v4 @import) and so the starter theme: _tw for Tailwind, Barebones for plain CSS;
@@ -13,6 +13,9 @@ Read-only. Reports, with the evidence it found:
   tracking ids (GTM, GA4, Ads, Meta), fonts (Google Fonts links, next/font), icon sets, images (next/image),
   and redirect sources (redirect-map.csv, next.config redirects, vercel.json, _redirects, .htaccess).
 Then the golden-master method for that stack (see references/source-types.md).
+
+Options: --json <file> (everything found), --site-draft <file> (a first site.json: starter, GTM, html attributes,
+fonts; never overwrites).
 """
 import json
 import os
@@ -61,6 +64,14 @@ def main():
             r['package_json'] = rel(root, p)
             r['scripts'] = data.get('scripts', {})
             break
+    if app is None and pkgs:
+        # No framework (a plain PHP or HTML site with a CSS build): keep the root package's scripts and dependencies.
+        p = sorted(pkgs, key=len)[0]
+        data = json.loads(read(p) or '{}')
+        deps = {**data.get('dependencies', {}), **data.get('devDependencies', {})}
+        r['package_json'] = rel(root, p)
+        r['scripts'] = data.get('scripts', {})
+        app = os.path.dirname(p)
     base = app or root
     for lock, pm in (('pnpm-lock.yaml', 'pnpm'), ('yarn.lock', 'yarn'), ('package-lock.json', 'npm'), ('bun.lockb', 'bun')):
         if os.path.exists(os.path.join(base, lock)):
@@ -111,7 +122,9 @@ def main():
         r['stack'] = 'react-cra'
     elif has('react'):
         r['stack'] = 'react-vite' if has('vite') else 'react'
-    elif not pkgs and any(p.endswith('.html') for p in walk(root)):
+    elif os.path.exists(os.path.join(base, 'index.php')):
+        r['stack'] = 'php'
+    elif any(p.endswith('.html') for p in walk(root, skip_built=True)):
         r['stack'] = 'static-html'
 
     # Built output already present.
@@ -131,8 +144,11 @@ def main():
     # The <html> attributes (lang, dir) of the first rendered page: WordPress must print the same.
     first = next((x for d in ('out', 'dist', 'build', 'public', '') for x in walk(os.path.join(base, d) if d else base)
                   if x.endswith('.html')), None) if built or r['stack'] == 'static-html' else None
+    if not first and r['stack'] == 'php':
+        cands = [x for x in walk(base, skip_built=True) if x.endswith('.php') and re.search(r'<html\b[^>]*\blang=', read(x, 600_000))]
+        first = sorted(cands, key=lambda x: (0 if re.search(r'header|index|layout|head', os.path.basename(x)) else 1, len(x)))[0] if cands else None
     if first:
-        m = re.search(r'<html\b([^>]*)>', read(first, 50_000), re.I)
+        m = re.search(r'<html\b([^>]*\blang=[^>]*)>', read(first, 600_000), re.I) or re.search(r'<html\b([^>]*)>', read(first, 50_000), re.I)
         attrs = ' '.join(re.findall(r'\b(?:lang|dir)=["\'][^"\']*["\']', m.group(1))) if m else ''
         r['html_attributes'] = attrs
         if re.search(r'dir=["\']rtl', attrs):
@@ -165,6 +181,10 @@ def main():
         if m and not re.search(r'(^|/)(_app|_document|_error|api/)', m.group(1)):
             seg = re.sub(r'(^|/)index$', '', m.group(1))
             routes.add('/' + (seg + '/' if seg else ''))
+        if r['stack'] == 'php' and rp.endswith('.php') and '/' not in rp:
+            ht = read(os.path.join(base, '.htaccess'), 100_000)
+            slash = '' if re.search(r'\$1\.php', ht) else '/'
+            routes.add('/' + ('' if rp == 'index.php' else rp[:-4] + slash))
         if r['stack'] == 'static-html' and rp.endswith('.html'):
             routes.add('/' + re.sub(r'(^|/)index\.html$', r'\1', rp))
         # File-based routers: Astro, Gatsby (src/pages), Nuxt (pages/*.vue), SvelteKit (src/routes/**/+page.svelte).
@@ -184,11 +204,14 @@ def main():
     r['dynamic_routes'] = [x for x in r['routes'] if '[' in x or ':' in x]
 
     # Content, forms, tracking, fonts, icons, images, redirects.
-    content, forms, tracking, fonts, icons, redirects = set(), set(), set(), set(), set(), set()
+    content, forms, tracking, fonts, icons, redirects, mailers, libs = set(), set(), set(), set(), set(), set(), set(), set()
+    private = sorted(rel(root, p) for p in walk(base, skip_built=True)
+                     if not p.endswith(('.example', '.sample', '.dist')) and re.search(r'(^|[\\/])(\.env(\..*)?|env\.php|secrets?\.\w+|wp-config\.php|leads?\.(json|csv)|'
+                                  r'submissions?\.(json|csv))$', p, re.I))
     next_image = 0
     for p in walk(base, skip_built=True):
         rp = rel(root, p)
-        if re.search(r'(^|/)(content|data)/', rp) and p.endswith(('.ts', '.js', '.json', '.md', '.mdx', '.yml', '.yaml')):
+        if re.search(r'(^|/)(content|data)/', rp) and p.endswith(('.ts', '.js', '.json', '.md', '.mdx', '.yml', '.yaml', '.php')):
             content.add(rp.split('/content/')[0] + '/content/' if '/content/' in '/' + rp else os.path.dirname(rp) + '/')
         base_name = os.path.basename(p).lower()
         if base_name in ('redirect-map.csv', 'vercel.json', '_redirects', '.htaccess', 'netlify.toml'):
@@ -197,15 +220,26 @@ def main():
             continue
         t = read(p, 300_000)
         for m in re.finditer(r'<form[^>]*action=["\']([^"\']+)', t):
-            forms.add(m.group(1))
+            forms.add(('PHP endpoint ' if '<?' in m.group(1) else '') + m.group(1))
+        if p.endswith('.php') and not re.search(r'(^|/)(lib|vendor|libs|third[-_]party)/', rp) \
+                and re.search(r'PHPMailer|\bmail\s*\(|wp_mail\s*\(', t):
+            mailers.add(rp)
         for m in re.finditer(r'fetch\(\s*[`"\'](/api/[^`"\']+|https?://[^`"\']+)', t):
             forms.add('fetch ' + m.group(1)[:80])
         if '/api/' in rp and p.endswith('.php'):
             forms.add('PHP handler ' + rp)
-        tracking.update(re.findall(r'\b(GTM-[A-Z0-9]{5,9}|G-[A-Z0-9]{8,12}|AW-\d{8,12})\b', t))
+        tracking.update(x for x in re.findall(r'\b(GTM-[A-Z0-9]{5,9}|G-[A-Z0-9]{8,12}|AW-\d{8,12})\b', t)
+                        if not re.fullmatch(r'(GTM|G)-X+', x))
         if re.search(r"fbq\(\s*['\"]init", t):
             tracking.add('Meta pixel')
         fonts.update(re.findall(r'https://fonts\.googleapis\.com/css2\?[^"\'\s)]+', t)[:5])
+        if p.endswith(('.css', '.scss')) and '/min/' not in rp and 'vendor' not in rp:
+            for fam in re.findall(r"@font-face\s*\{[^}]*font-family:\s*['\"]?([^;'\"]+)", t):
+                fonts.add('self-hosted: ' + fam.strip() + ' (copy the font files and @font-face CSS into the theme)')
+        for lib, rx in (('Swiper', r'swiper'), ('GSAP', r'\bgsap\b'), ('AOS', r'\baos\.(js|css)|data-aos='),
+                        ('Alpine.js', r'x-data=|alpinejs'), ('jQuery', r'jquery(\.min)?\.js'), ('Lottie', r'lottie')):
+            if re.search(rx, t, re.I):
+                libs.add(lib)
         if re.search(r"from\s+['\"]next/font/(google|local)['\"]", t):
             fonts.add('next/font (self-hosted at build time: copy the built font files and @font-face CSS)')
         for lib, rx in (('Material Symbols/Icons', r'Material\+Symbols|material-icons|material-symbols'), ('Font Awesome', r'fontawesome|font-awesome'),
@@ -220,6 +254,18 @@ def main():
     r['icons'] = sorted(icons)
     r['next_image_imports'] = next_image
     r['redirect_sources'] = sorted(redirects)
+    r['mail_handlers'] = sorted(mailers)
+    r['libraries'] = sorted(libs)
+    if libs:
+        r['notes'].append('Front-end libraries (' + ', '.join(sorted(libs)) + '): ship the same versions in the theme and '
+                          'keep their markup and classes; their behaviour is part of the parity check.')
+    r['private_files'] = private
+    if mailers:
+        r['notes'].append('The source sends its own mail (' + ', '.join(sorted(mailers)[:3]) + '): Contact Form 7 replaces it. '
+                          'Copy the email layout and recipients, not the mailer code.')
+    if private:
+        r['notes'].append('Secrets or personal data (' + ', '.join(private[:5]) + '): never read them aloud, copy them into '
+                          'the theme, the seed or the repo, or open lead files; ask the developer for what is needed.')
 
     # Golden master method.
     s = r['stack']
@@ -231,6 +277,10 @@ def main():
     elif s == 'nextjs':
         gm = ('No static export: either add one (output "export", force-static robots/sitemap, an image loader) on a copy, '
               'or run "next build && next start" and capture every route with _plan/tools/snapshot-routes.mjs.')
+    elif s == 'php':
+        gm = ('Server-rendered PHP: serve the source unchanged as its own local site (<site>-ref.test), then capture each '
+              'route\'s rendered HTML with _plan/tools/snapshot-routes.mjs; that capture is the markup to copy. The CSS is the '
+              'compiled file the pages load (run the build only in a copy if it is missing). Check .htaccess for the real URLs.')
     elif s in ('gatsby', 'astro') or (s == 'sveltekit'):
         gm = 'Build (static output in public/ or dist/) and serve it as <site>-ref; check the HTML holds the rendered text.'
     else:
@@ -249,6 +299,28 @@ def main():
     if s == 'nextjs' and next_image:
         r['notes'].append('next/image: copy its srcset widths and rule (references/build.md, media).')
 
+    if '--site-draft' in sys.argv:
+        # A first site.json from what the source shows; the intake fills the rest (references/setup.md).
+        kit = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        ex = os.path.join(kit, 'assets', 'site.example.json')
+        if not os.path.exists(ex):
+            ex = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'assets', 'site.example.json')
+        draft = json.load(open(ex, encoding='utf-8'))
+        draft['starter'] = 'tw' if r['tailwind'] else 'barebones'
+        gtm = [x for x in r['tracking'] if x.startswith('GTM-')]
+        draft['gtm'] = gtm[0] if gtm else ''
+        if r.get('html_attributes'):
+            draft['html_attributes'] = r['html_attributes']
+        links = [f'<link href="{u}" rel="stylesheet">' for u in r['fonts'] if u.startswith('https://')]
+        draft['font_links'] = links
+        draft['_from_source'] = ('starter, gtm, html_attributes and font_links come from analyze-source.py; '
+                                 'every other value is the example and must come from the intake')
+        out = sys.argv[sys.argv.index('--site-draft') + 1]
+        if os.path.exists(out):
+            print(f'site draft: {out} exists, not overwritten')
+        else:
+            json.dump(draft, open(out, 'w', encoding='utf-8'), indent=2, ensure_ascii=False)
+            print(f'site draft: {out} written (fill the rest from the intake)')
     if '--json' in sys.argv:
         out = sys.argv[sys.argv.index('--json') + 1]
         json.dump(r, open(out, 'w', encoding='utf-8'), indent=2)
@@ -262,7 +334,9 @@ def main():
     if r.get('html_attributes') is not None:
         print(f"html attributes: {r['html_attributes'] or '(none)'} -> site.json html_attributes")
     print(f"routes ({len(r['routes'])}): {' '.join(r['routes'][:60])}")
-    for k in ('dynamic_routes', 'content_sources', 'forms', 'tracking', 'fonts', 'icons', 'redirect_sources'):
+    for k in ('dynamic_routes', 'content_sources', 'forms', 'mail_handlers', 'tracking', 'fonts', 'icons', 'libraries',
+              'redirect_sources',
+              'private_files'):
         if r.get(k):
             print(f"{k}: {' | '.join(map(str, r[k]))}")
     print(f"next/image imports: {next_image}")

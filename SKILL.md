@@ -119,15 +119,14 @@ update both handoff files.
 1. **An existing project?** Read `ai-handoff-summary.md`, run gate.py, continue from the Next action.
 2. **Read what is there** before asking: the profile, the task tracker's tasks (through a connector, or the
    developer pastes them), the source.
-3. **Study the source:** `python3 <kit>/scripts/analyze-source.py <source folder>`. It reports the stack, the
-   built output, Tailwind (and so the starter theme), routes, content, forms, tracking ids, fonts, the `<html>`
-   lang and dir, and how to make the golden master (`references/source-types.md`).
+3. **Study the source:** `python3 <kit>/scripts/analyze-source.py <source> --json <wp_root>/_plan/analyze.json
+   --site-draft <wp_root>/_plan/site.json`: the stack, Tailwind (so the starter), routes, forms, tracking, fonts,
+   libraries, secrets to never copy, and the golden master (`references/source-types.md`).
 4. **Ask once**, in one batch (a question tool if your agent has one, otherwise a short numbered list), only what
    you could not find: site name and live domain; the source and whether it is live; which tasks are in scope; the
    local stack, folder and URL; how to create the database; the old site and its URLs (if one is replaced); lead
    email recipients; country, language(s) and right-to-left; the host and how the site moves to live.
-5. **Write** `<wp_root>/_plan/site.json` from `<kit>/assets/site.example.json` (every field is explained in
-   `references/setup.md`). Starter: `tw` when the source uses Tailwind, otherwise `barebones`.
+5. **Finish** the drafted `site.json` with the answers (every field: `references/setup.md`).
 6. **Create the project:** `python3 <kit>/scripts/new-site.py <wp_root>/_plan/site.json --plan-only`. It writes
    `_plan/` (plan templates and tools), `_setup/`, BUILD-MAP.md, both handoff files and the private-files block in
    `.htaccess`. Then Sprint 0.
@@ -232,7 +231,7 @@ package with the filters from `python3 _plan/tools/launch/duplicator-filters.py 
 for _tw) > database and PHP on the host > the old site moved into a sibling folder (rollback = move it back) >
 installer > `installer.php` answers 404 and no archive is left > wp-config `production`, debug off > `.htaccess` from
 `htaccess-live.txt` > wp-admin: search engines allowed, permalinks saved, reCAPTCHA keys and ACF licence (the
-developer), tracking, the live plugins (S1-02), debug.log read once, live plugins listed. Rollback if a check
+developer), tracking, the live plugins (S1-02) active, debug.log read once, the plugin list noted. Rollback if a check
 fails and cannot be fixed quickly. Details: `references/launch.md`.
 
 ## Live QA and the report
