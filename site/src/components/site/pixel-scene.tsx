@@ -1,19 +1,19 @@
-// The hero picture: your site on the left, its WordPress copy on the right, the same 1:1.
+// The hero picture: your site on the left, its WordPress copy on the right, the same 1:1. Colours follow the theme.
 // Original pixel art, drawn on a 63 x 31 grid.
 
 type Px = { x: number; y: number; w?: number; h?: number; c: string; cls?: string };
 
 const C = {
-  frame: "#ffffff",
-  fill: "#161616",
-  bar: "#2b2b2b",
-  light: "#bdbdbd",
-  mid: "#5a5a5a",
-  dim: "#3a3a3a",
-  text: "#6a6a6a",
-  card: "#262626",
-  brand: "#f5412c",
-  ink: "#0e0e0e",
+  frame: "var(--px-frame)",
+  fill: "var(--px-fill)",
+  bar: "var(--px-bar)",
+  light: "var(--px-light)",
+  mid: "var(--px-mid)",
+  dim: "var(--px-dim)",
+  text: "var(--px-text)",
+  card: "var(--px-card)",
+  brand: "var(--brand)",
+  ink: "var(--ink)",
 };
 
 function windowPixels(x0: number, editable: boolean): Px[] {
@@ -99,7 +99,7 @@ export function PixelScene({ labels }: { labels: string[] }) {
         aria-label="Your site and its WordPress copy side by side, the same layout, 1:1"
       >
         {PIXELS.map((p, i) => (
-          <rect key={i} x={p.x} y={p.y} width={p.w ?? 1} height={p.h ?? 1} fill={p.c} className={p.cls} />
+          <rect key={i} x={p.x} y={p.y} width={p.w ?? 1} height={p.h ?? 1} style={{ fill: p.c }} className={p.cls} />
         ))}
       </svg>
       <figcaption className="mt-4 grid grid-cols-[26fr_11fr_26fr] text-center font-pixel text-base text-muted-foreground">

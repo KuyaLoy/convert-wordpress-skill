@@ -24,3 +24,4 @@ each agent.
   Versioning) when it is released.
 - Licence: GPL-2.0-or-later.
 - `site/` is the website (see `site/README.md`), not part of the skill: never read it while converting a site.
+  It shows the author's own contact details and social links on purpose; the no-names rule is for the skill.

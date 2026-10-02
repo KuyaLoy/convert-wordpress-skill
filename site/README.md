@@ -15,5 +15,13 @@ npm run dev      # http://localhost:3000/convert-wordpress-skill/
 npm run build    # static files in out/
 ```
 
+To host it somewhere else, build with the address and the folder it will live in, then upload `out/`:
+
+```
+SITE_URL=https://convert.example.com/ SITE_BASE_PATH= npm run build                          # a subdomain
+SITE_URL=https://example.com/convert-to-wordpress/ SITE_BASE_PATH=/convert-to-wordpress npm run build   # a subfolder
+```
+
 Rules: plain words, no em or en dashes, the plain label first and the game tag second, motion off when the visitor
-asks for reduced motion.
+asks for reduced motion, both themes checked (Auto, Light, Dark). The author's contact details and social links in
+`src/content/site.ts` are there on purpose (the "Need a developer?" section and the footer).

@@ -7,9 +7,12 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ### Added
 
-- The website in `site/`: a landing page in a retro pixel style (Next.js static export, Tailwind 4, 8bitcn/ui,
-  Pixelarticons), published to GitHub Pages by `.github/workflows/pages.yml`. Its patch notes are read from this
-  file. Release archives leave `site/` and `.github/` out.
+- The website in `site/` (https://kuyaloy.github.io/convert-wordpress-skill/): a landing page in a retro pixel style
+  (Next.js static export, Tailwind 4, 8bitcn/ui, Pixelarticons), published to GitHub Pages by
+  `.github/workflows/pages.yml`. Auto, Light and Dark themes (Auto follows the system), a sticky menu on the right
+  that follows the page, a "Why WordPress" comparison for sites built with AI or by hand, the author's contact
+  and social links. Its patch notes are read from this file. It can also be built for a subdomain or a subfolder
+  (`SITE_URL`, `SITE_BASE_PATH`). Release archives leave `site/` and `.github/` out.
 - CONTRIBUTING.md and two issue templates: Report a problem, Share your setup.
 
 ## [0.3.0] - 2026-10-03

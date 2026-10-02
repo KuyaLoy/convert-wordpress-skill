@@ -4,39 +4,72 @@
 export const REPO = "https://github.com/KuyaLoy/convert-wordpress-skill";
 export const AUTHOR = { name: "KuyaLoy", url: "https://github.com/KuyaLoy" };
 
-// Footer links. Add the other profiles here when they are ready (Facebook, Threads, LinkedIn, Instagram).
-export const SOCIALS: { label: string; href: string; icon: "github" }[] = [
-  { label: "GitHub", href: REPO, icon: "github" },
+// Footer links: the author's profiles. Icons: pixel brand marks (components/site/brand-icons.tsx).
+export const SOCIALS: { label: string; href: string; icon: string }[] = [
+  { label: "GitHub", href: AUTHOR.url, icon: "github" },
+  { label: "LinkedIn", href: "https://www.linkedin.com/in/mynameisloloy/", icon: "linkedin" },
+  { label: "Facebook", href: "https://www.facebook.com/robin.tapiru/", icon: "facebook" },
+  { label: "Instagram", href: "https://www.instagram.com/tapiru_robin/", icon: "instagram" },
+  { label: "Threads", href: "https://www.threads.com/@tapiru_robin", icon: "threads" },
+  { label: "X", href: "https://x.com/BUKO_roll", icon: "x" },
 ];
 
 export const NAV = [
   { label: "How it works", href: "#how-it-works" },
   { label: "Install", href: "#install" },
-  { label: "Patch notes", href: "#patch-notes" },
+  { label: "What's new", href: "#patch-notes" },
+];
+
+// The sticky menu on the right (and the Menu button on small screens). Same order as the page.
+export const SECTIONS = [
+  { id: "top", label: "Start" },
+  { id: "why", label: "Why WordPress" },
+  { id: "for-you", label: "Is it for you?" },
+  { id: "how-it-works", label: "How it works" },
+  { id: "in-charge", label: "You stay in charge" },
+  { id: "team", label: "The team" },
+  { id: "install", label: "Install" },
+  { id: "rules", label: "House rules" },
+  { id: "patch-notes", label: "What's new" },
+  { id: "contribute", label: "Help make it better" },
+  { id: "hire", label: "Need a developer?" },
 ];
 
 export const HERO = {
   tag: "PRESS START",
-  title: "Move your old website to WordPress.",
-  lead: "An AI agent rebuilds your site in WordPress, page by page: same look, same web addresses, every word editable.",
+  title: "Turn any website into WordPress.",
+  lead: "Built with AI or by hand? An agent rebuilds it in WordPress: same look, same web addresses, every word editable.",
   primary: { label: "Install the skill", href: "#install" },
   secondary: { label: "View on GitHub", href: REPO },
-  sceneLabels: ["your site", "WordPress"],
+  sceneLabels: ["your site", "WordPress, editable"],
+};
+
+export const WHY = {
+  title: "AI builds the site. WordPress lets you run it.",
+  lead: "AI apps hand you code, not a CMS. Every change means another prompt or a developer. WordPress gives your team a dashboard.",
+  columns: { task: "When you want to", before: "A site made of code", after: "The same site in WordPress" },
+  rows: [
+    { task: "Change a word or a photo", before: "Edit the code, or prompt the AI again", after: "Type it in the dashboard" },
+    { task: "Add a page", before: "Ask a developer, or prompt again", after: "Pick a layout and fill in the fields" },
+    { task: "Take enquiries", before: "A form script someone has to keep working", after: "Contact Form 7, with every lead saved" },
+    { task: "Look after SEO", before: "Titles and redirects live in the code", after: "Titles, descriptions and redirects in the dashboard" },
+  ],
+  close: "The design and the web addresses stay the same, so visitors see the site they know. Your team can just run it now.",
 };
 
 export const FOR_YOU = {
   title: "Is it for you?",
   cards: [
     {
-      icon: "home",
-      title: "I have an old site and an AI app",
-      body: "You run a business, a shop or a team, and you have your site's files or its GitHub link. The agent asks a few plain questions, and you say go at each checkpoint.",
+      icon: "sparkles",
+      title: "I made my site with AI",
+      body: "You built it with an AI app or a site builder, and now you or your client want to edit it without code. Give the agent its files or GitHub link, answer a few plain questions, and say go at each checkpoint.",
       note: "Today you also need a few free tools on your computer (Python, Node.js, a local WordPress app). A guided setup that finds them for you is next.",
     },
     {
       icon: "code",
       title: "I build websites",
-      body: "You get a whole team in one skill: intake, plan, local setup, a 1:1 build in ACF PRO and Contact Form 7, pixel diffs, a launch runbook and a client report.",
+      body: "Your client wants to edit their own site. You get a whole team in one skill: plan, local setup, a 1:1 build in ACF PRO and Contact Form 7, pixel diffs, a launch runbook and a client report.",
       note: "Any source: plain HTML, PHP, Next.js, React, Astro, Vue, Gatsby, Nuxt, SvelteKit.",
     },
   ],
@@ -47,11 +80,11 @@ export const FOR_YOU = {
 export const LEVELS = {
   tag: "LEVEL MAP",
   title: "How it works",
-  lead: "Nine checkpoints from your old site to a live WordPress site. The agent stops at every gate and waits for your go.",
+  lead: "Nine checkpoints from your current site to a live WordPress site. The agent stops at every gate and waits for your go.",
   gate: "Every arrow is a gate: the agent stops there and waits for your go.",
   steps: [
     { name: "Intake", sprint: "Start", body: "It studies your site and asks only what it cannot find out." },
-    { name: "Plan", sprint: "Sprint 0", body: "Pages, content, forms, old web addresses and decisions. No code yet." },
+    { name: "Plan", sprint: "Sprint 0", body: "Pages, content, forms, web addresses to keep or redirect, decisions. No code yet." },
     { name: "Foundation", sprint: "Sprint 1", body: "WordPress on your computer, the starter theme, the design copied 1:1." },
     { name: "Pages", sprint: "Sprints 2 to 4", body: "Every section copied as it is, then made editable in ACF." },
     { name: "Forms and email", sprint: "Sprint 5", body: "Contact Form 7, spam protection and emails that arrive." },
@@ -77,7 +110,7 @@ export const YOU_AND_AGENT = {
   agent: {
     title: "The agent",
     items: [
-      "Studies the old site and writes the plan.",
+      "Studies your site and writes the plan.",
       "Sets up WordPress on your computer, with your OK.",
       "Copies every section 1:1, then makes it editable.",
       "Compares every page with the original, pixel by pixel.",
@@ -177,10 +210,25 @@ export const GUILD = {
   ],
 };
 
+export const HIRE = {
+  title: "Need a developer?",
+  lead: "I'm KuyaLoy, the developer behind this skill. If you would rather have the conversion done for you, or want a hand with yours, get in touch.",
+  contacts: [
+    {
+      label: "Email",
+      value: "robintapiru0894@gmail.com",
+      href: "mailto:robintapiru0894@gmail.com?subject=WordPress%20conversion",
+      icon: "mail",
+    },
+    { label: "Phone", value: "+971 56 594 4497", href: "tel:+971565944497", icon: "phone" },
+    { label: "Website", value: "robintapiru.com", href: "https://robintapiru.com", icon: "globe" },
+  ],
+};
+
 export const FOOTER = {
   madeBy: "Made by",
   licence: "Free software under the GNU GPL, version 2 or later.",
   credits:
-    "Starter themes: Barebones by Benchmark Studios and _tw by Greg Sullivan. Pixel UI: 8bitcn/ui and Pixelarticons.",
+    "Starter themes: Barebones by Benchmark Studios and _tw by Greg Sullivan. Pixel UI: 8bitcn/ui and Pixelarticons. Social icons: HackerNoon Pixel Icon Library.",
   trademark: "WordPress is a trademark of the WordPress Foundation. This project is not affiliated with it.",
 };
