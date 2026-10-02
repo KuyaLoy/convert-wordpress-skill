@@ -55,7 +55,8 @@ Plan about 2 hours on a quiet day (not Friday). The developer does the hosting s
 2. Contact > Integration > reCAPTCHA: the developer pastes the site key and secret.
 3. Tracking: the GTM container (or the tracking plugin) set for the live host only.
 4. ACF > Updates: the developer activates the ACF PRO licence. The ACF menu must show (never hide it on live).
-5. Plugins added only on live, if the task wants them (enquiry storage, image conversion): the developer installs.
+5. Plugins on live (ask first): Converter for Media and Contact Form CFDB7, both must be active; then the profile's
+   optional `extra_plugins`. After Converter for Media: regenerate WebP and check the images.
 6. Read `wp-content/debug.log` once (a second copy of a plugin gives "Cannot redeclare" fatals); list the live
    plugins for the handoff.
 7. Users: the client's own login (Editor role) if they edit; never share the admin account.

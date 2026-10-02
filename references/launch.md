@@ -53,7 +53,8 @@ does every hosting step; the agent gives one step at a time, waits for "done", c
 - `.htaccess` = `htaccess-live.txt`: http and www to https in one hop, the private-files block, the WordPress
   block, compression and caching.
 - wp-admin: untick "Discourage search engines"; save permalinks; the reCAPTCHA keys and the ACF licence (the
-  developer types them); tracking set for the live host; read `debug.log` once; list the live plugins.
+  developer types them); tracking set for the live host; Converter for Media and Contact Form CFDB7 installed and active (ask first),
+  then the profile's optional `extra_plugins`; read `debug.log` once; list the live plugins.
 - Then live QA (`references/qa-report.md`).
 - Rollback when a check fails and cannot be fixed quickly: move the WordPress files out, move the old site back,
   restore the old `.htaccess`. A static site needs no database, so it is back at once.

@@ -5,6 +5,14 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+### Changed
+
+- Starter plugins: ACF PRO, Contact Form 7 and Yoast SEO (Yoast was a later install).
+- Redirection is optional: only when the site has old URLs to redirect.
+- On live, Converter for Media and Contact Form CFDB7 must be installed and active (SKILL.md, launch guide, runbook,
+  Done means). Duplicator Pro stays the move to live.
+- The profile's `extra_plugins` now holds only optional plugins of your own or your agency's.
+
 ## [0.1.0] - 2026-10-02
 
 First public version.

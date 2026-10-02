@@ -11,8 +11,8 @@ behaves the same at every screen size, keeps every URL and SEO signal, and lets 
 wp-admin: content in ACF PRO fields, forms and emails in Contact Form 7. Any stack, any kind of business, any
 country and language.
 
-The lessons in this skill come from a reference build (a 36-page business site converted from a Next.js static
-export, live in 2026) and from testing the kit against a real WordPress install.
+Its lessons come from a reference build (a 36-page business site converted from a Next.js static export, live in
+2026) and from testing the kit on a real WordPress install.
 
 ## The kit
 
@@ -149,11 +149,10 @@ update both handoff files.
 - **S0-03 Board and handoff:** the stories per sprint on BUILD-MAP.md (keep its headings: the board page and
   gate.py read them); optional private board page: `python3 _plan/tools/build-map/render.py BUILD-MAP.md
   board.html`, published privately and republished to the same link after each sprint.
-- **S0-04 Decisions** (the developer answers; defaults in brackets): local folder, URL and database; starter theme
-  (by the Tailwind rule); SEO plugin (Yoast SEO, its schema replaced by the static JSON-LD); spam protection (CF7
-  reCAPTCHA v3 plus the static honeypot, and the badge position); editor (block editor unless classic); pages the
-  static site lacks, such as a blog (in the site's design, new URLs flagged to SEO); enquiry storage; git; and for
-  a multilingual source, how languages are built.
+- **S0-04 Decisions** (the developer's; defaults in brackets): local folder, URL and database; starter theme
+  (the Tailwind rule); spam protection (CF7 reCAPTCHA v3 plus the static honeypot, badge position); editor (block
+  editor unless classic); pages the static site lacks, like a blog (site design, new URLs flagged to SEO); old URLs
+  to redirect (Redirection only if any); git; for a multilingual source, how languages are built.
 
 ## Sprint 1: Foundation
 
@@ -164,10 +163,12 @@ update both handoff files.
    `DB_PASSWORD` environment variable; environment `local`, debug log on, file editing off, a commented
    `ACF_PRO_LICENSE` line). The installer: the developer types the admin password. Settings: permalinks
    `/%postname%/`, language, timezone and date formats of the business, "Discourage search engines" on (local only).
-   Clean-up (sample content, Akismet, Hello Dolly, later the default themes) with the developer's OK.
-2. **S1-02 Starter plugins: ACF PRO and Contact Form 7**, nothing else. Ask first. ACF PRO comes from the
+   Clean-up (sample content, unused plugins, later the default themes) with the developer's OK.
+2. **S1-02 Starter plugins: ACF PRO, Contact Form 7 and Yoast SEO.** Ask first. ACF PRO comes from the
    developer's zip (the profile's `plugin_zips`), and the developer pastes the licence. **The ACF menu always shows**
-   to administrators, on live too: the licence and the field groups live there. Read debug.log after any install.
+   to administrators, on live too. Later, when needed: Redirection (old URLs), Duplicator Pro (the move), Converter
+   for Media and Contact Form CFDB7 (must be on live), the profile's optional `extra_plugins`. Read debug.log after
+   each install.
 3. **S1-03 Theme.** Ask, then get the starter into `wp-content/themes/<theme>/`: Barebones (git clone of
    github.com/benchmarkstudios/barebones) for plain CSS, or _tw generated with the slug and prefix (`wp scaffold
    _tw <theme> --theme_name="<Site>" --prefix=<prefix>`, or underscoretw.com) for Tailwind. Then
@@ -198,32 +199,31 @@ the Lead > **hand off** (page tracker cells `ok`, handoff).
 - Say it once: anything on two pages lives in Theme Settings, with tokens (`{phone}`, `{year}`...). An empty page
   field falls back to the default.
 - next/image parity: same widths, sizes, srcset rule, width and height attributes, priority preloads.
-- Raw titles (no texturize), map iframes with `esc_attr( esc_url_raw() )`, SVG paths copied by script.
-- Details: `references/build.md`.
+- Raw titles, safe map iframes, SVG copied by script. Details: `references/build.md`.
 
 ## Sprint 5: Forms and email
 
 Contact Form 7 holds each form (Form tab) and its email (Mail tab); the theme prints CF7's tags as the static
 markup. Forms post natively and answer 303 to `/thank-you/` (sent, mail failed, honeypot), so they work without
 JavaScript. The email is one HTML part with the envelope sender and Message-ID on the domain. Local mail goes to the
-admin only and is saved in `_setup/mail/`. A chat widget posts FormData to CF7's REST endpoint (the pattern is in
-the theme's `assets/chat-save.js`). Spam: the static honeypot plus reCAPTCHA v3 with a token fetched on submit.
+admin only and is saved in `_setup/mail/`. A chat widget posts FormData to CF7's REST endpoint (the theme's
+`assets/chat-save.js`). Spam: the static honeypot plus reCAPTCHA v3 with a token fetched on submit.
 Field names like `name` need the query-var filter. Details: `references/forms-email.md`.
 
 ## Sprint 6: SEO, security, performance
 
 The SEO plugin seeded (head clean-up on, campaign URL and permalink clean-up off, archives off, share images), its
 schema replaced by the static JSON-LD rebuilt from the page; titles, descriptions, canonicals and robots as static;
-`/thank-you/` noindex; one H1 and the static heading outline; every old URL a 301 in the Redirection plugin (query
+`/thank-you/` noindex; one H1 and the static heading outline; old URLs (if any) as 301s in Redirection (query
 strings passed); GTM as the tracking task says (never injected into a built Next.js page); accessibility as static
 or better; hardening (no secrets, file editing off, private files 403, REST user list hidden, debug off on live).
 Lighthouse on live only. Details: `references/seo-security.md`.
 
 ## Sprint 7: QA and launch prep
 
-Full parity run (every route, every CSS breakpoint and 1 px past it), old URLs checked locally, real phones (the
-developer), the seeder twice, `_setup/launch/RUNBOOK.md` and `htaccess-live.txt` completed, a short editing guide
-for whoever edits the site. The go/no-go list is in the runbook. gate.py must report every sprint DONE.
+Full parity run (every route, every CSS breakpoint and 1 px past it), old URLs checked locally, real phones, the
+seeder twice, `RUNBOOK.md` and `htaccess-live.txt` in `_setup/launch/` completed, a short editing guide. The
+go/no-go list is in the runbook. gate.py must report every sprint DONE.
 
 ## Launch (the developer does each step; you give one at a time)
 
@@ -232,8 +232,8 @@ package with the filters from `python3 _plan/tools/launch/duplicator-filters.py 
 for _tw) > database and PHP on the host > the old site moved into a sibling folder (rollback = move it back) >
 installer > `installer.php` answers 404 and no archive is left > wp-config `production`, debug off > `.htaccess` from
 `htaccess-live.txt` > wp-admin: search engines allowed, permalinks saved, reCAPTCHA keys and ACF licence (the
-developer), tracking, debug.log read once, live plugins listed. Rollback if a check fails and cannot be fixed
-quickly. Details: `references/launch.md`.
+developer), tracking, the live plugins (S1-02), debug.log read once, live plugins listed. Rollback if a check
+fails and cannot be fixed quickly. Details: `references/launch.md`.
 
 ## Live QA and the report
 
@@ -268,6 +268,6 @@ stakeholder message (login with `[PASTE PASSWORD HERE]`). Details: `references/q
 ## Done means
 
 Every route 1:1 and editable; forms and emails proven on live; tracking and the conversion proven; old URLs
-redirect; installer and private files not public; the ACF licence active and the ACF menu visible; every sprint
-closed through its gate; the board, both handoff files and the gotchas current; the report PDF, the task comment
-and the stakeholder message handed to the developer.
+redirect; installer and private files not public; the ACF licence active, the ACF menu visible; Converter for
+Media and CFDB7 live; every sprint closed through its gate; the board, handoff files and gotchas current; the
+report PDF, the task comment and the stakeholder message handed to the developer.

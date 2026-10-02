@@ -52,6 +52,8 @@ static page (the parity SEO diff).
 
 - Every old URL (`_plan/OLD-SITE-URLS.md`: the old sitemap, the REST counts, the designer's map, archive and
   theme-part URLs, campaign URLs) is KEEP or a 301 target, in `_setup/seed/redirects.json`.
+- Only when there are old URLs: install Redirection (ask first). No old URLs, no Redirection, and the seeder's
+  redirects step is skipped.
 - The seeder writes them into the Redirection plugin (editable in Tools > Redirection): 301, query strings passed
   on, case and trailing slash ignored, permalink monitor on, logs on, no IP logging. A source that already has a rule
   is left as it is.

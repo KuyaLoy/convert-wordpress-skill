@@ -138,17 +138,27 @@ dev`), and activate the theme (Appearance > Themes, or `wp theme activate <theme
 
 ## Starter plugins
 
-ACF PRO and Contact Form 7, nothing else at the start. Ask before installing either.
+ACF PRO, Contact Form 7 and Yoast SEO at the start. Ask before installing each.
 
 - Contact Form 7: Plugins > Add New, or `wp plugin install contact-form-7 --activate`.
+- Yoast SEO: `wp plugin install wordpress-seo --activate`. Seeded in Sprint 6; its schema is replaced by the
+  static JSON-LD.
 - ACF PRO: the developer's zip from their ACF account (the profile's `plugin_zips.acf_pro` path, if set). The
   licence: the developer pastes the key into the commented `ACF_PRO_LICENSE` line that make-wp-config.py writes in
   wp-config.php (or enters it in ACF > Updates). Never edit the plugin to hold a key, and never put a key in the
   skill, the profile or a chat.
 - The ACF menu always shows to administrators, on live too: the licence page and the field groups live there.
   includes/acf.php never hides it.
-- Any other plugin (SEO, redirects, enquiry storage, image conversion, migration) only in the sprint that needs it,
-  after asking. The profile's `extra_plugins` lists the developer's usual ones.
+- Later, each in the sprint that needs it and after asking:
+
+| Plugin | Slug | When |
+|---|---|---|
+| Redirection | `redirection` | Optional: only when the site has old URLs to redirect (Sprint 6) |
+| Duplicator Pro | the developer's zip | The move to live (launch) |
+| Converter for Media | `webp-converter-for-media` | Must be on live: WebP for images uploaded later (launch; check images after) |
+| Contact Form CFDB7 | `contact-form-cfdb7` | Must be on live: every enquiry kept in the database (Sprint 5 or launch) |
+| The profile's `extra_plugins` | per entry | Optional: the developer's or agency's own plugins, when the entry says |
+
 - After every plugin install: read `wp-content/debug.log`. A second copy of a plugin gives "Cannot redeclare"
   fatals.
 

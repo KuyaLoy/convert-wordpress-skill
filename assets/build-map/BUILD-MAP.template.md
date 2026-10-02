@@ -40,11 +40,11 @@ only way to open the next sprint.
 |---|---|---|---|
 | D1 | Local folder, URL, database | DECISION | `{{SITE_DIR}}`, http://{{LOCAL_HOST}}, DB `db_{{THEME}}` |
 | D2 | Starter theme | DECISION | Tailwind source: _tw. Plain CSS: Barebones (from analyze-source.py) |
-| D3 | SEO plugin | DECISION | Yoast SEO, its schema replaced by the static JSON-LD |
+| D3 | SEO plugin | DECISION | Yoast SEO (a starter plugin), its schema replaced by the static JSON-LD |
 | D4 | Spam protection | DECISION | CF7 reCAPTCHA v3 + the static honeypot; badge position |
 | D5 | Editor for ACF pages | DECISION | Block editor unless the developer says classic |
 | D6 | Pages the static site lacks (blog, archives) | DECISION | In the site's design, new URLs flagged to SEO |
-| D7 | Enquiry storage | DECISION | Mail only, or a database copy plugin |
+| D7 | Old URLs and enquiries | DECISION | Redirection only if the site has old URLs; Contact Form CFDB7 keeps enquiries on live |
 | D8 | Git | DECISION | Only if the developer says so |
 
 ## Sprint gates
@@ -79,7 +79,7 @@ what is still open. Sign-off: `go <date>`, written only after the developer says
 | ID | Story | Status | Notes |
 |---|---|---|---|
 | S1-01 | WordPress on the local stack (database, checksums, wp-config, install, settings, clean-up) | TODO | |
-| S1-02 | Starter plugins: ACF PRO, Contact Form 7 | TODO | |
+| S1-02 | Starter plugins: ACF PRO, Contact Form 7, Yoast SEO | TODO | |
 | S1-03 | Theme skeleton (starter theme by the Tailwind rule, new-site.py, prefix, PHPCS) | TODO | |
 | S1-04 | Golden master served and parity tools self-test at 0.000% | TODO | |
 | S1-05 | Design system 1:1 (built CSS, swap test 0.000%) | TODO | |
@@ -131,7 +131,7 @@ what is still open. Sign-off: `go <date>`, written only after the developer says
 |---|---|---|---|
 | S6-01 | SEO plugin seeded, robots, sitemap | TODO | |
 | S6-02 | JSON-LD equal to the static site | TODO | |
-| S6-03 | Old URLs as 301s | TODO | |
+| S6-03 | Old URLs as 301s (Redirection, only if the site has old URLs) | TODO | |
 | S6-04 | Headings, ARIA, keyboard; security hardening | TODO | |
 | S6-05 | Lighthouse and Core Web Vitals (on live) | TODO | |
 

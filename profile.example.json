@@ -36,31 +36,12 @@
     "method": "GTM container in the head and the noscript after <body>",
     "plugin": ""
   },
+  "_extra_plugins_about": "Optional plugins of your own or your agency's, on top of the kit's defaults (ACF PRO, Contact Form 7, Yoast SEO; Redirection if needed; Duplicator Pro; Converter for Media and Contact Form CFDB7 on live). Asked about, never installed without an OK.",
   "extra_plugins": [
     {
-      "name": "Yoast SEO",
-      "why": "titles, descriptions, sitemap",
-      "when": "SEO sprint"
-    },
-    {
-      "name": "Redirection",
-      "why": "old URLs as 301s, editable in wp-admin",
-      "when": "SEO sprint"
-    },
-    {
-      "name": "Contact Form CFDB7",
-      "why": "keeps every enquiry in the database",
-      "when": "forms or launch"
-    },
-    {
-      "name": "Converter for Media",
-      "why": "WebP for images uploaded later",
-      "when": "launch"
-    },
-    {
-      "name": "Duplicator Pro",
-      "why": "the move to live",
-      "when": "launch"
+      "name": "Your agency's plugin",
+      "why": "what it does",
+      "when": "live, optional"
     }
   ],
   "plugin_zips": {
