@@ -54,3 +54,6 @@ python3 domdiff.py golden/home.html snapshot/home.html header footer
 - One wild shot on Laragon (fallback fonts, 20%+) is web fonts loading late under load: re-run that shot.
 - The DOM diff ignores `style` and `srcset`: compare those separately (all srcsets must match next/image's rule).
 - SEO flags for canonical and robots are expected locally ("Discourage search engines" is on).
+
+Output: the failing rows (at most 20) and one summary line (`OK parity: 12 of 12 pass`); `--all` prints every
+row; `report/parity-log.txt` keeps them all. domdiff.py prints one line per region that differs (`-v` for all).

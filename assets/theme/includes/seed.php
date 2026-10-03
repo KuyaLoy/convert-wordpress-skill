@@ -466,7 +466,7 @@ function kitwp_seed_page() {
 	);
 	$result = [];
 	if ( ! function_exists( 'update_field' ) ) {
-		echo '<div class="notice notice-error"><p>' . esc_html__( 'ACF PRO is not active: the seeder needs it.', 'kitwp' ) . '</p></div>';
+		echo '<div class="notice notice-error"><p>' . esc_html__( 'ACF PRO or Secure Custom Fields is not active: the seeder needs one of them.', 'kitwp' ) . '</p></div>';
 		return;
 	}
 	if ( isset( $_POST['kitwp_seed'] ) && check_admin_referer( 'kitwp_seed' ) ) {

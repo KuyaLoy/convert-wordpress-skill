@@ -3,6 +3,7 @@
 (source wordpress.org, file latest.zip, about 30 MB).
 
     python3 get-wordpress.py <site folder> [--version 6.9.1] [--locale en_US] [--zip wordpress.zip]
+    python3 get-wordpress.py <site folder> --verify     (a WordPress made by a local app: check its core only)
 
 - Downloads https://wordpress.org/latest.zip (or wordpress-<version>.zip) and its .sha1, and checks the SHA-1.
   With --zip it uses a zip you already have (when this shell cannot reach wordpress.org).
@@ -25,6 +26,7 @@ ap.add_argument('site')
 ap.add_argument('--version', default='latest')
 ap.add_argument('--locale', default='en_US')
 ap.add_argument('--zip')
+ap.add_argument('--verify', action='store_true', help='only check an existing WordPress against the official checksums')
 a = ap.parse_args()
 
 UA = {'User-Agent': 'get-wordpress/1.0'}
@@ -36,7 +38,11 @@ def fetch(url):
 
 
 name = 'latest.zip' if a.version == 'latest' else f'wordpress-{a.version}.zip'
-if a.zip:
+if a.verify:
+    if not os.path.exists(os.path.join(a.site, 'wp-includes', 'version.php')):
+        print('FAIL get-wordpress: no WordPress in that folder (wp-includes/version.php is missing)')
+        sys.exit(1)
+elif a.zip:
     data = open(a.zip, 'rb').read()
     print(f'using {a.zip} ({len(data) / 1e6:.1f} MB); SHA-1 not checked against wordpress.org')
 else:
@@ -51,10 +57,9 @@ else:
     if got != sha1:
         sys.exit(1)
 
-z = zipfile.ZipFile(io.BytesIO(data))
-os.makedirs(a.site, exist_ok=True)
+z = None if a.verify else zipfile.ZipFile(io.BytesIO(data))
 written = kept = 0
-for info in z.infolist():
+for info in (z.infolist() if z else []):
     if not info.filename.startswith('wordpress/'):
         continue
     rel = info.filename[len('wordpress/'):]
@@ -73,7 +78,9 @@ for info in z.infolist():
         fh.write(z.read(info))
     os.chmod(dest, 0o644)
     written += 1
-print(f'unpacked: {written} files written, {kept} already there (left as they were)')
+if z:
+    os.makedirs(a.site, exist_ok=True)
+    print(f'unpacked: {written} files written, {kept} already there (left as they were)')
 
 # Core version and the official checksums.
 ver = a.version
@@ -87,6 +94,8 @@ try:
 except Exception as e:  # noqa: BLE001
     print(f'WordPress {ver}: official checksums not reachable here ({e}); check later with wp core verify-checksums')
     sys.exit(0)
+if a.verify:  # an app's own install may not ship the default themes and plugins: core only
+    sums = {f: m for f, m in sums.items() if not f.startswith('wp-content/')}
 bad = [f for f, md5 in sums.items() if not os.path.exists(os.path.join(a.site, f))
        or hashlib.md5(open(os.path.join(a.site, f), 'rb').read()).hexdigest() != md5]
 print(f'WordPress {ver}: {len(sums) - len(bad)} of {len(sums)} core files match the official MD5 list'

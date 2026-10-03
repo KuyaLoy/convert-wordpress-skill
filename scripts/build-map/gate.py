@@ -168,15 +168,17 @@ else:
             open_items.append(f'{col} gate: {v or "not checked"}')
 
 if open_items:
-    print(f"{current['code']} {current['name']} cannot close yet ({len(open_items)} open):")
-    for o in open_items:
+    print(f"WARN gate: {current['code']} {current['name']} cannot close yet ({len(open_items)} open):")
+    for o in open_items[:15]:
         print('  - ' + o)
+    if len(open_items) > 15:
+        print(f'  - and {len(open_items) - 15} more (the board lists them)')
     print(f"Keep working on {current['code']} only. Nothing from a later sprint starts before this gate passes.")
     sys.exit(1)
 
 nxt = next((s for s in sprints if s['num'] > current['num']), None)
 if not CLOSE:
-    print(f"{current['code']} {current['name']}: gate passed and signed off. Close it with --close"
+    print(f"OK gate: {current['code']} {current['name']}: gate passed and signed off. Close it with --close"
           + (f", which opens {nxt['code']} {nxt['name']}." if nxt else '.'))
     sys.exit(0)
 

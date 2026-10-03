@@ -75,5 +75,5 @@ Draft both for the developer; they post them.
 ## Done means
 
 Every route 1:1 and editable; forms and emails proven on live; GTM and the conversion proven; old URLs redirect;
-installer and planning files private; the ACF licence active; the board, both handoff files and the project's
-lessons current; the report PDF, the task comment and the stakeholder message handed to the developer.
+installer and planning files private; the ACF PRO licence active (none with SCF); the board, both handoff files and
+the project's lessons current; the report PDF, the task comment and the stakeholder message handed to the developer.

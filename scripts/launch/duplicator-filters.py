@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
-"""The Duplicator package filters for a converted site: paste the output into Duplicator > Packages > New >
-Archive > Files > Filters (one textarea: full paths, each ending with ";", one per line, never ";;").
+"""The Duplicator file filters for a converted site: tick Enable and paste the output into Duplicator > Backups >
+Add New > Backup Filters > File Filters (free Duplicator 5; older versions and Pro: Packages > New > Archive >
+Files > Filters). One textarea: full paths, each ending with ";", one per line, never ";;".
 
     python3 duplicator-filters.py <WordPress root as Duplicator shows it> <theme folder> [--starter tw] [--check <root here>]
 
-Example: python3 duplicator-filters.py D:/laragon/www/example example
+Example: python3 duplicator-filters.py C:/sites/example example
 --starter tw: the theme is _tw, so everything in its folder except theme/ (the part WordPress loads) is left out.
 --check: the paths are looked up on this machine and missing ones are marked, so you can see what exists.
 Left out: planning and handoff files, the seed and setup folders, the debug log, the theme's tests (parity
-screenshots can be gigabytes), node_modules, vendor, build configs and dotfiles, readme.html and wp-content/upgrade*.
+screenshots can be gigabytes), node_modules, vendor, build configs and dotfiles, git folders (a cloned starter
+theme brings one), readme.html and wp-content/upgrade*.
 """
 import os
 import sys
@@ -29,10 +31,10 @@ if len(args) < 2 or starter not in (None, 'barebones', 'tw'):
 root = args[0].replace('\\', '/').rstrip('/')
 t = f'wp-content/themes/{args[1]}'
 paths = [
-    '_plan', '_setup', 'BUILD-MAP.md', 'handoff.md', 'ai-handoff-summary.md', 'PLAN.md', 'readme.html',
+    '_plan', '_setup', 'BUILD-MAP.md', 'handoff.md', 'ai-handoff-summary.md', 'PLAN.md', 'readme.html', '.git',
     'wp-content/debug.log', 'wp-content/upgrade', 'wp-content/upgrade-temp-backup',
 ]
-dev = ['tests', 'node_modules', 'vendor', 'AGENTS.md', 'README.md', 'package.json', 'package-lock.json',
+dev = ['.git', 'tests', 'node_modules', 'vendor', 'AGENTS.md', 'README.md', 'package.json', 'package-lock.json',
        'composer.json', 'composer.lock', 'phpcs.xml.dist', '.gitignore', '.gitattributes', '.editorconfig']
 if starter == 'tw':
     dev += ['tailwind', 'javascript', 'node_scripts', 'tailwind.css', 'tailwind-intellisense.css', 'postcss.config.js',

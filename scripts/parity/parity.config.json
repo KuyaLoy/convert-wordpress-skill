@@ -1,8 +1,9 @@
 {
   "wp": "http://{{LOCAL_HOST}}",
-  "ref": "",
+  "ref": "{{REF_URL}}",
   "refCandidates": [
     "http://{{SITE_DIR}}-ref.test",
+    "http://localhost:8080",
     "https://{{DOMAIN}}"
   ],
   "widths": {

@@ -82,8 +82,8 @@ respected. The UX and QA gates check it each sprint.
   `[PASTE PASSWORD HERE]`.
 - wp-config: `DISALLOW_FILE_EDIT` true; on live `WP_DEBUG` false and `WP_ENVIRONMENT_TYPE` production.
 - **Private files:** `_plan`, `_setup`, BUILD-MAP.md, the handoff files and debug.log answer 403 (the root
-  `.htaccess` block) and are left out of the package (duplicator-filters.py). `installer.php` and archives answer
-  404 after the move.
+  `.htaccess` block) and are left out of the package (duplicator-filters.py). The installer files and the archive
+  are gone after the move (`htaccess-live.txt` blocks them too).
 - **Code:** escape at output, sanitise input, nonces and capability checks on anything custom, prepared SQL,
   prefixed globals. The seeder and snapshots run only on `local`.
 - The REST user list (`/wp-json/wp/v2/users`) shows usernames to visitors: `kitwp_rest_hide_users()` hides it

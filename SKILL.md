@@ -1,6 +1,6 @@
 ---
 name: convert-to-wordpress
-description: Converts any existing website (plain HTML, Next.js, React, Astro, Vue and other stacks) into a 1:1 WordPress site with the same design, URLs, SEO and tracking, every page editable in ACF PRO and every form in Contact Form 7. Works as a full team (owner, manager, lead and developers, UI, UX, security, tester, QA), one sprint at a time with a gate per sprint, from intake and local setup to go-live, live QA and the report. Use whenever a site built outside WordPress has to be rebuilt in WordPress.
+description: Converts any existing website (plain HTML, Next.js, React, Astro, Vue and other stacks) into a 1:1 WordPress site with the same design, URLs, SEO and tracking, every page editable in ACF PRO (or the free Secure Custom Fields) and every form in Contact Form 7. Works as a full team (owner, manager, lead and developers, UI, UX, security, tester, QA), one sprint at a time with a gate per sprint, from intake and local setup to go-live, live QA and the report. Use whenever a site built outside WordPress has to be rebuilt in WordPress.
 license: GPL-2.0-or-later
 ---
 
@@ -8,10 +8,10 @@ license: GPL-2.0-or-later
 
 The site already exists: as code, as a build, or live. The job is to rebuild it in WordPress so it looks and
 behaves the same at every screen size, keeps every URL and SEO signal, and lets editors change everything in
-wp-admin: content in ACF PRO fields, forms and emails in Contact Form 7. Any stack, any kind of business, any
-country and language.
+wp-admin: content in ACF PRO or Secure Custom Fields, forms and emails in Contact Form 7. Any stack, any kind of
+business, any country and language.
 
-Its lessons come from real builds: a 36-page Next.js export (live in 2026) and a PHP and Tailwind landing page.
+Its lessons come from real builds: a 36-page Next.js export and a PHP and Tailwind landing page.
 
 ## The kit
 
@@ -35,10 +35,11 @@ https://github.com/KuyaLoy/convert-wordpress-skill: ask the developer where thei
 | `references/build.md` | Sprints 1 to 4: CSS, head, ACF, media, templates, the seeder, parity checks |
 | `references/forms-email.md` | Sprint 5: Contact Form 7, the email, spam protection, the chat |
 | `references/seo-security.md` | Sprint 6, and the security basics from Sprint 1 |
-| `references/launch.md` | Go-live with Duplicator Pro, other hosts, changes after launch |
+| `references/launch.md` | Go-live with Duplicator, other hosts, changes after launch |
 | `references/qa-report.md` | Live QA, test leads, the report, the task comment |
 | `references/gotchas.md` | Before anything risky. Add every new lesson there |
-| `references/agents.md` | Installing and running this skill in Claude, Codex, Cursor, Gemini, Antigravity and others |
+| `references/agents.md` | Each agent; beginner mode; fewer tokens; which model for which step |
+| `references/glossary.md` | Plain-word meanings for newcomers |
 
 ## Rules (always)
 
@@ -47,10 +48,11 @@ https://github.com/KuyaLoy/convert-wordpress-skill: ask the developer where thei
 2. **Static first, then dynamic.** Every section is copied as static HTML and diffed to zero before it gets fields.
 3. **The task decides.** The task tracker's requests are the scope; where they differ from this skill's defaults,
    the task wins. Campaign and landing page URLs never change.
-4. **Ask first** before any download (name, source, size), any plugin or package install, creating a database,
-   deleting anything, any live change, and publishing anything. One OK covers one action.
+4. **Ask first** before any download, plugin or package install, database change, delete, live change or publish.
+   One OK covers the items listed with it (each named with its source and size); profile `oks: each` asks one by one.
+   Deletes and live steps: always one at a time.
 5. **Never type a password, licence key or API key.** The developer pastes them. Reports and messages say
-   `[PASTE PASSWORD HERE]`. ACF PRO's key goes in wp-config (`ACF_PRO_LICENSE`), pasted by the developer.
+   `[PASTE PASSWORD HERE]`. ACF PRO's key: the developer pastes it into wp-config (`ACF_PRO_LICENSE`).
 6. **One sprint at a time.** Nothing from a later sprint starts until the current sprint's gate passes and the
    developer says go (`gate.py`, below).
 7. **Manual steps** for the developer (wp-admin, the host panel, Duplicator): one at a time, then wait for "done".
@@ -63,31 +65,21 @@ https://github.com/KuyaLoy/convert-wordpress-skill: ask the developer where thei
     capability checks. After every PHP save: `php -l`, PHPCS and the duplicate function check.
 12. **Live:** surgical changes only, a rollback copy of every replaced file, PHP files complete before upload,
     theme zips with 0644 files and 0755 folders.
-13. Write plainly; follow the profile's reply style.
+13. **Replies** follow the profile's `level`: `new` = plain words, each term explained once
+    (`references/glossary.md`), exact clicks, "Your turn:" at the end; `developer` = short (asked at intake).
+14. **Spend less:** read the summary, not whole files; never read node_modules, minified, vendor or lock files;
+    scripts copy markup and print summaries; screenshots only as cropped failures; a new chat after each gate.
 
 ## The team
 
-You work as a full senior team, one role at a time. Builders build, reviewers check, and nobody approves their own
-work.
-
-| Role | Owns | Signs a gate |
-|---|---|---|
-| Owner | Scope and acceptance: the task's requests, the 1:1 rule | Yes |
-| Manager | Plan, board, ceremonies, blockers, handoff, stakeholder updates | Yes |
-| Lead developer | Architecture, standards, the sprint backlog, review of every task | Yes |
-| Front-end developer | Static first: copied markup, CSS, fonts, images, vanilla JS behaviour | No, builds |
-| WordPress developer | Dynamic: ACF groups and sync, wiring, seeder, CF7, SEO plugin, hooks | No, builds |
-| UI | Visual parity at every width | Yes |
-| UX | Behaviour parity and the editor experience | Yes |
-| Security | Secrets, escaping, sanitising, nonces, private files, hardening | Yes |
-| Tester | Parity, DOM, text and SEO diffs, the seeder, forms | Yes |
-| QA | Real-browser proof at phone and desktop widths; live QA | Yes |
-
-The Lead splits each story into tasks (who builds it, what done looks like) at sprint planning; each developer ends
-a task with a three-line hand-off note (what changed, how it was tested, what is open) and the Lead reviews it.
-With subagents, the Lead may hand a task card to a developer subagent, and the sprint review is always a fresh
-subagent that did not write the code. Without subagents, switch hats explicitly. "The developer" always means the
-human running the build: they decide plugins, money, secrets, live steps and every sprint sign-off.
+You work as a full senior team, one role at a time; builders build, reviewers check, nobody approves their own work.
+Owner (scope, the 1:1 rule), Manager (plan, board, handoff, updates), Lead developer (architecture, the backlog,
+every review), UI (visual parity), UX (behaviour and editing), Security, Tester (diffs, seeder, forms) and QA (real
+browsers, live) sign the gates; the Front-end developer (static markup, CSS, JS) and the WordPress developer
+(fields, seeder, CF7, SEO) build. The Lead splits each story into tasks; each task ends with a three-line hand-off
+note (changed, tested, open) and the Lead's review. With subagents, a developer subagent may take a task card and
+the sprint review is always a fresh subagent; without them, switch hats explicitly. "The developer" is the human
+running the build: plugins, money, secrets, live steps and every sign-off are theirs.
 
 ## The life cycle
 
@@ -116,19 +108,22 @@ update both handoff files.
 ## Start: intake
 
 1. **An existing project?** Read `ai-handoff-summary.md`, run gate.py, continue from the Next action.
-2. **Get the source** given with the command (`/convert-to-wordpress <git URL, zip or folder>`) or in words; none
-   given: ask for it. Ask, then `python3 <kit>/scripts/get-source.py <source>`: a working copy `<name>-source`
-   (shallow clone, safe unzip or copy; the original is never touched). Read the profile and the task tracker's tasks.
-3. **Study the copy:** `python3 <kit>/scripts/analyze-source.py <name>-source --json <wp_root>/_plan/analyze.json
-   --site-draft <wp_root>/_plan/site.json`: the stack, Tailwind (so the starter), routes, forms, tracking, fonts,
-   libraries, secrets to never copy, and the golden master (`references/source-types.md`).
-4. **Ask once**, in one batch (a question tool if your agent has one, otherwise a short numbered list), only what
-   you could not find: site name and live domain; the source and whether it is live; which tasks are in scope; the
-   local stack, folder and URL; how to create the database; the old site and its URLs (if one is replaced); lead
-   email recipients; country, language(s) and right-to-left; the host and how the site moves to live.
-5. **Finish** the drafted `site.json` with the answers (every field: `references/setup.md`).
-6. **Create the project:** `python3 <kit>/scripts/new-site.py <wp_root>/_plan/site.json --plan-only` (plan,
-   tools, BUILD-MAP.md, handoff files, private-files block). Then Sprint 0, up to its gate and the developer's go.
+2. **This computer:** `python3 <kit>/scripts/doctor.py --name <site> --json doctor.json` (`python3` = the command it
+   prints, often `py -3` on Windows; no Python at all: `references/agents.md`). It finds the tools and the local
+   WordPress app and suggests the folder, address and database. No shell (a chat app): say so, offer the plan from
+   uploaded files. Exit 3: help install what it names, then run it again.
+3. **Ask once**, in one batch (a question tool, else a short numbered list), the suggestion first, in plain words
+   for `level: new`: where to build; the site (GitHub link, zip, folder or only its address) if not given with
+   `/convert-to-wordpress <source>`; built websites before?; ACF PRO (paid) or the free Secure Custom Fields; live
+   domain and host; lead email recipients; country, languages, right-to-left; the task's scope; old URLs to keep.
+   Then `python3 <kit>/scripts/new-site.py --start <wp_root>` (handoff files: a closed chat loses nothing).
+4. **Get the source:** `python3 <kit>/scripts/get-source.py <source> --into <web folder>`: the copy `<name>-source`
+   (clone, safe unzip, copy, or a capture of the live site; the original is never touched).
+5. **Study the copy:** `python3 <kit>/scripts/analyze-source.py <name>-source --env doctor.json --json
+   <wp_root>/_plan/analyze.json --site-draft <wp_root>/_plan/site.json`: stack, starter, routes, forms, tracking,
+   fonts, secrets to never copy, the golden master (`references/source-types.md`). Ask only what is still open.
+6. **Finish** `site.json` (`references/setup.md`), then `python3 <kit>/scripts/new-site.py <wp_root>/_plan/site.json
+   --plan-only` (plan, tools, BUILD-MAP.md, private-files block). Then Sprint 0, up to its gate and the go.
 
 ## Sprint 0: Planning (no code)
 
@@ -154,19 +149,19 @@ update both handoff files.
 
 ## Sprint 1: Foundation
 
-1. **S1-01 WordPress.** Database: ask, then phpMyAdmin in the developer's browser, their database tool, or a shell
-   that reaches MySQL (`CREATE DATABASE db_<site> CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;`). Ask,
-   then `python3 _plan/tools/setup/get-wordpress.py <wp_root>` (checksums verified, never overwrites). Then
-   `python3 _plan/tools/setup/make-wp-config.py <wp_root> --db db_<site>` (the database password only from the
-   `DB_PASSWORD` environment variable; environment `local`, debug log on, file editing off, a commented
-   `ACF_PRO_LICENSE` line). The installer: the developer types the admin password. Settings: permalinks
-   `/%postname%/`, language, timezone and date formats of the business, "Discourage search engines" on (local only).
-   Clean-up (sample content, unused plugins, later the default themes) with the developer's OK.
-2. **S1-02 Starter plugins: ACF PRO, Contact Form 7 and Yoast SEO.** Ask first. ACF PRO comes from the
-   developer's zip (the profile's `plugin_zips`), and the developer pastes the licence. **The ACF menu always shows**
-   to administrators, on live too. Later, when needed: Redirection (old URLs), Duplicator Pro (the move), Converter
-   for Media and Contact Form CFDB7 (must be on live), the profile's optional `extra_plugins`. Read debug.log after
-   each install.
+1. **S1-01 WordPress** (tools in `_plan/tools/setup/`). Made by the local app (doctor: `wordpress: existing`):
+   `get-wordpress.py <wp_root> --verify`, then `make-wp-config.py <wp_root> --existing`. Otherwise the database (ask;
+   phpMyAdmin, the app's tool, or `CREATE DATABASE db_<site> CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;`),
+   then ask and `get-wordpress.py <wp_root>` (checksums, never overwrites), `make-wp-config.py <wp_root> --db
+   db_<site>` (password only from `DB_PASSWORD`; local, debug log, no file editing, an `ACF_PRO_LICENSE` line). No
+   address of its own (doctor: `serve: serve-wp`): `serve-wp.py <wp_root> --background`, `--no-cron`. The
+   developer types the admin password in the installer. Permalinks `/%postname%/`, the business's language,
+   timezone and date formats, "Discourage search engines" (local only); clean-up with the developer's OK.
+2. **S1-02 Starter plugins: ACF PRO or Secure Custom Fields (free), Contact Form 7, Yoast SEO.** Ask first. ACF
+   PRO comes from the developer's zip (the profile's `plugin_zips`); the developer pastes the licence. **The ACF
+   menu shows** to administrators, on live too. Later, when needed: Redirection (old URLs), Duplicator (the move;
+   free or Pro), Converter for Media and Contact Form CFDB7 (must be on live), the profile's optional
+   `extra_plugins`. Read debug.log after each install.
 3. **S1-03 Theme.** Ask, then get the starter into `wp-content/themes/<theme>/`: Barebones (git clone of
    github.com/benchmarkstudios/barebones) for plain CSS, or _tw generated with the slug and prefix (`wp scaffold
    _tw <theme> --theme_name="<Site>" --prefix=<prefix>`, or underscoretw.com) for Tailwind. Then
@@ -201,21 +196,18 @@ the Lead > **hand off** (page tracker cells `ok`, handoff).
 
 ## Sprint 5: Forms and email
 
-Contact Form 7 holds each form (Form tab) and its email (Mail tab); the theme prints CF7's tags as the static
-markup. Forms post natively and answer 303 to `/thank-you/` (sent, mail failed, honeypot), so they work without
-JavaScript. The email is one HTML part with the envelope sender and Message-ID on the domain. Local mail goes to the
-admin only and is saved in `_setup/mail/`. A chat widget posts FormData to CF7's REST endpoint (the theme's
-`assets/chat-save.js`). Spam: the static honeypot plus reCAPTCHA v3 with a token fetched on submit.
-Field names like `name` need the query-var filter. Details: `references/forms-email.md`.
+Contact Form 7 holds each form and its email; the theme prints CF7's tags as the static markup. Forms post natively
+and answer 303 to `/thank-you/`, so they work without JavaScript; one HTML email part, envelope sender and
+Message-ID on the domain; local mail to the admin and `_setup/mail/`; a chat widget posts to CF7's REST endpoint
+(`assets/chat-save.js`); spam: the honeypot plus reCAPTCHA v3. Details: `references/forms-email.md`.
 
 ## Sprint 6: SEO, security, performance
 
-The SEO plugin seeded (head clean-up on, campaign URL and permalink clean-up off, archives off, share images), its
-schema replaced by the static JSON-LD rebuilt from the page; titles, descriptions, canonicals and robots as static;
-`/thank-you/` noindex; one H1 and the static heading outline; old URLs (if any) as 301s in Redirection (query
-strings passed); GTM as the tracking task says (never injected into a built Next.js page); accessibility as static
-or better; hardening (no secrets, file editing off, private files 403, REST user list hidden, debug off on live).
-Lighthouse on live only. Details: `references/seo-security.md`.
+Yoast seeded (head clean-up on, campaign URL and permalink clean-up off, archives off, share images), its schema
+replaced by the static JSON-LD; titles, descriptions, canonicals, robots and headings as static; `/thank-you/`
+noindex; old URLs as 301s (query strings kept); GTM as the task says; accessibility as static or better; hardening
+(no secrets, private files 403, REST users hidden, debug off on live). Lighthouse on live only. Details:
+`references/seo-security.md`.
 
 ## Sprint 7: QA and launch prep
 
@@ -225,45 +217,42 @@ go/no-go list is in the runbook. gate.py must report every sprint DONE.
 
 ## Launch (the developer does each step; you give one at a time)
 
-Backup of the live site (and a full backup if it is an old WordPress) > build the theme assets > Duplicator Pro
-package with the filters from `python3 _plan/tools/launch/duplicator-filters.py <root> <theme>` (`--starter tw`
-for _tw) > database and PHP on the host > the old site moved into a sibling folder (rollback = move it back) >
-installer > `installer.php` answers 404 and no archive is left > wp-config `production`, debug off > `.htaccess` from
-`htaccess-live.txt` > wp-admin: search engines allowed, permalinks saved, reCAPTCHA keys and ACF licence (the
-developer), tracking, the live plugins (S1-02) active, debug.log read once, the plugin list noted. Rollback if a
-check fails and cannot be fixed quickly. Details: `references/launch.md`.
+Backup of the live site (a full one if it is an old WordPress) > build the theme assets > a Duplicator backup
+with the filters from `python3 _plan/tools/launch/duplicator-filters.py <root> <theme>` (`--starter tw` for _tw) >
+database and PHP on the host > the old site into a sibling folder (rollback: move it back) > installer >
+`installer.php` answers 404, no archive left > wp-config `production`, debug off > `.htaccess` from
+`htaccess-live.txt` > wp-admin: search engines allowed, permalinks saved, reCAPTCHA keys and any ACF licence (the
+developer), tracking, the live plugins (S1-02) active, debug.log read once. Rollback if a check fails. Details:
+`references/launch.md`.
 
 ## Live QA and the report
 
-```
-python3 _plan/tools/report/live-qa.py https://<domain> <GTM-ID> _setup/seed/redirects.json <local_host>
-node _plan/tools/report/track.mjs https://<domain> <GTM-ID> / /thank-you/
-node _plan/tools/report/shots.mjs https://<domain> /:1440:home-desktop /thank-you/:1440:thankyou-desktop /<page>/:390:page-mobile
-node _plan/tools/report/pdf.mjs _setup/launch/report.html Final-Live-Check.pdf [Editing-Guide.pdf]
-```
-
-Three test leads (inline form, pop-up, chat) named `TEST <developer> - please ignore`, sent with the real submit
-button, after the developer agrees; the developer confirms the emails and the host's delivery log. Fill
-`report.html` with verified facts only (`grep -n "\[\[" report.html` prints nothing), make one PDF, and draft the
-task comment and the stakeholder message (login with `[PASTE PASSWORD HERE]`). Details: `references/qa-report.md`.
+`live-qa.py`, `track.mjs` (tracking), `shots.mjs` and `pdf.mjs` (the report) in `_plan/tools/report/`. Three
+test leads (inline form, pop-up, chat) named `TEST <developer> - please ignore`, sent with the real submit button
+after the developer agrees; the developer confirms the emails and the host's delivery log. Fill `report.html` with
+verified facts only (`grep -n "\[\[" report.html` prints nothing), make one PDF, and draft the task comment and the
+stakeholder message (login with `[PASTE PASSWORD HERE]`). Details: `references/qa-report.md`.
 
 ## Scripts at a glance
 
 | Script (in the project: `_plan/tools/...`) | Does |
 |---|---|
-| `scripts/get-source.py` | The working copy of the source: git clone, safe unzip or copy |
+| `scripts/doctor.py` | This computer: tools, the local WordPress app, where to build (`--json`) |
+| `scripts/get-source.py` | The working copy: git clone or GitHub zip, safe unzip, copy, or `capture-site.mjs` |
 | `scripts/analyze-source.py` | Studies the source: stack, routes, Tailwind, forms, tracking, the golden-master method |
 | `scripts/new-site.py` | `--plan-only` for Sprint 0; then prepares the starter theme and copies the kit in |
 | `scripts/snapshot-routes.mjs` | Rendered HTML of every route, for client-rendered or server sources |
-| `scripts/setup/get-wordpress.py`, `make-wp-config.py` | WordPress with checksums; wp-config without typing secrets |
+| `scripts/setup/get-wordpress.py`, `make-wp-config.py` | WordPress with checksums (`--verify`); wp-config (`--existing`) |
+| `scripts/setup/serve-wp.py` | WordPress at its own port when the local app has no site addresses |
 | `scripts/acf/build_field_groups.py` | ACF JSON with stable keys; `--check` validates |
 | `scripts/seed/export.mjs`, `export-pages.py` | Static content into `_setup/seed/` for Tools > Seeder |
 | `scripts/build-map/gate.py`, `render.py` | The sprint gate; the private board page |
 | `scripts/parity/` (the theme's `tests/parity/`) | Pixel, text, SEO and DOM diffs; breakpoints; mirror and server for cloud runs |
+| `scripts/update.py` | Updates this skill from GitHub (`--check` only looks); `/update-convert-wordpress-skill` runs it |
 
 ## Done means
 
 Every route 1:1 and editable; forms and emails proven on live; tracking and the conversion proven; old URLs
-redirect; installer and private files not public; the ACF licence active, the ACF menu visible; Converter for
+redirect; installer and private files not public; any ACF PRO licence active, the fields menu visible; Converter for
 Media and CFDB7 live; every sprint closed through its gate; the board, handoff files and gotchas current; the
 report PDF, the task comment and the stakeholder message handed to the developer.

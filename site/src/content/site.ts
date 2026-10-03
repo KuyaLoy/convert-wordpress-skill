@@ -63,13 +63,13 @@ export const FOR_YOU = {
     {
       icon: "sparkles",
       title: "I made my site with AI",
-      body: "You built it with an AI app or a site builder, and now you or your client want to edit it without code. Give the agent its files or GitHub link, answer a few plain questions, and say go at each checkpoint.",
-      note: "Today you also need a few free tools on your computer (Python, Node.js, a local WordPress app). A guided setup that finds them for you is next.",
+      body: "You built it with an AI app or a site builder, and now you or your client want to edit it without code. Give the agent its files, its GitHub link or just its web address, answer a few plain questions, and say go at each checkpoint.",
+      note: "You need a few free tools on your computer (Python, Node.js, a local WordPress app). The skill checks your computer first and tells you exactly what to install.",
     },
     {
       icon: "code",
       title: "I build websites",
-      body: "Your client wants to edit their own site. You get a whole team in one skill: plan, local setup, a 1:1 build in ACF PRO and Contact Form 7, pixel diffs, a launch runbook and a client report.",
+      body: "Your client wants to edit their own site. You get a whole team in one skill: plan, local setup, a 1:1 build in ACF PRO or the free Secure Custom Fields with Contact Form 7, pixel diffs, a launch runbook and a client report.",
       note: "Any source: plain HTML, PHP, Next.js, React, Astro, Vue, Gatsby, Nuxt, SvelteKit.",
     },
   ],
@@ -153,17 +153,18 @@ export const INSTALL = {
   steps: [
     {
       title: "Add your defaults",
-      body: "Copy profile.example.json to profile.local.json and fill in your name, your local WordPress tool and your host. It stays on your computer.",
+      body: "Copy profile.example.json to profile.local.json and fill in your name, your host and how much explaining you want. It stays on your computer.",
     },
     {
       title: "Start",
-      body: "Give it your site as a GitHub link, a zip or a folder. It makes a copy, so your original is never touched.",
+      body: "Give it your site as a GitHub link, a zip, a folder or only its web address. It checks your computer first, then makes a copy, so your original is never touched.",
     },
   ],
   start: [
     "/convert-to-wordpress https://github.com/you/your-site",
     "/convert-to-wordpress ~/Downloads/my-site.zip",
     "/convert-to-wordpress ./my-site",
+    "/convert-to-wordpress https://www.my-site.com",
   ],
   startNote: "In Codex, type $convert-to-wordpress instead. Or just ask in plain words:",
   prompts: [
@@ -171,12 +172,19 @@ export const INSTALL = {
     "Continue the WordPress conversion.",
     "Where are we?",
   ],
+  update: {
+    title: "Stay up to date",
+    body: "Type the update command, or just ask your agent to update the skill. It shows what is new and updates only after your OK. Your profile and your projects stay as they are.",
+    command: "/update-convert-wordpress-skill",
+    setupNote: "Add the command once (Claude Code folder shown; use your agent's skills folder, and py -3 on Windows):",
+    setup: "python3 ~/.claude/skills/convert-to-wordpress/scripts/update.py --add-command",
+  },
   needsTitle: "What your computer needs",
   needs: [
-    "Python 3.9 or later and Node.js 18 or later",
-    "A local WordPress tool: Laragon, Local, MAMP, XAMPP, DDEV or wp-env",
-    "PHP 8.1 to 8.4, and git for GitHub links",
-    "Your own licences for ACF PRO and Duplicator Pro (paid plugins)",
+    "Python 3.9 or later. The skill checks the rest and tells you what to install",
+    "A free local WordPress app: Local, Laragon, Herd, MAMP, XAMPP, WampServer, DDEV or wp-env",
+    "Node.js 18 or later with Playwright, PHP 8.1 to 8.4, and git for GitHub links",
+    "No paid plugin needed: Secure Custom Fields and Duplicator are free (ACF PRO and Duplicator Pro work too)",
   ],
 };
 
@@ -196,7 +204,7 @@ export const PATCH = {
   full: { label: "Full changelog", href: `${REPO}/blob/main/CHANGELOG.md` },
   next: {
     title: "Next level",
-    body: "A setup check that finds your local WordPress tool (Laragon, XAMPP, MAMP, Local and more), capture of a live site when you have no files, and a plain-words mode for beginners.",
+    body: "Sections copied into the theme by script, not typed by the agent: pages reach 1:1 faster, with fewer mistakes and fewer tokens. Then fields bound by a short map, and the seeder and checks run by one command.",
   },
 };
 

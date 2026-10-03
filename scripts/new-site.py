@@ -2,6 +2,7 @@
 """Start a conversion: prepare the starter theme, copy the skill's kit into the WordPress project and fill in the
 site's values. Safe to run again (it keeps what is there and reports it).
 
+    python3 scripts/new-site.py --start <wp_root> [--name "Site"]   at intake: the folder and two short handoff files
     python3 scripts/new-site.py site.json --plan-only     Sprint 0: plan, board, handoff files, tools
     python3 scripts/new-site.py site.json                 Sprint 1: prepare the starter theme and copy the kit in
     options: [--profile profile.local.json] [--dry-run] [--force]
@@ -16,7 +17,8 @@ Before running: WordPress is installed at wp_root and the starter theme is in wp
       wp scaffold _tw <theme> --theme_name="<Site>" --prefix=<prefix>); WordPress uses its theme/ subfolder
 
 What it does (a file that exists is kept; --force replaces kit code only, after backing it up to
-_setup/kit-backup-<time>/, and never the plan, the board, the handoff files, the seed data or the launch files):
+_setup/kit-backup-<time>/, and never the plan, the board, the handoff files, the seed data, the launch files, the
+content model in build_field_groups.py or the parity routes and settings):
   1. Prepares the starter. Barebones: global functions renamed to the prefix, text domain and theme header set,
      front-end jQuery dropped; the sample block, the shortcode file, its acf.php (it hides the ACF menu outside
      "development"), its functions.php and AGENTS.md moved to _setup/starter-removed/ (nothing is deleted). _tw: checked that
@@ -43,19 +45,73 @@ KIT_FILES = ['config', 'cleanup', 'head', 'acf', 'helpers', 'media', 'forms', 's
              'snapshot']
 
 ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
-ap.add_argument('site_json')
+ap.add_argument('site_json', nargs='?')
+ap.add_argument('--start', metavar='WP_ROOT', help='intake: create the folder and the intake handoff files only')
+ap.add_argument('--name', help='with --start: the site name for the handoff files')
+ap.add_argument('--allow-example', action='store_true', help=argparse.SUPPRESS)
 ap.add_argument('--profile')
 ap.add_argument('--dry-run', action='store_true')
 ap.add_argument('--force', action='store_true')
 ap.add_argument('--plan-only', action='store_true', help='Sprint 0: only the plan, the board, the handoff files and the tools (no WordPress or theme yet)')
 a = ap.parse_args()
 
+INTAKE = '<!-- kit:intake: written by new-site.py --start; --plan-only replaces it and keeps the notes below -->'
+if a.start:
+    root = os.path.abspath(a.start)
+    os.makedirs(root, exist_ok=True)
+    name = a.name or os.path.basename(root)
+    day = datetime.date.today().isoformat()
+    docs = {
+        'handoff.md': f"""{INTAKE}
+# Handoff: {name} WordPress build
+
+## Goal
+Rebuild {name} in WordPress 1:1 with the convert-to-wordpress skill.
+
+## Current State
+Intake started {day}. Folder: {root}.
+
+## Changes Made
+### {day}: intake started
+- doctor.py run; the folder for the site chosen.
+
+## Failed Attempts
+
+## Next Steps
+1. Finish the intake (SKILL.md > Start: get-source, analyze-source, site.json, new-site.py --plan-only).
+""",
+        'ai-handoff-summary.md': f"""{INTAKE}
+# AI handoff summary: {name} WordPress build
+Updated: {day} | By: <agent>
+Last change: intake started
+Status: ACTIVE
+
+## Now
+- Intake (SKILL.md > Start). The answers so far are in handoff.md.
+
+## Next action
+- Continue the intake from the first step not done: get-source, analyze-source, site.json, new-site.py --plan-only.
+""",
+    }
+    made = []
+    for f, text in docs.items():
+        target = os.path.join(root, f)
+        if not os.path.exists(target):
+            with open(target, 'w', encoding='utf-8') as fh:
+                fh.write(text)
+            made.append(f)
+    print(f"OK new-site: intake handoff files {'written: ' + ', '.join(made) if made else 'already there (kept)'} in "
+          f'{root}')
+    sys.exit(0)
+if not a.site_json:
+    ap.error('give site.json (or --start <wp_root> at intake)')
+
 site = json.load(open(a.site_json, encoding='utf-8'))
 prof_path = a.profile or os.path.join(SKILL, 'profile.local.json')
 profile = json.load(open(prof_path, encoding='utf-8')) if os.path.exists(prof_path) else {}
 
 errors = []
-for k in ('site_name', 'domain', 'wp_root', 'theme', 'prefix', 'key', 'starter'):
+for k in ('site_name', 'domain', 'wp_root', 'local_host', 'theme', 'prefix', 'key', 'starter'):
     if not site.get(k):
         errors.append(f'site.json: "{k}" is required')
 if site.get('theme') and not re.fullmatch(r'[a-z][a-z0-9-]{1,39}', site['theme']):
@@ -66,6 +122,11 @@ if site.get('key') and not re.fullmatch(r'[a-z][a-z0-9]{1,5}', site['key']):
     errors.append('key: 2 to 6 lowercase letters or digits (the ACF key prefix: group_<key>_*, field_<key>_*)')
 if site.get('starter') and site['starter'] not in ('barebones', 'tw'):
     errors.append('starter: "barebones" (plain CSS) or "tw" (Tailwind)')
+if not a.allow_example:
+    if site.get('site_name') in ('Example Co', 'Example Co Ltd') or site.get('domain') == 'example.com':
+        errors.append('site.json still holds the example values (Example Co, example.com): fill in the real site')
+    if '<' in str(site.get('wp_root', '')) or str(site.get('wp_root', '')).replace('\\', '/').endswith('laragon/www/example'):
+        errors.append('wp_root is still the example: use the folder from the intake (doctor.py suggests it)')
 if errors:
     sys.exit('\n'.join(errors))
 
@@ -84,7 +145,8 @@ values = {
     'LEGAL_NAME': site.get('legal_name', site['site_name']),
     'DOMAIN': site['domain'],
     'DOMAIN_REGEX': site['domain'].replace('.', '\\.'),
-    'LOCAL_HOST': site.get('local_host', site.get('site_dir', site['theme']) + '.test'),
+    'LOCAL_HOST': site['local_host'].replace('http://', '').replace('https://', '').rstrip('/'),
+    'REF_URL': site.get('ref_url', ''),
     'SITE_DIR': site.get('site_dir', os.path.basename(os.path.normpath(site['wp_root']))),
     'THEME': site['theme'],
     'STARTER': 'Barebones' if starter == 'barebones' else '_tw',
@@ -308,6 +370,8 @@ plan += [
 # The project's own documents and data are never overwritten, not even with --force: the plan, the board, the
 # handoff files, the seed data and the launch files belong to the project once written.
 PROTECTED = ('BUILD-MAP.md', 'handoff.md', 'ai-handoff-summary.md', '_setup/seed/', '_setup/launch/')
+# Kit files that hold the project's own data once filled: the content model spec, the routes, the parity settings.
+PROJECT_DATA = ('_plan/tools/acf/build_field_groups.py', '/tests/parity/routes.json', '/tests/parity/parity.config.json')
 stamp = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
 written, kept, backed = [], [], []
 
@@ -367,12 +431,34 @@ def parity_tune(dst, text):
     return text
 
 
+def intake_notes(dst):
+    """The notes of an intake handoff file (new-site.py --start), or None for a real project file."""
+    if not os.path.exists(dst):
+        return None
+    text = read(dst)
+    if INTAKE not in text:
+        return None
+    return text.replace(INTAKE, '').strip()
+
+
 for src, dst in plan:
     if not os.path.exists(src):
         continue
     r = rel(dst)
+    carried = intake_notes(dst) if r in ('handoff.md', 'ai-handoff-summary.md') else None
+    if carried is not None:
+        new = fill(read(src))
+        if r == 'handoff.md':
+            body = '\n'.join(l for l in carried.splitlines() if not l.startswith('# Handoff:'))
+            note = '\n### Intake notes (kept from the intake handoff)\n\n' + body.strip() + '\n\n'
+            new = new.replace('## Failed Attempts', note + '## Failed Attempts', 1) if '## Failed Attempts' in new \
+                else new + note
+        written.append(r + ' (replaces the intake file)')
+        write(dst, new)
+        continue
     if exists(dst):
-        project_doc = r.startswith(PROTECTED) or (r.startswith('_plan/') and not r.startswith('_plan/tools/'))
+        project_doc = (r.startswith(PROTECTED) or r.endswith(PROJECT_DATA)
+                       or (r.startswith('_plan/') and not r.startswith('_plan/tools/')))
         if not a.force or project_doc:
             kept.append(r)
             continue

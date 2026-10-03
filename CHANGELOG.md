@@ -5,15 +5,71 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-03
+
+Any local setup, plain words for newcomers, fewer tokens, updates in one step. Tried on WordPress 7.1.2 with the
+free plugins.
+
 ### Added
 
-- The website in `site/` (https://kuyaloy.github.io/convert-wordpress-skill/): a landing page in a retro pixel style
-  (Next.js static export, Tailwind 4, 8bitcn/ui, Pixelarticons), published to GitHub Pages by
-  `.github/workflows/pages.yml`. Auto, Light and Dark themes (Auto follows the system), a sticky menu on the right
-  that follows the page, a "Why WordPress" comparison for sites built with AI or by hand, the author's contact
-  and social links. Its patch notes are read from this file. It can also be built for a subdomain or a subfolder
-  (`SITE_URL`, `SITE_BASE_PATH`). Release archives leave `site/` and `.github/` out.
+- Updates in one step: `/update-convert-wordpress-skill` (added once with `scripts/update.py --add-command`), or
+  `python3 scripts/update.py`. `--check` shows the installed and the newest version and what is new. A git clone
+  updates with `git pull` (local edits stop it); any other install gets the release zip from GitHub after a
+  backup in `_backups/`. `profile.local.json` is kept, and doctor.py shows the installed version.
+- `scripts/doctor.py` checks the computer before a conversion (Python, Node.js, git, PHP, MySQL, Playwright and
+  Chromium) and finds the local WordPress app: Laragon, XAMPP, MAMP, WampServer, Local, Laravel Herd, DDEV,
+  wp-env, WordPress Studio or a plain PHP and MySQL. It suggests the folder, the address, the database and how
+  WordPress is made, gives the install line for anything missing, warns about synced folders, spaces, long paths,
+  busy ports and low disk, and writes `--json` for the other tools. Exit 3: nothing can run WordPress here yet.
+- `scripts/setup/serve-wp.py` and `wp-router.php` run WordPress at the root of `http://localhost:8081` with PHP's
+  built-in server, for apps that give no site its own address (XAMPP, MAMP, WampServer, plain PHP): pretty
+  permalinks, the private files answer 403, no admin rights or hosts edits, four PHP workers on macOS and Linux.
+- Bring your own WordPress: `make-wp-config.py --existing` adds the kit's settings to a wp-config.php a local app
+  made (a backup first, one marked block, duplicate constants turned into comments); `--no-cron` for serve-wp;
+  `get-wordpress.py --verify` checks an existing core against the official checksums.
+- A live web address as the source: `scripts/capture-site.mjs` saves every page as the browser renders it, with
+  its files (CSS, JS, fonts, every srcset size, CSS `url()` and `@import`), as a servable golden master. Only for
+  a site the developer owns or may rebuild.
+- get-source.py knows GitHub links (also `/tree/<branch>/<folder>`), other git hosts, zip links, live addresses,
+  zips and folders. GitHub works without git (its zip download). `--into <web folder>`, `--branch`, `--dry-run`
+  (the size first). It stops safely on unsafe or password zips and on a source that is already WordPress (exit
+  4), never prints a token from a link, and finds more secret files.
+- Intake for newcomers: five plain questions; `new-site.py --start` writes the handoff files as soon as the folder
+  is chosen (`--plan-only` replaces them later and keeps the notes); profile `level` (`new`: plain words, each term
+  explained once, exact clicks, "Your turn:"; `developer`: short); `references/glossary.md`.
+- One OK for a listed group of downloads and installs (profile `oks: group`, the default; `each` asks one by one).
+  Deletes and live steps are still asked one at a time.
+- Spend fewer tokens: reading rules (the summary first, never node_modules, minified or lock files), scripts that
+  print a one-line verdict and only the failures (`-v` or `--all` for the rest, detail in a log file), cropped
+  failure screenshots only, a new chat after each gate, and which model fits which step.
+- Free plugins, tried on a real WordPress: Secure Custom Fields runs the kit's field groups, options page, seeder
+  and `get_field()` as ACF PRO does; free Duplicator 5 builds the package with the kit's filters.
+- The kit's own tests in `tests/` (left out of release archives): `python3 -m unittest discover -s tests`.
+- The website in `site/`: a landing page in a retro pixel style (Next.js static export, Tailwind 4, 8bitcn/ui,
+  Pixelarticons). Auto, Light and Dark themes, a sticky menu on the right that follows the page, a "Why WordPress"
+  comparison for sites built with AI or by hand, the author's contact and social links, patch notes read from this
+  file. It builds for a subdomain or a subfolder too (`SITE_URL`, `SITE_BASE_PATH`). Release archives leave
+  `site/` and `.github/` out.
 - CONTRIBUTING.md and two issue templates: Report a problem, Share your setup.
+
+### Changed
+
+- analyze-source.py `--env doctor.json` fills the site draft's folder, address and how WordPress runs.
+- new-site.py refuses the example values (Example Co, example.com) left in site.json.
+- On a computer with no mail program (XAMPP, MAMP, WampServer, serve-wp), local mail is kept in `_setup/mail/` and
+  reported as sent, so local forms answer as they will on live (`kitwp_mail_to_file` forces either way).
+- The Duplicator steps follow Duplicator 5 (Backups > Add New > Backup Filters); the filters leave git folders out.
+- `htaccess-live.txt` blocks Duplicator's leftovers (installer, its backup, the boot log, the archive,
+  `dup-installer/`); live QA also checks `wp-content/duplicator-backups/`.
+- The example profile and site file no longer assume one local app: the folder and the address come from
+  doctor.py.
+- README: requirements through doctor.py, a live address as a source, no paid plugin required.
+
+### Fixed
+
+- `new-site.py --force` replaced `build_field_groups.py` (by then the site's content model) and the parity routes
+  and settings: they are kept now, like the plan.
+- `serve-wp.py --background` wrote its PID file into the web root when `_setup/` did not exist yet.
 
 ## [0.3.0] - 2026-10-03
 

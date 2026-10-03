@@ -2,6 +2,10 @@
   "_about": "Defaults for one developer or agency. Copy to profile.local.json (git ignores it) and fill it in. The skill reads it at intake; the site's own answers win.",
   "developer": "Your name (test leads are named 'TEST <developer> - please ignore')",
   "agency": "",
+  "_level_about": "\"new\": plain words, every term explained once, exact clicks, \"Your turn\" at the end of each message. \"developer\": short and technical.",
+  "level": "developer",
+  "_oks_about": "\"group\": one OK covers a listed batch of downloads and installs, each named with its source and size. \"each\": every download and install is asked on its own. Deletes and live steps are always asked one at a time.",
+  "oks": "group",
   "reply_style": [
     "Plain words, short sentences.",
     "One step at a time for manual steps; wait for 'done'."
@@ -20,12 +24,12 @@
   },
   "admin_username": "",
   "local": {
-    "_about": "Your local stack. Examples: Laragon on Windows (D:/laragon/www, .test), Local, MAMP, XAMPP, DDEV, wp-env.",
-    "stack": "Laragon",
-    "www": "D:/laragon/www",
-    "tld": ".test",
-    "db_user": "root",
-    "db_tool": "phpMyAdmin (http://localhost/phpmyadmin) or HeidiSQL"
+    "_about": "Where WordPress runs on this computer. Leave it empty: doctor.py finds your local tool (Laragon, XAMPP, MAMP, WampServer, Local, Herd, DDEV, wp-env or a native setup) and fills this in with your OK.",
+    "stack": "",
+    "www": "",
+    "url": "",
+    "db_user": "",
+    "db_tool": ""
   },
   "host": {
     "_about": "Where sites go live. cPanel with Duplicator Pro is the kit's default; other hosts work too (references/launch.md).",

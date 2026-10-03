@@ -25,8 +25,13 @@ Options -Indexes
   Require all denied
 </FilesMatch>
 <IfModule mod_alias.c>
-  RedirectMatch 403 ^/(_plan|_setup)(/|$)
+  RedirectMatch 403 ^/(_plan|_setup|dup-installer)(/|$)
 </IfModule>
+
+# Duplicator leftovers (the installer, its backup copy, its boot log, the archive): never reachable on live.
+<FilesMatch "^installer(-backup)?\.php$|^dup-installer-bootlog__.*\.txt$|_archive\.(zip|daf)$">
+  Require all denied
+</FilesMatch>
 
 # BEGIN WordPress
 <IfModule mod_rewrite.c>

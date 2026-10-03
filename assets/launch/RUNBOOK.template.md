@@ -26,11 +26,13 @@ Plan about 2 hours on a quiet day (not Friday). The developer does the hosting s
 ## 2. Build the package (local)
 
 1. Stop `npm run dev` (or watch); <!-- starter:barebones -->`npm run build`<!-- /starter:barebones --><!-- starter:tw -->`npm run prod`<!-- /starter:tw --> in `wp-content/themes/{{THEME}}`.
-2. Local checks: no PHP notices in `wp-content/debug.log` from today; ACF > Field Groups: nothing to sync.
-3. Duplicator > Packages > New, default name. Archive > Files > Filters: paste the output of
+2. Local checks: no PHP notices in `wp-content/debug.log` from today; ACF (or SCF) > Field Groups: nothing to sync.
+3. Duplicator > Backups > Add New (older versions and Pro: Packages > New), default name. Backup Filters > File
+   Filters (older: Archive > Files > Filters): tick Enable, then paste the output of
    `python3 _plan/tools/launch/duplicator-filters.py <root as Duplicator shows it> {{THEME}}<!-- starter:tw --> --starter tw<!-- /starter:tw -->`
    (full paths, each ending with `;`, one per line, never `;;`).
-4. Build. Scan warnings about size usually point at a folder that should be filtered (tests, node_modules).
+4. Build. Scan warnings about size usually point at a folder that should be filtered (tests, node_modules). On
+   Windows with serve-wp, keep the Backups page open until it is done (reload it if it stays on "Initializing").
 5. Download the installer and the archive.
 
 ## 3. Move it to the server
@@ -42,8 +44,9 @@ Plan about 2 hours on a quiet day (not Friday). The developer does the hosting s
    `.ftpquota`, `.well-known` and `cgi-bin`.
 4. Upload `installer.php` and the archive to `public_html`. Open `https://{{DOMAIN}}/installer.php`: database
    details (the developer types them), URL `https://{{DOMAIN}}`. Run it.
-5. After the installer: `installer.php` answers 404 and no zip or archive is left in `public_html` (anyone could
-   download it). Duplicator keeps the original `.htaccess` in its `original_files_` folder.
+5. After the installer: nothing of it is left in `public_html` (anyone could download it): `installer.php` and
+   `installer-backup.php` answer 404; `dup-installer/`, `dup-installer-bootlog__*.txt` and the archive (`.zip` or
+   `.daf`) are gone. Duplicator keeps the original `.htaccess` in its `original_files_` folder.
 6. `wp-config.php` (Duplicator copied the local one): `WP_ENVIRONMENT_TYPE` `production` (on "local" the seeder
    loads and every lead goes to the admin only), `WP_DEBUG`, `WP_DEBUG_LOG`, `WP_DEBUG_DISPLAY` false,
    `DISALLOW_FILE_EDIT` true.

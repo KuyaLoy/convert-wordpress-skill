@@ -136,7 +136,7 @@ for attempt in (1, 2):
 
 # 5. Things that must not be public.
 for p in ['/installer.php', '/installer-backup.php', '/dup-installer/main.installer.php', '/wp-content/backups-dup-pro/',
-          '/wp-content/backups-dup-lite/', '/wp-content/debug.log', '/readme.html', '/_plan/', '/_setup/', '/handoff.md',
+          '/wp-content/backups-dup-lite/', '/wp-content/duplicator-backups/', '/wp-content/debug.log', '/readme.html', '/_plan/', '/_setup/', '/handoff.md',
           '/ai-handoff-summary.md', '/BUILD-MAP.md', '/.htaccess', '/wp-config.php']:
     code, _, body, _ = get(SITE + p, follow=False)
     if code == 200 and body.strip():

@@ -74,8 +74,8 @@ again. Fields replace content, never structure, classes or order.
 - Field edits made in wp-admin write JSON into the theme too: on live, copy `acf-json/` back to local afterwards.
 - **Theme Settings** (options page `<key>-theme-settings`, registered in PHP): anything on two or more pages lives
   here, with tokens (`{phone}`, `{tel}`, `{email}`, `{year}`, `{legal_name}`, `{company_number}`, `{registration}`,
-  more through the `kitwp_tokens` filter). Its defaults are the static copy. `kitwp_setting()` reads by field key, so a setting
-  nobody saved still renders 1:1.
+  more through the `kitwp_tokens` filter). Its defaults are the static copy. `kitwp_setting()` reads by field key, so
+  a setting nobody saved still renders 1:1.
 - Component groups (heading, hero, FAQs, icon items, links) are inactive groups used through Clone fields.
 - Field instructions carry the copy rules from the source (the copy brief): length, tone, what not to change.
 - Return formats: image ID, link array. Read with `get_field()` and escape at output.

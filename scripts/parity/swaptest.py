@@ -81,6 +81,7 @@ def get(url):
 
 
 problems = []
+swapped = []
 for route in routes:
     status, html = get(ref + route)
     seen = set()
@@ -117,9 +118,11 @@ for route in routes:
     dst = os.path.join(a.out, '404.html') if status == 404 else os.path.join(a.out, route.strip('/'), 'index.html')
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     open(dst, 'w', encoding='utf-8').write(html)
-    print(f'{route}: HTTP {status}, {len(seen)} stylesheets swapped')
+    swapped.append((route, status, len(seen)))
 
-for p in sorted(set(problems)):
+print(f"{'FAIL' if problems else 'OK'} swaptest: {len(swapped)} pages, "
+      f"{sum(n for _, _, n in swapped)} stylesheets swapped" + (f', {len(set(problems))} problems' if problems else ''))
+for p in sorted(set(problems))[:20]:
     print('PROBLEM', p)
 print(f'next: python3 serve.py {a.out} {a.port} &  then  REF={ref} WP=http://127.0.0.1:{a.port} node parity.mjs --widths=quick')
 sys.exit(1 if problems else 0)

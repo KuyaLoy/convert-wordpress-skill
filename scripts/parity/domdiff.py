@@ -159,25 +159,36 @@ def region(html, spec):
 
 
 def main():
-    if len(sys.argv) < 3:
+    args = [x for x in sys.argv[1:] if x != '-v']
+    verbose = '-v' in sys.argv
+    if len(args) < 2:
         print(__doc__)
         sys.exit(2)
-    a = open(sys.argv[1], encoding='utf-8').read()
-    b = open(sys.argv[2], encoding='utf-8').read()
-    names = sys.argv[3:] or [k for k in CFG['regions'] if k != 'main']
-    bad = 0
+    a = open(args[0], encoding='utf-8').read()
+    b = open(args[1], encoding='utf-8').read()
+    names = args[2:] or [k for k in CFG['regions'] if k != 'main']
+    bad, same, none, out = 0, 0, 0, []
     for name in names:
         x, y = region(a, CFG['regions'][name]), region(b, CFG['regions'][name])
         if not x and not y:
-            print(f'NONE  {name}: not found in either file')
+            none += 1
+            out.append(f'NONE  {name}: not found in either file')
             continue
         if x == y:
-            print(f'SAME  {name}: {len(x)} elements')
+            same += 1
+            if verbose:
+                out.append(f'SAME  {name}: {len(x)} elements')
             continue
         bad += 1
-        print(f'DIFF  {name}: static {len(x)}, wordpress {len(y)}')
-        for line in list(difflib.unified_diff(x, y, 'static', 'wordpress', n=0, lineterm=''))[2:40]:
-            print('   ', line[:220])
+        out.append(f'DIFF  {name}: static {len(x)}, wordpress {len(y)}')
+        lines = list(difflib.unified_diff(x, y, 'static', 'wordpress', n=0, lineterm=''))[2:]
+        limit = len(lines) if verbose else 20
+        out += ['    ' + line[:220] for line in lines[:limit]]
+        if len(lines) > limit:
+            out.append(f'    ... {len(lines) - limit} more lines (-v shows them)')
+    print(f"{'FAIL' if bad else 'OK'} domdiff: {same} same, {bad} differ" + (f', {none} not found' if none else ''))
+    if out:
+        print('\n'.join(out))
     sys.exit(1 if bad else 0)
 
 

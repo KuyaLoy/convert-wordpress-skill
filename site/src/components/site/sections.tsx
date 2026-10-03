@@ -370,6 +370,17 @@ export function Install() {
                 ))}
               </ul>
             </div>
+            <div>
+              <h3 className="text-2xl">{INSTALL.update.title}</h3>
+              <p className="mt-3 text-muted-foreground">{INSTALL.update.body}</p>
+              <div className="mt-5">
+                <CodeLine text={INSTALL.update.command} />
+              </div>
+              <p className="mt-6 text-muted-foreground">{INSTALL.update.setupNote}</p>
+              <div className="mt-3">
+                <CodeLine text={INSTALL.update.setup} />
+              </div>
+            </div>
           </div>
           <aside aria-labelledby="needs-title" className="h-fit">
             <div className="pixel-frame bg-background p-7">

@@ -1,4 +1,4 @@
-# Launch: Duplicator Pro on cPanel, and changes after go-live
+# Launch: Duplicator on cPanel, and changes after go-live
 
 Read this after Sprint 7 closes. The project's own step list is `_setup/launch/RUNBOOK.md` (from
 `assets/launch/RUNBOOK.template.md`): go/no-go, backup, package, move, switch on, checks, rollback. The developer
@@ -26,12 +26,19 @@ does every hosting step; the agent gives one step at a time, waits for "done", c
 ## The package
 
 - Build the theme assets (Barebones `npm run build`; _tw `npm run prod`), with `npm run dev` stopped.
-- Duplicator Pro > Packages > New. Filters: one textarea, full paths, each ending with `;`, one per line, never
-  `;;`. Generate them: `python3 _plan/tools/launch/duplicator-filters.py <root as Duplicator shows it> <theme>`
-  (add `--starter tw` for _tw, `--check <root on this machine>` to mark paths that do not exist). Left out: the plan,
-  setup and handoff files, debug.log, the theme's tests (parity shots can be gigabytes), node_modules, vendor, build
-  configs and dotfiles, readme.html, `wp-content/upgrade*`.
+- Duplicator: the free plugin (`duplicator`) is enough for a normal site; Pro adds scheduled and cloud backups,
+  server-to-server import and more. Tested free: Duplicator 5 on WordPress 7.1, with every private path left out.
+- Duplicator > Backups > Add New (older versions and Pro: Packages > New). Backup Filters > File Filters: tick
+  Enable, then one textarea: full paths, each ending with `;`, one per line, never `;;`. Generate them:
+  `python3 _plan/tools/launch/duplicator-filters.py <root as Duplicator shows it> <theme>` (add `--starter tw` for
+  _tw, `--check <root on this machine>` to mark paths that do not exist). Left out: the plan, setup and handoff
+  files, debug.log, the theme's tests (parity shots can be gigabytes), node_modules, vendor, build configs,
+  dotfiles and git folders, readme.html, `wp-content/upgrade*`.
 - A size warning in the scan usually points at a folder that should be filtered.
+- On serve-wp: macOS and Linux run four PHP workers, so the backup builds on its own in about a minute. On
+  Windows it answers one request at a time: Duplicator then lets the browser drive the build ("Client-side
+  Kickoff"), so keep the Backups page open until the backup is done, and reload it if it stays on "Initializing"
+  for a minute. The scan's Next can take about 45 seconds there.
 
 ## The move
 
@@ -47,14 +54,16 @@ does every hosting step; the agent gives one step at a time, waits for "done", c
 
 ## After the installer
 
-- `installer.php` answers 404, and no zip or archive is left in `public_html` (anyone could download it).
+- Nothing of the installer is left in `public_html` (anyone could download it): `installer.php` and
+  `installer-backup.php` answer 404, and `dup-installer/`, `dup-installer-bootlog__*.txt` and the archive (`.zip` or
+  `.daf`) are gone. The installer's last step offers to remove them; `htaccess-live.txt` blocks them as well.
 - wp-config: `WP_ENVIRONMENT_TYPE` production, debug off, `DISALLOW_FILE_EDIT` true. Left on `local`, the seeder
   loads and every lead goes to the admin only.
 - `.htaccess` = `htaccess-live.txt`: http and www to https in one hop, the private-files block, the WordPress
   block, compression and caching.
-- wp-admin: untick "Discourage search engines"; save permalinks; the reCAPTCHA keys and the ACF licence (the
-  developer types them); tracking set for the live host; Converter for Media and Contact Form CFDB7 installed and active (ask first),
-  then the profile's optional `extra_plugins`; read `debug.log` once; list the live plugins.
+- wp-admin: untick "Discourage search engines"; save permalinks; the reCAPTCHA keys and the ACF licence (the developer
+  types them); tracking set for the live host; Converter for Media and Contact Form CFDB7 installed and active (ask
+  first), then the profile's optional `extra_plugins`; read `debug.log` once; list the live plugins.
 - Then live QA (`references/qa-report.md`).
 - Rollback when a check fails and cannot be fixed quickly: move the WordPress files out, move the old site back,
   restore the old `.htaccess`. A static site needs no database, so it is back at once.

@@ -9,7 +9,7 @@ export async function chromium() {
   for (const root of roots.filter(Boolean)) {
     try { return (await import(pathToFileURL(path.join(root, 'playwright', 'index.mjs')).href)).chromium; } catch {}
   }
-  throw new Error('Playwright not found: run "npm i -D playwright" here, then "npx playwright install chromium"');
+  throw new Error('Playwright not found: run "npm install -g playwright", then "npx playwright install chromium" (or "npm i -D playwright" in the project)');
 }
 
 function safe(fn) { try { return fn(); } catch { return ''; } }

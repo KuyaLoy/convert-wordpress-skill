@@ -15,7 +15,8 @@ Read-only. Reports, with the evidence it found:
 Then the golden-master method for that stack (see references/source-types.md).
 
 Options: --json <file> (everything found), --site-draft <file> (a first site.json: starter, GTM, html attributes,
-fonts; never overwrites).
+fonts; never overwrites), --env <doctor.json> (the draft also gets wp_root, local_host, site_dir, wordpress and serve
+from doctor.py's suggestion).
 """
 import json
 import os
@@ -320,6 +321,19 @@ def main():
         draft['font_links'] = links
         draft['_from_source'] = ('starter, gtm, html_attributes and font_links come from analyze-source.py; '
                                  'every other value is the example and must come from the intake')
+        if '--env' in sys.argv:
+            env = json.load(open(sys.argv[sys.argv.index('--env') + 1], encoding='utf-8'))
+            sug = env.get('suggestion') or {}
+            if sug.get('wp_root'):
+                wp = sug['wp_root'].replace('\\', '/').rstrip('/')
+                draft['wp_root'] = wp
+                parts = wp.split('/')
+                draft['site_dir'] = parts[-3] if wp.endswith('/app/public') and len(parts) >= 3 else parts[-1]
+                draft['local_host'] = re.sub(r'^https?://', '', sug.get('url', '')).rstrip('/')
+                draft['wordpress'] = sug.get('wordpress', 'download')
+                draft['serve'] = sug.get('serve', '')
+                draft['_from_source'] += '; wp_root, site_dir, local_host, wordpress and serve come from doctor.py'
+
         out = sys.argv[sys.argv.index('--site-draft') + 1]
         os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
         if os.path.exists(out):

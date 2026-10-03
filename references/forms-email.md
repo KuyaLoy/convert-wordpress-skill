@@ -91,8 +91,10 @@ form uses such names.
 ## Local mail capture
 
 While `WP_ENVIRONMENT_TYPE` is `local`, every email goes to the admin email only, the real recipients are kept in
-an `X-<Prefix>-Original-To` header, and a copy is saved in `_setup/mail/` (a local mail catcher shows it too). A
-live wp-config left on `local` sends every lead to the admin only: switch it at launch.
+an `X-<Prefix>-Original-To` header, and a copy is saved in `_setup/mail/` (a local mail catcher shows it too). When
+PHP has no way to send mail here (XAMPP, MAMP, WampServer, serve-wp), the copy is the email: wp_mail() stops there
+and reports success, so forms answer as on live (filter `<prefix>_mail_to_file`). A live wp-config left on `local`
+sends every lead to the admin only: switch it at launch.
 
 ## Proving delivery
 

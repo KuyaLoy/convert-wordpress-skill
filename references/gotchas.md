@@ -33,6 +33,10 @@ project's handoff.md (Failed Attempts) as they happen.
   activation: the seeder's redirects step says so and stops until then.
 - ACF returns `false` or `null` for an empty repeater: loop over `kitwp_rows()`.
 - The seeder's second run must say "same" everywhere; anything else is a bug in the seed or the hash.
+- Secure Custom Fields (free) runs the kit's field groups, options page, seeder and `get_field()` as ACF PRO does;
+  only the menu name differs (SCF). The flexible content field is `page_sections`, not `sections`.
+- `new-site.py --force` used to replace `build_field_groups.py`, which by then holds the site's content model: it
+  is kept now, like the parity routes and settings.
 
 ## Parity and screenshots
 
@@ -61,6 +65,9 @@ project's handoff.md (Failed Attempts) as they happen.
   form does not post (`kitwp_lead_fields`), so "Exclude lines with blank mail-tags" drops the row.
 - The local URL (`.test`) is not the From domain: the mail rules check `KITWP_DOMAIN` (the live domain), so local
   mail is built exactly as on live (one HTML part, Message-ID and envelope sender on the domain).
+- With no mail program (XAMPP, MAMP, WampServer, serve-wp), every local form answered "There was an error trying
+  to send your message", so the thank-you flow could not be tested. On local, when PHP cannot send, the kit keeps
+  the email in `_setup/mail/` and reports it as sent (`kitwp_mail_to_file` forces either way).
 
 ## Static sources
 
@@ -101,6 +108,9 @@ project's handoff.md (Failed Attempts) as they happen.
 - Imunify360 can answer scripted requests with "One moment, please" or 415: check from a real browser.
 - Zips made in some VMs keep 0700 modes and LiteSpeed answers 403: set 0644 files and 0755 folders before zipping.
 - A zip left in `public_html` is public: remove it after extracting.
+- Free Duplicator 5 may build a `.daf` archive (DupArchive) instead of a zip: the same rules, it holds the whole
+  site and database. The installer also leaves `dup-installer/` and a boot log: remove them all.
+- A cloned starter theme brings its `.git` folder: the Duplicator filters leave git folders out.
 - A live wp-config left on `local` loads the seeder and sends every lead to the admin only.
 - After any plugin install, read debug.log: a second copy of a plugin gives "Cannot redeclare" fatals.
 - The REST user list shows the admin username to visitors unless hidden.
@@ -129,3 +139,22 @@ project's handoff.md (Failed Attempts) as they happen.
   site-wide facts such as the `<html lang dir>` attributes from `index.html` nearest the top.
 - Work on a copy of the source (`get-source.py`), never the folder the developer gave: an `npm install` or a build
   changes it, and a source folder can be tied to a live site.
+- `python3` on Windows is often missing, or opens the Microsoft Store (an alias in WindowsApps): doctor.py prints the
+  command that works (`py -3`, `python`).
+- PHP's built-in server with one process cannot answer WordPress calling itself: Duplicator's scan waited 45 s
+  and its build only ran with the Backups page open. serve-wp.py runs four workers on macOS and Linux (Windows
+  has one: keep that page open). Its PID file and log go in `_setup/`, never the web root.
+- Composer run as root (containers, some VMs) skips its plugins, so PHPCS finds no WordPress standards: run
+  `composer run-script post-install-cmd` once after `composer install`.
+- A site in a subfolder address (`http://localhost/my-site/`) changes every link, so the diffs fail: give it its own
+  address (the app's `<site>.test`, Local's `<site>.local`, or serve-wp.py on a port).
+- Local and Herd serve with Nginx: `.htaccess` rules do nothing there (fine locally; the launch package leaves the
+  private files out).
+- Every `https` link is not a git repository: a live website goes to the capture, a zip link is downloaded, a GitHub
+  `/tree/<branch>/<folder>` link keeps only that folder. Logins and tokens inside links are never printed or saved.
+- A zip with a password cannot be opened by the script: the developer unzips it and gives the folder.
+- A source that is already WordPress (wp-config.php, wp-includes) is not a conversion: get-source.py stops (exit 4).
+- Projects inside OneDrive, Dropbox or iCloud folders are slow and can clash while syncing: build outside them.
+- Updating the skill does not change a project already started: it keeps its own copy of the tools in `_plan/tools/`
+  and the theme. `new-site.py <wp_root>/_plan/site.json --force` refreshes them (kit code only, backup first).
+- An agent reads a skill when the chat starts: after an update, start a new chat.

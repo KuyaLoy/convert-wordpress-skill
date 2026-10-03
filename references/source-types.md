@@ -13,14 +13,16 @@ get it, served unchanged, that every WordPress page is compared against.
 - Content, forms, tracking, redirects
 - Behaviour inventory
 - When the source cannot be built
+- Only a live site (no files)
 
 ## Study first
 
-1. `python3 <kit>/scripts/get-source.py <git URL, zip or folder>` makes the working copy `<name>-source` (ask
-   first: a clone or an unzip is a download). Then `python3 <kit>/scripts/analyze-source.py <name>-source --json <wp_root>/_plan/analyze.json --site-draft
-   <wp_root>/_plan/site.json` (read only). It reports the stack, the build scripts, built output already there,
-   Tailwind (and so the starter theme), routes and dynamic routes, content sources, forms and the code that sends
-   mail, tracking ids (placeholders like GTM-XXXXXXX are skipped), fonts (Google and self-hosted), icons and
+1. `python3 <kit>/scripts/get-source.py <GitHub link, zip, folder or web address> --into <web folder>` makes the
+   working copy `<name>-source` (ask first: a clone, a zip link or a capture is a download). Then
+   `python3 <kit>/scripts/analyze-source.py <name>-source --env doctor.json --json <wp_root>/_plan/analyze.json
+   --site-draft <wp_root>/_plan/site.json` (read only). It reports the stack, the build scripts, built output already
+   there, Tailwind (and so the starter theme), routes and dynamic routes, content sources, forms and the code that
+   sends mail, tracking ids (placeholders like GTM-XXXXXXX are skipped), fonts (Google and self-hosted), icons and
    front-end libraries, images, redirect sources, files holding secrets or personal data, and the golden-master
    method. `--site-draft` writes a first site.json (starter, GTM, html attributes, fonts; never overwrites);
    new-site.py copies analyze.json into section 1 of SOURCE-NOTES.md.
@@ -127,3 +129,13 @@ Several: a decision for the board before Sprint 1 (`references/build.md`, any co
   error, then use the live static site as the golden master (snapshots of every route plus its assets), and say so
   in SOURCE-NOTES.md and the decisions.
 - The live site changes at launch: capture it (snapshots, a mirror of its assets) before then.
+
+## Only a live site (no files)
+
+A site builder with no code export (Wix, Squarespace, Framer, some Webflow plans), a lost project, or an agency that
+never handed the code over: `get-source.py https://<domain>` runs `capture-site.mjs`, which saves every page as the
+browser renders it plus every same-origin file it uses, with links made root-relative, and writes routes.json. That
+copy is the golden master: serve it with `python3 tests/parity/serve.py <name>-source 8080` (site.json `ref_url`
+`http://localhost:8080`). Ask first, only for a site the developer owns or may rebuild; check `capture-log.txt` and
+`--max-pages` for big sites. Files on other origins (CDNs, Google Fonts) stay remote, as on the live site; a builder's
+own scripts (chat, booking, analytics) are rebuilt or replaced, never copied (record them in SOURCE-NOTES.md).

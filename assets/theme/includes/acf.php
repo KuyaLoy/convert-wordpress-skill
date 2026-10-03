@@ -1,6 +1,6 @@
 <?php
 /**
- * ACF PRO set-up: local JSON in the theme and the Theme Settings options page.
+ * ACF PRO (or the free Secure Custom Fields) set-up: local JSON in the theme and the Theme Settings options page.
  *
  * Field groups live as JSON in acf-json/ (built by tools/acf/build_field_groups.py, keys group_kitk_*,
  * field_kitk_*, layout_kitk_*, never renamed once content is seeded). The options page is registered here, so it

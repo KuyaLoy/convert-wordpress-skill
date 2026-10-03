@@ -6,10 +6,12 @@
  *   node parity.mjs --routes=/,/about/ --widths=390,1440
  *   node parity.mjs --self                       reference against itself: must be 0.000% everywhere
  *   node parity.mjs --keep=all                   keep every screenshot (default: only failing rows)
+ *   node parity.mjs --all                        also print the passing rows (default: failures and one summary)
  *
  * Settings in parity.config.json (hosts, widths, blocked requests, hidden and masked elements, reveal class, clock).
  * Env: WP=..., REF=... override the hosts; CHROME_PATH for a browser outside Playwright's cache.
- * Output: report/index.html (side by side + diff images) and report/results.json. Never deploy this folder.
+ * Output: report/index.html (side by side + diff images), report/results.json and report/parity-log.txt (every
+ * row). The console gets the failing rows (at most 20) and one summary line. Never deploy this folder.
  *
  * Per route and width: full-page pixel diff (pixelmatch), visible text diff, SEO diff (title, description,
  * canonical, robots, lang, H1 to H6 order, JSON-LD types). Stable shots: tracking, maps and chat blocked or masked,
@@ -141,6 +143,8 @@ const WP = flag('self') ? REF : (process.env.WP || CFG.wp).replace(/\/$/, '');
 fs.mkdirSync(path.join(OUT, 'img'), { recursive: true });
 console.log(`REF ${REF}\nWP  ${WP}\n${routes.length} routes x ${widths.length} widths\n`);
 const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined });
+const logLines = [];
+let shownFails = 0;
 const results = [];
 for (const route of routes) {
   for (const width of widths) {
@@ -178,7 +182,9 @@ for (const route of routes) {
       row.error = String(e.message || e).slice(0, 300); row.pass = false;
     }
     results.push(row);
-    console.log(`${row.pass ? 'PASS' : 'FAIL'} ${route} @${width}` + (row.visual ? ` diff ${(row.visual.share * 100).toFixed(3)}% h ${row.visual.refHeight}/${row.visual.wpHeight}` : '') + (row.text?.length ? ` text:${row.text}` : '') + (row.seo && Object.keys(row.seo).length ? ` seo:${Object.keys(row.seo)}` : '') + (row.error ? ` ERROR ${row.error}` : ''));
+    const line = `${row.pass ? 'PASS' : 'FAIL'} ${route} @${width}` + (row.visual ? ` diff ${(row.visual.share * 100).toFixed(3)}% h ${row.visual.refHeight}/${row.visual.wpHeight}` : '') + (row.text?.length ? ` text:${row.text}` : '') + (row.seo && Object.keys(row.seo).length ? ` seo:${Object.keys(row.seo)}` : '') + (row.error ? ` ERROR ${row.error}` : '');
+    logLines.push(line);
+    if (flag('all') || (!row.pass && ++shownFails <= 20)) console.log(line);
     await a.ctx.close(); await b.ctx.close();
   }
 }
@@ -197,5 +203,7 @@ ${r.error ? `<pre>${esc(r.error)}</pre>` : `<pre>status ${r.status.ref}/${r.stat
 ${r.text.length ? 'text differs: ' + r.text.join(', ') + '\n' + esc(JSON.stringify(r.textDetail, null, 1)) : ''}${Object.keys(r.seo).length ? '\nseo: ' + esc(JSON.stringify(r.seo, null, 1)) : ''}</pre>
 ${r.images ? `<details><summary>images (ref, wp, diff)</summary><img src="img/${r.slug}-ref.png"><img src="img/${r.slug}-wp.png"><img src="img/${r.slug}-diff.png"></details>` : ''}`}
 </td></tr>`).join('\n')}</table>`);
-console.log(`\n${pass} of ${results.length} pass. Report: ${path.join(OUT, 'index.html')}`);
+fs.writeFileSync(path.join(OUT, 'parity-log.txt'), logLines.join('\n') + '\n');
+const fails = results.length - pass;
+console.log(`${fails ? 'FAIL' : 'OK'} parity: ${pass} of ${results.length} pass` + (shownFails > 20 ? ` (${shownFails - 20} more failures in parity-log.txt)` : '') + `. Report: ${path.join(OUT, 'index.html')}`);
 process.exit(pass === results.length ? 0 : 1);
