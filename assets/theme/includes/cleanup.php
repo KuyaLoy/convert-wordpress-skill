@@ -40,7 +40,21 @@ remove_action( 'wp_head', 'rest_output_link_wp_head', 10 );
 remove_action( 'wp_head', 'wp_oembed_add_discovery_links' );
 remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
 remove_action( 'wp_print_styles', 'print_emoji_styles' );
-add_filter( 'show_admin_bar', '__return_false' );
+
+/**
+ * The WordPress toolbar (Dashboard, Edit Page...) shows for logged-in users, as in any theme. Visitors never get it,
+ * so the public page stays 1:1 (parity runs logged out). While it shows, KITWP_ADMIN_BAR_CSS (config.php) moves a
+ * sticky or fixed static header, and anything placed below it, down by the toolbar's height.
+ *
+ * @return void
+ */
+function kitwp_admin_bar_offset() {
+	if ( '' === KITWP_ADMIN_BAR_CSS || ! is_admin_bar_showing() ) {
+		return;
+	}
+	echo '<style id="kitwp-admin-bar">' . KITWP_ADMIN_BAR_CSS . "</style>\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- a theme constant.
+}
+add_action( 'wp_head', 'kitwp_admin_bar_offset', 100 );
 
 // Speculative loading (WordPress 6.8+) prints a speculation-rules script the static site does not have.
 add_filter( 'wp_speculation_rules_configuration', '__return_null' );

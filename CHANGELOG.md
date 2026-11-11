@@ -5,6 +5,53 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-11
+
+Lessons from the first live launch with the 0.4 kit (a Next.js site to WordPress on cPanel, DNS first).
+
+### Added
+
+- Leads portal: profile `leads_portal.constant_prefix` fills `KITWP_LEADS_PREFIX`; `kitwp_leads_send()` posts
+  every sent lead form to `<PREFIX>_ENDPOINT` with `<PREFIX>_KEY` from wp-config (fields, tracking, idempotency
+  key), never from local, development or staging, sensitive fields left out with `kitwp_leads_skip_fields`.
+- Site footer agency badge: profile `branding.site_badge` (copied to `assets/brand/`), `kitwp_agency_badge()`,
+  Theme Settings > Branding (image, link, hide).
+- `/favicon.ico` redirects to the brand icon when no Site Icon is set (no WordPress "W").
+- robots.txt blocks everything while "Discourage search engines" is on; the thank-you page stays out of
+  Yoast's sitemap.
+- DNS-first launches: `_setup/launch/maintenance/` (503 page and its .htaccess, with Retry-After).
+- Launch guide: the Duplicator Pro command-line build (no wp-admin login), what the installer does to
+  `.htaccess`, `php.ini` and `.user.ini` and why the clean-up is immediate, the Advanced-mode URL fields, cache
+  purge after indexing, AutoSSL after DNS and stale `_acme-challenge` records.
+- Gotchas: browser DNS cache after the switch, local test leads reaching a live portal, preview parity
+  (noindex), cPanel UAPI from a logged-in tab, big uploads through a localhost helper.
+- Branded auto-reply: forms.json `autoreply_file` (new `assets/seed/autoreply-email.html`, the lead email's
+  template) seeds CF7 Mail (2) as HTML, with `[_<key>_name]` for the greeting. Plain-text auto-replies are gone.
+- Agency badge in the footer of the lead email and the auto-reply: profile `branding` (`email_badge_png`, `link`,
+  `alt`, `width`) fills `<PREFIX>_EMAIL_BADGE*` in config.php, the builder copies the PNG into
+  `theme/assets/email/`, and `[_<key>_badge]` prints it. Both templates end with a brand-colour footer strip.
+- Profile `extra_plugins` entries can be marked `required`: installed in S1-02 with the starter plugins and kept
+  active on live (SKILL.md S1-02, setup.md, launch.md, the runbook template, `profile.example.json`).
+- Gotchas: Contact Form 7 6.2 needs PHP 8.3 (check the host's PHP before the upload; dry-run on the host's version
+  locally with `php -S` and the kit's router); plugins that register themselves on activation go on after DNS moves.
+- `scripts/acf/sync.php` (`wp eval-file`): syncs the theme's ACF JSON (field groups, options pages, post types,
+  taxonomies) into the database with ACF's own sync code, every pending item at once; `dry-run` lists them. A
+  second run says "Nothing to sync". S1-06 is done only when ACF shows nothing under "Sync available".
+- The builder writes Theme Settings as an ACF options page (`ui_options_page_<key>_theme_settings.json`), so it
+  shows in ACF > Options Pages; capability `edit_pages`, so a client with the Editor role can use it.
+- `KITWP_ADMIN_BAR_CSS` (config.php): CSS printed only while the logged-in toolbar shows, to move a sticky static
+  header (and anything placed below it) down by `--wp-admin--admin-bar--height`.
+
+### Changed
+
+- A failed lead email is logged with the form title only (no field values: personal or health details
+  never go into a log).
+- The WordPress toolbar shows for logged-in users again (Dashboard, Edit Page). Visitors never get it, so the
+  public page stays 1:1.
+- `acf.php` registers Theme Settings in PHP only as a fallback, when ACF has not registered it from the JSON.
+- Field rules for a non-technical client (build.md, ACF): the source's content model, repeaters for lists, a
+  paragraph as one text box with Bold and Link, tabs, plain labels; never one field per rendered text node.
+
 ## [0.4.0] - 2026-10-03
 
 Any local setup, plain words for newcomers, fewer tokens, updates in one step. Tried on WordPress 7.1.2 with the

@@ -134,6 +134,12 @@ starter, prefix, key = site['starter'], site['prefix'], site['key']
 # Lead email: the profile's defaults, then the site's non-empty values; the Bcc lists are combined (the agency's
 # usual copies plus the site's own, for example its account manager).
 lead = {k: v for k, v in profile.get('lead', {}).items() if not k.startswith('_')}
+branding = {k: v for k, v in profile.get('branding', {}).items() if not k.startswith('_')}
+for _b in ('email_badge_png', 'site_badge'):
+    if branding.get(_b) and not os.path.isabs(branding[_b]):
+        branding[_b] = os.path.join(SKILL, branding[_b])
+    if branding.get(_b) and not os.path.exists(branding[_b]):
+        sys.exit(f'profile branding.{_b} not found: ' + branding[_b])
 for k, v in site.get('lead', {}).items():
     if k == 'bcc':
         lead['bcc'] = list(dict.fromkeys(list(lead.get('bcc', [])) + list(v or [])))
@@ -168,6 +174,14 @@ values = {
     'PHONE_DISPLAY': site.get('phone_display', ''),
     'PHONE_TEL': site.get('phone_tel', ''),
     'EMAIL': site.get('email', ''),
+    # The agency badge in the footer of the lead email and the auto-reply (profile "branding"; empty = none).
+    'EMAIL_BADGE': ('assets/email/' + os.path.basename(branding['email_badge_png'])) if branding.get('email_badge_png') else '',
+    'EMAIL_BADGE_LINK': branding.get('link', '').replace("'", "\\'"),
+    'EMAIL_BADGE_ALT': branding.get('alt', '').replace("'", "\\'"),
+    'EMAIL_BADGE_WIDTH': str(int(branding.get('width', 120))),
+    'SITE_BADGE': ('assets/brand/' + os.path.basename(branding['site_badge'])) if branding.get('site_badge') else '',
+    # Leads portal: the wp-config constant prefix (<PREFIX>_ENDPOINT, <PREFIX>_KEY); empty = no portal.
+    'LEADS_PREFIX': re.sub(r'[^A-Z0-9_]', '', str(profile.get('leads_portal', {}).get('constant_prefix', '')).upper()),
     'GTM_ID': site.get('gtm', ''),
     'LEAD_TO': lead.get('to', ''),
     'LEAD_BCC': ', '.join(lead.get('bcc', [])),
@@ -356,6 +370,10 @@ for tool in ('acf', 'seed', 'build-map', 'report', 'launch', 'setup'):
 for f in ('analyze-source.py', 'snapshot-routes.mjs'):
     plan.append((os.path.join(S, f), os.path.join(root, '_plan', 'tools', f)))
 add_tree(os.path.join(A, 'seed'), os.path.join(root, '_setup', 'seed'))
+if not a.plan_only and branding.get('email_badge_png'):
+    plan.append((branding['email_badge_png'], os.path.join(theme, 'assets', 'email', os.path.basename(branding['email_badge_png']))))
+if not a.plan_only and branding.get('site_badge'):
+    plan.append((branding['site_badge'], os.path.join(theme, 'assets', 'brand', os.path.basename(branding['site_badge']))))
 for f in sorted(os.listdir(os.path.join(A, 'plan'))):
     plan.append((os.path.join(A, 'plan', f), os.path.join(root, '_plan', f.replace('.template', ''))))
 plan += [
@@ -364,6 +382,8 @@ plan += [
     (os.path.join(A, 'handoff', 'ai-handoff-summary.template.md'), os.path.join(root, 'ai-handoff-summary.md')),
     (os.path.join(A, 'launch', 'RUNBOOK.template.md'), os.path.join(root, '_setup', 'launch', 'RUNBOOK.md')),
     (os.path.join(A, 'launch', 'htaccess-live.txt'), os.path.join(root, '_setup', 'launch', 'htaccess-live.txt')),
+    (os.path.join(A, 'launch', 'maintenance', 'maintenance.html'), os.path.join(root, '_setup', 'launch', 'maintenance', 'maintenance.html')),
+    (os.path.join(A, 'launch', 'maintenance', 'htaccess-maintenance.txt'), os.path.join(root, '_setup', 'launch', 'maintenance', 'htaccess-maintenance.txt')),
     (os.path.join(A, 'report', 'report-template.html'), os.path.join(root, '_setup', 'launch', 'report.html')),
 ]
 

@@ -9,8 +9,10 @@ Read this in Sprint 5. The code is the theme's `includes/forms.php`; the seed fi
 - Posting, the thank-you redirect, errors
 - Field names that break WordPress
 - The email: one HTML part
+- The auto-reply and the agency badge: one look for both emails
 - Spam: honeypot and reCAPTCHA v3
 - The chat widget through CF7's REST endpoint
+- The leads portal
 - Local mail capture
 - Proving delivery
 
@@ -65,6 +67,21 @@ form uses such names.
 - From: `<Site> <no-reply@domain>` on the site's own domain. To: the client's inbox. Bcc: the profile's list. All
   three come from forms.json, so they stay editable in CF7.
 
+## The auto-reply and the agency badge: one look for both emails
+
+- The visitor gets an auto-reply (CF7 Mail (2)) in the **same branded HTML template** as the lead email
+  (`autoreply-email.html`: logo header, "Hi [_<key>_name],", the thank-you line, the client's phone and email,
+  sign-off). Never CF7's plain-text default: it reads as an afterthought next to the branded lead email.
+  forms.json per form: `autoreply_file`, `autoreply_subject`, `autoreply_to` (`[email]`; the referral-style form
+  that has `referrerEmail` uses that), `autoreply_reply_to` (the client's inbox). "Use HTML content type" on.
+- **Agency badge in both footers:** when the profile's `branding` names a badge, the lead email and the
+  auto-reply end with it, linked (`[_<key>_badge]`, set in config.php `<PREFIX>_EMAIL_BADGE*`; the builder copies
+  the PNG to `theme/assets/email/`). Use a **PNG at 2x** (email clients do not show SVG or WebP). A white badge
+  sits on the brand-colour footer strip that both templates have.
+- The site's own footer can carry the same badge (SVG is fine on the web) when the profile asks for it.
+- Check both emails on live: one test lead per form, then look at the client's copy (lead email) and the
+  visitor's copy (auto-reply): same header, same footer, badge showing and linked.
+
 ## Spam: honeypot and reCAPTCHA v3
 
 - The static honeypot field (`company` in the example) is checked at `wpcf7_spam` priority 1: a hit goes to the
@@ -87,6 +104,20 @@ form uses such names.
   `_wpcf7_unit_tag` (`wpcf7-f<id>-o1`), `_wpcf7_container_post`, the fields, and the reCAPTCHA token.
 - A JSON body gets 415; a missing unit tag gets 400; `mail_sent` is the only success.
 - The Chat Lead form's Form tab is the field list; its Mail tab the email.
+
+## The leads portal
+
+When the profile names a leads portal (`leads_portal.constant_prefix`, for example `ACME_LEADS`),
+`kitwp_leads_send()` POSTs every sent lead form there after the email went out: JSON with `form`, an
+`idempotency_key`, the posted fields and `source_url`, `ip_address`, `gclid`, `fbp`, `fbc`; header
+`Authorization: Bearer <key>`; 5 second timeout; a failure is logged with the status only.
+
+- The endpoint and key live in wp-config only (`<PREFIX>_ENDPOINT`, `<PREFIX>_KEY`): the developer pastes them.
+- Off while `WP_ENVIRONMENT_TYPE` is local, development or staging. A local copy with the live key would
+  otherwise send its test leads to the real portal, where they often cannot be deleted one by one.
+- Files, consent and the honeypot never go; leave out health details, dates of birth and other sensitive fields
+  with the `kitwp_leads_skip_fields` filter (per form).
+- Prove it on live: one TEST lead per form reaches the portal (its admin shows the count per form).
 
 ## Local mail capture
 

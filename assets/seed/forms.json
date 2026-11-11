@@ -7,7 +7,11 @@
     "sender": "{{LEAD_FROM}}",
     "recipient": "{{LEAD_TO}}",
     "bcc": "{{LEAD_BCC}}",
-    "reply_to": "[email]"
+    "reply_to": "[email]",
+    "autoreply_file": "autoreply-email.html",
+    "autoreply_subject": "We have received your message - {{SITE_NAME}}",
+    "autoreply_to": "[email]",
+    "autoreply_reply_to": "{{LEAD_TO}}"
   },
   "chat": {
     "title": "Chat Lead",
@@ -17,6 +21,10 @@
     "sender": "{{LEAD_FROM}}",
     "recipient": "{{LEAD_TO}}",
     "bcc": "{{LEAD_BCC}}",
-    "reply_to": "[email]"
+    "reply_to": "[email]",
+    "autoreply_file": "autoreply-email.html",
+    "autoreply_subject": "We have received your message - {{SITE_NAME}}",
+    "autoreply_to": "[email]",
+    "autoreply_reply_to": "{{LEAD_TO}}"
   }
 }

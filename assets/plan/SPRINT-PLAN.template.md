@@ -90,7 +90,8 @@ started, not even "while waiting"; a blocker is recorded and raised, not worked 
 1. **Static** (FE). Copy the section's rendered HTML from the golden master into the partial: same tags, classes,
    attributes, order. Copy hardcoded. Diff until it shows no difference.
 2. **Model** (WP). Add the fields to the group in `tools/acf/build_field_groups.py` (stable keys); run it.
-3. **Sync** (WP). ACF > Field Groups > the group's own Sync link (only changed groups are offered).
+3. **Sync** (WP). `wp eval-file _plan/tools/acf/sync.php` (or the group's own Sync link): ACF > Field Groups
+   shows nothing under "Sync available".
 4. **Dynamic** (WP). Replace the hardcoded copy with the fields; escape every output.
 5. **Seed** (WP). Exporter, then Tools > Seeder for that step.
 6. **Test** (FE and WP, then Tester). Visual diff, text, headings, keyboard and ARIA, no PHP notices, no console

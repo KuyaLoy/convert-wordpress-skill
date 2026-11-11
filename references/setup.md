@@ -217,7 +217,7 @@ ACF PRO or Secure Custom Fields, Contact Form 7 and Yoast SEO at the start. Ask 
 | Duplicator | `duplicator` (free), or Pro from the developer's zip | The move to live (launch) |
 | Converter for Media | `webp-converter-for-media` | Must be on live: WebP for images uploaded later (launch; check images after) |
 | Contact Form CFDB7 | `contact-form-cfdb7` | Must be on live: every enquiry kept in the database (Sprint 5 or launch) |
-| The profile's `extra_plugins` | per entry | Optional: the developer's or agency's own plugins, when the entry says |
+| The profile's `extra_plugins` | per entry | The developer's or agency's own plugins: `required` ones in S1-02 with the starters and active on live; the others when the entry says |
 
 - After every plugin install: read `wp-content/debug.log`. A second copy of a plugin gives "Cannot redeclare"
   fatals.

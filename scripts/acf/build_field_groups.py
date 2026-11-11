@@ -8,9 +8,18 @@ and the menu item icon. Run from the WordPress root (or anywhere: paths are rela
 
 Keys: group_kitk_<group>, field_kitk_<group>_<path>_<name>, layout_kitk_<group>_<layout>. They never change once
 content is seeded (ACF stores values against the key). "modified" is bumped only for groups whose content changed,
-so ACF > Field Groups lists exactly those under "Sync available": use each group's own Sync link (the bulk action
-did nothing on the reference build). Defaults are the static site's copy, so a field nobody has saved still
-renders 1:1 (read Theme Settings by field key: kitwp_setting()).
+so ACF > Field Groups lists exactly those under "Sync available". Then sync them into the database:
+wp eval-file _plan/tools/acf/sync.php (ACF's own sync, every pending item; or each group's own Sync link). Done
+means ACF > Field Groups and ACF > Options Pages show nothing under "Sync available". Defaults are the static
+site's copy, so a field nobody has saved still renders 1:1 (read Theme Settings by field key: kitwp_setting()).
+
+Theme Settings is written as an ACF options page too (ui_options_page_kitk_theme_settings.json): it shows in
+ACF > Options Pages, where the client's developer can find and change it, instead of being hidden in theme code.
+
+Fields are for a client who is not technical: follow the source's content model (one field per real piece of
+content: a heading, a paragraph with Bold and Link, an image, a button), lists as repeaters, tabs per section,
+plain labels with short instructions. Never one field per rendered text node (sentence pieces, separators,
+breadcrumbs, the same words twice): a real build did that and the developer rejected it (gotchas.md, ACF).
 
 The library is at the top; replace the EXAMPLE SPEC with the site's content model (CONTENT-MODEL.md).
 """
@@ -131,8 +140,27 @@ def field_group(key, title, fields, location, **o):
             'description': o.get('description', ''), 'show_in_rest': 0, 'display_title': '', 'modified': NOW}
 
 
+def options_page(slug, title, **o):
+    """An ACF options page as JSON (ACF > Options Pages; ACF registers it from the theme's acf-json)."""
+    key = 'ui_options_page_' + slug.replace('-', '_')
+    return {'key': key, 'title': title, 'menu_order': 0, 'page_title': title, 'menu_slug': slug,
+            'parent_slug': o.get('parent', 'none'), 'advanced_configuration': True, 'icon_url': '',
+            'menu_title': o.get('menu_title', title), 'position': o.get('position', 59), 'redirect': False,
+            'description': o.get('description', ''),
+            'menu_icon': {'type': 'dashicons', 'value': o.get('icon', 'dashicons-admin-customizer')},
+            'update_button': o.get('update_button', 'Save settings'),
+            'updated_message': o.get('updated_message', title + ' saved.'),
+            'capability': o.get('capability', 'edit_pages'), 'data_storage': 'options', 'post_id': '',
+            'autoload': True, 'active': True, 'modified': NOW}
+
+
 groups = {}
+pages = {}
 INACTIVE_LOC = [[{'param': 'post_type', 'operator': '==', 'value': 'post'}]]
+
+# Theme Settings options page (Editors can open it: capability edit_pages). Its fields: the group below.
+pages[f'ui_options_page_{KEY}_theme_settings'] = options_page(f'{KEY}-theme-settings', 'Theme Settings',
+                                                              description='Site-wide content: one place, many pages.')
 
 # ---------------------------------------------------------------- EXAMPLE SPEC (replace with the site's model)
 # Theme Settings: the fields the kit's PHP reads (helpers.php, schema.php, forms.php) plus the 404 copy.
@@ -153,6 +181,10 @@ groups[f'group_{KEY}_theme_settings'] = field_group(f'group_{KEY}_theme_settings
     g.tab('Quote form'),
     g.rep('qf_service_options', 'General service options', [g.text('label', 'Option', '', 'qf_service_options')], button='Add option',
           instructions='The service list on pages without their own list, and in the pop-up.'),
+    g.tab('Branding'),
+    g.any('image', 'agency_badge', 'Agency badge', width=35, instructions='The footer badge. Empty: the theme default (config.php KITWP_SITE_BADGE).'),
+    g.any('url', 'agency_link', 'Agency badge link', width=40, instructions='Empty: the theme default.'),
+    g.any('true_false', 'agency_badge_hide', 'Hide agency badge', width=25, ui=1),
     g.tab('404'),
     g.text('e404_heading', 'Heading (H1)', '', width=75),
     g.area('e404_text', 'Text', '', rows=2),
@@ -257,6 +289,11 @@ def write(groups, only_check=False):
 
 if __name__ == '__main__':
     n = check(groups)
-    changed = write(groups, '--check' in sys.argv)
+    for key, page in pages.items():
+        assert key == page['key'] and key.startswith('ui_options_page_'), 'options page key ' + key
+    changed = write({**groups, **pages}, '--check' in sys.argv)
     verb = 'would change' if '--check' in sys.argv else 'written (modified ' + str(NOW) + ')'
-    print(f'{len(groups)} groups, {n} keys; {len(changed)} {verb}: {", ".join(changed) or "none"}; folder {OUT}')
+    print(f'{len(groups)} groups, {len(pages)} options pages, {n} keys; {len(changed)} {verb}: '
+          f'{", ".join(changed) or "none"}; folder {OUT}')
+    if changed and '--check' not in sys.argv:
+        print('Next: wp eval-file _plan/tools/acf/sync.php (or each item\'s Sync link in ACF).')

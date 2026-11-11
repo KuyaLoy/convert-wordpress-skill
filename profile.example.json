@@ -40,16 +40,33 @@
     "method": "GTM container in the head and the noscript after <body>",
     "plugin": ""
   },
-  "_extra_plugins_about": "Optional plugins of your own or your agency's, on top of the kit's defaults (ACF PRO, Contact Form 7, Yoast SEO; Redirection if needed; Duplicator Pro; Converter for Media and Contact Form CFDB7 on live). Asked about, never installed without an OK.",
+  "_extra_plugins_about": "Plugins of your own or your agency's, on top of the kit's defaults (ACF PRO, Contact Form 7, Yoast SEO; Redirection if needed; Duplicator Pro; Converter for Media and Contact Form CFDB7 on live). \"required\": true = installed in S1-02 with the starter plugins and kept active on live; the others when their \"when\" says. Never installed without an OK.",
   "extra_plugins": [
     {
       "name": "Your agency's plugin",
+      "required": false,
       "why": "what it does",
-      "when": "live, optional"
+      "when": "S1-02, live, or a later task",
+      "source": "where it comes from (a zip path, or the developer installs it)"
     }
   ],
   "plugin_zips": {
     "_about": "Paths on this machine to plugin zips you bought (never the licence keys: those go in each site's wp-config.php, pasted by you).",
     "acf_pro": ""
+  },
+  "branding": {
+    "_about": "Agency badge in the footer of the lead email AND the auto-reply (both use the same branded HTML template). A PNG at 2x size (email clients do not show SVG or WebP); a white badge sits on the brand-colour footer strip. Path relative to the skill folder or absolute; empty = no badge.",
+    "email_badge_png": "",
+    "link": "",
+    "alt": "",
+    "width": 120,
+    "site_badge": "",
+    "_site_badge_about": "The same badge for the site footer's bottom bar (SVG is fine on the web): kitwp_agency_badge(). Theme Settings > Branding can swap or hide it."
+  },
+  "leads_portal": {
+    "_about": "A leads portal that gets every sent lead form, server to server (JSON, Bearer key). wp-config holds <constant_prefix>_ENDPOINT and <constant_prefix>_KEY (the developer pastes them; never in the theme). Off on local, development and staging. Empty prefix: no portal.",
+    "constant_prefix": "",
+    "admin": "",
+    "setup": ""
   }
 }

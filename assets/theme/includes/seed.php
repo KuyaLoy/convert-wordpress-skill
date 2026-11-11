@@ -509,6 +509,8 @@ function kitwp_seed_page() {
  *     "chat":  { ... "form_file": "chat-form.txt", "subject": "New Chat Enquiry from [name] - [service]" } }
  * The Form tab comes from form_file and the Mail tab body from body_file (the full HTML email with mail-tags);
  * rows with blank mail-tags are left out ("Exclude lines with blank mail-tags").
+ * Optional auto-reply (Mail (2)) to the visitor: "autoreply_file" (the same branded HTML shell as the lead email,
+ * autoreply-email.html), "autoreply_subject", "autoreply_to" (default [email]), "autoreply_reply_to" (the client).
  *
  * @return array<string, array{title: string, form: string, mail: array<string, mixed>}>
  */
@@ -540,6 +542,17 @@ function kitwp_seed_form_defs() {
 				'attachments'        => '',
 				'use_html'           => true,
 				'exclude_blank'      => true,
+			],
+			'mail_2' => [
+				'active'             => '' !== (string) ( $def['autoreply_file'] ?? '' ),
+				'subject'            => (string) ( $def['autoreply_subject'] ?? '' ),
+				'sender'             => (string) ( $def['sender'] ?? '' ),
+				'recipient'          => (string) ( $def['autoreply_to'] ?? '[email]' ),
+				'body'               => $read( $def['autoreply_file'] ?? '' ),
+				'additional_headers' => ! empty( $def['autoreply_reply_to'] ) ? 'Reply-To: ' . $def['autoreply_reply_to'] : '',
+				'attachments'        => '',
+				'use_html'           => true,
+				'exclude_blank'      => false,
 			],
 		];
 	}
@@ -601,8 +614,9 @@ function kitwp_seed_forms() {
 		$form->set_title( $def['title'] );
 		$form->set_properties(
 			[
-				'form' => $def['form'],
-				'mail' => $def['mail'],
+				'form'   => $def['form'],
+				'mail'   => $def['mail'],
+				'mail_2' => $def['mail_2'],
 			]
 		);
 		$id          = (int) $form->save();

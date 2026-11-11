@@ -3,8 +3,10 @@
  * ACF PRO (or the free Secure Custom Fields) set-up: local JSON in the theme and the Theme Settings options page.
  *
  * Field groups live as JSON in acf-json/ (built by tools/acf/build_field_groups.py, keys group_kitk_*,
- * field_kitk_*, layout_kitk_*, never renamed once content is seeded). The options page is registered here, so it
- * lives with the theme code. The ACF menu is never hidden: on live it holds the licence page and the field groups.
+ * field_kitk_*, layout_kitk_*, never renamed once content is seeded). Theme Settings is an ACF options page in the
+ * same folder (ui_options_page_kitk_theme_settings.json), so it shows in ACF > Options Pages and syncs with the
+ * field groups (tools/acf/sync.php). The ACF menu is never hidden: on live it holds the licence page, the options
+ * pages and the field groups.
  *
  * @package kitwp
  */
@@ -33,7 +35,9 @@ function kitwp_acf_json_load_paths( $paths ) {
 add_filter( 'acf/settings/load_json', 'kitwp_acf_json_load_paths' );
 
 /**
- * Register the Theme Settings options page.
+ * Fallback for the Theme Settings options page: ACF registers it from its JSON (ACF > Options Pages) before this
+ * runs; only when ACF has not (its options pages UI switched off, or a fields plugin without it) is it registered
+ * here, with the same slug and settings, so the page always exists and never twice.
  *
  * @return void
  */
@@ -41,12 +45,15 @@ function kitwp_acf_options_pages() {
 	if ( ! function_exists( 'acf_add_options_page' ) ) {
 		return;
 	}
+	if ( function_exists( 'acf_get_options_page' ) && acf_get_options_page( 'kitk-theme-settings' ) ) {
+		return;
+	}
 	acf_add_options_page(
 		[
 			'page_title'      => __( 'Theme Settings', 'kitwp' ),
 			'menu_title'      => __( 'Theme Settings', 'kitwp' ),
 			'menu_slug'       => 'kitk-theme-settings',
-			'capability'      => 'manage_options',
+			'capability'      => 'edit_pages',
 			'position'        => 59,
 			'icon_url'        => 'dashicons-admin-customizer',
 			'redirect'        => false,
@@ -56,7 +63,7 @@ function kitwp_acf_options_pages() {
 		]
 	);
 }
-add_action( 'acf/init', 'kitwp_acf_options_pages' );
+add_action( 'acf/init', 'kitwp_acf_options_pages', 20 );
 
 /**
  * Read a Theme Settings value by field name.

@@ -160,10 +160,11 @@ update both handoff files.
 2. **S1-02 Starter plugins: ACF PRO or Secure Custom Fields (free), Contact Form 7, Yoast SEO.** Ask first. ACF
    PRO comes from the developer's zip (the profile's `plugin_zips`); the developer pastes the licence. **The ACF
    menu shows** to administrators, on live too. Later, when needed: Redirection (old URLs), Duplicator (the move;
-   free or Pro), Converter for Media and Contact Form CFDB7 (must be on live), the profile's optional
-   `extra_plugins`. Read debug.log after each install.
-3. **S1-03 Theme.** Ask, then get the starter into `wp-content/themes/<theme>/`: Barebones (git clone of
-   github.com/benchmarkstudios/barebones) for plain CSS, or _tw generated with the slug and prefix (`wp scaffold
+   free or Pro), Converter for Media and Contact Form CFDB7 (must be on live). The profile's `extra_plugins`:
+   entries marked `required` go in here, with the starters, and stay active on live; the others when their entry
+   says. Read debug.log after each install.
+3. **S1-03 Theme.** Ask, then get the starter into `wp-content/themes/<theme>/`: Barebones
+   (github.com/benchmarkstudios/barebones) for plain CSS, or _tw generated with the slug and prefix (`wp scaffold
    _tw <theme> --theme_name="<Site>" --prefix=<prefix>`, or underscoretw.com) for Tailwind. Then
    `python3 <kit>/scripts/new-site.py <wp_root>/_plan/site.json`: it prepares the starter (prefix renames, its
    samples and its ACF-hiding `acf.php` moved aside, PHPCS fixes) and copies the kit in. Build the assets, activate,
@@ -172,17 +173,18 @@ update both handoff files.
    the golden master against itself must diff 0.000%.
 5. **S1-05 Design system 1:1:** the static CSS byte for byte (`KITWP_STYLESHEETS`, `KITWP_INLINE_CSS`), or for
    _tw the same Tailwind version and tokens. Swap test (`swaptest.py`): 0.000%. Nothing else styles the page.
-6. **S1-06 ACF foundation:** field groups from `_plan/tools/acf/build_field_groups.py` into `acf-json/` (stable
-   keys; `modified` bumped only for changed groups), each group's own Sync link; Theme Settings read by field key.
+6. **S1-06 ACF foundation:** groups and Theme Settings (options page, tabs) from
+   `_plan/tools/acf/build_field_groups.py`, then `sync.php` (until nothing syncs); client-friendly fields;
+   Theme Settings read by field key.
 7. **S1-07 Global layout:** header, footer, mobile bar, pop-up: copied markup with React-style tight whitespace,
    behaviour in vanilla JS with the same state classes; the head as static (`head.php`, `<html lang dir>`).
-   `region-check.mjs` (pixels) and `domdiff.py` per region: 0.
+   `region-check.mjs` (pixels) and `domdiff.py` per region: 0. Toolbar: `KITWP_ADMIN_BAR_CSS`.
 8. **S1-08 Seeder foundation:** Tools > Seeder (local only) for media, settings and menus; run it twice: the second
    run says "same" everywhere.
 
 ## Sprints 2 to 4: templates and pages
 
-Every section, every time: **static** (FE copies the rendered HTML, diff 0) > **model** (WP adds the fields to the
+Every section, every time: **static** (FE copies the rendered HTML, diff 0) > **model** (WP adds fields to the
 builder) > **sync** > **dynamic** (fields replace the copy, every output escaped) > **seed** > **test** (visual, DOM,
 text, headings, keyboard, no notices, no console errors) > **clean** (php -l, PHPCS, duplicates) > **review** by
 the Lead > **hand off** (page tracker cells `ok`, handoff).
@@ -199,7 +201,11 @@ the Lead > **hand off** (page tracker cells `ok`, handoff).
 Contact Form 7 holds each form and its email; the theme prints CF7's tags as the static markup. Forms post natively
 and answer 303 to `/thank-you/`, so they work without JavaScript; one HTML email part, envelope sender and
 Message-ID on the domain; local mail to the admin and `_setup/mail/`; a chat widget posts to CF7's REST endpoint
-(`assets/chat-save.js`); spam: the honeypot plus reCAPTCHA v3. Details: `references/forms-email.md`.
+(`assets/chat-save.js`); spam: the honeypot plus reCAPTCHA v3. The visitor's auto-reply (Mail (2)) uses the same
+branded HTML template as the lead email, and both carry the profile's agency badge in the footer (`branding`).
+With a leads portal in the profile (`leads_portal`), every sent lead also goes there server to server (never from
+local, development or staging).
+Details: `references/forms-email.md`.
 
 ## Sprint 6: SEO, security, performance
 
@@ -217,7 +223,7 @@ go/no-go list is in the runbook. gate.py must report every sprint DONE.
 
 ## Launch (the developer does each step; you give one at a time)
 
-Backup of the live site (a full one if it is an old WordPress) > build the theme assets > a Duplicator backup
+Backup of the live site (full if it is an old WordPress) > build the theme assets > a Duplicator backup
 with the filters from `python3 _plan/tools/launch/duplicator-filters.py <root> <theme>` (`--starter tw` for _tw) >
 database and PHP on the host > the old site into a sibling folder (rollback: move it back) > installer >
 `installer.php` answers 404, no archive left > wp-config `production`, debug off > `.htaccess` from
@@ -244,7 +250,7 @@ stakeholder message (login with `[PASTE PASSWORD HERE]`). Details: `references/q
 | `scripts/snapshot-routes.mjs` | Rendered HTML of every route, for client-rendered or server sources |
 | `scripts/setup/get-wordpress.py`, `make-wp-config.py` | WordPress with checksums (`--verify`); wp-config (`--existing`) |
 | `scripts/setup/serve-wp.py` | WordPress at its own port when the local app has no site addresses |
-| `scripts/acf/build_field_groups.py` | ACF JSON with stable keys; `--check` validates |
+| `scripts/acf/build_field_groups.py`, `sync.php` | ACF JSON, stable keys (`--check`); database sync |
 | `scripts/seed/export.mjs`, `export-pages.py` | Static content into `_setup/seed/` for Tools > Seeder |
 | `scripts/build-map/gate.py`, `render.py` | The sprint gate; the private board page |
 | `scripts/parity/` (the theme's `tests/parity/`) | Pixel, text, SEO and DOM diffs; breakpoints; mirror and server for cloud runs |

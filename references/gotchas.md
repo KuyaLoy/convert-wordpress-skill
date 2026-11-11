@@ -10,6 +10,13 @@ project's handoff.md (Failed Attempts) as they happen.
 - A duplicate function name across two include files takes the site down, and php -l cannot catch it. After EVERY
   PHP save: `grep -h "^function" includes/*.php | sed 's/(.*//' | sort | uniq -d` must print nothing.
 - A `*/` inside a PHP docblock ends the comment early (for example a `sed 's/(.*//'` example): use `//` comments.
+- The kit used to hide the WordPress toolbar for everyone (`show_admin_bar` false) to keep pages 1:1; the developer
+  missed Dashboard and Edit Page on the front end. Visitors never get the toolbar, so it stays on for logged-in
+  users. A sticky static header then slides under it: set `KITWP_ADMIN_BAR_CSS` (header `top` by
+  `--wp-admin--admin-bar--height`, and every other place the static CSS uses the header height, such as a mobile
+  menu panel below it). The static `<body>` has no WordPress classes, so `.admin-bar` selectors do not apply.
+  Check logged in at 1440, 700 and 390 (menu open: its close button clickable), and that the logged-out HTML is
+  byte-identical.
 - Build a PHP file completely before it replaces a live one: placeholder edits are a parse error on live.
 - WordPress texturizes titles: `&` becomes `&#038;`. Print raw titles (`kitwp_title()`), menu titles too.
 - `esc_url()` turns `&` into `&#038;` in an iframe src: use `esc_attr( esc_url_raw() )`.
@@ -25,7 +32,15 @@ project's handoff.md (Failed Attempts) as they happen.
 
 ## ACF and the seeder
 
-- The bulk "Sync changes" did nothing on the reference build: use each group's own Sync link.
+- The bulk "Sync changes" did nothing on the reference build: use `sync.php` or each group's own Sync link.
+- Field groups left as JSON only (never synced) still work on the site, but ACF > Field Groups shows every one
+  under "Sync available" and the developer reads it as broken. Run `sync.php` until it says "Nothing to sync".
+- Theme Settings registered only in PHP (`acf_add_options_page`) never shows in ACF > Options Pages: the developer
+  looked for it there and thought it was missing. Ship it as the builder's options page JSON; PHP is the fallback.
+- A generator that made one field per rendered text node (to reach 1:1 fast) gave up to 280 fields per page:
+  sentence pieces (", from a"), "/" separators, breadcrumbs, chip and accordion text twice, numbered fields instead
+  of repeaters. 1:1 held, but the developer rejected it as not client friendly. Model fields on the source's content
+  files; keep 1:1 in the templates.
 - Set `modified` only for groups that changed (the builder does), or every group asks to sync.
 - Field edits on live write JSON into the live theme's `acf-json/`: copy it back to local.
 - Theme Settings read by field key render a default even when nobody saved the setting; read by name they do not.
@@ -37,6 +52,12 @@ project's handoff.md (Failed Attempts) as they happen.
   only the menu name differs (SCF). The flexible content field is `page_sections`, not `sections`.
 - `new-site.py --force` used to replace `build_field_groups.py`, which by then holds the site's content model: it
   is kept now, like the parity routes and settings.
+- ACF returns false (not []) for a repeater, flexible field or multi-select with nothing in it, and `(array) false`
+  is `[false]`: one blank row (and "array offset on bool" warnings). Loop over `bah_rows()`-style guards
+  (`is_array() ? ... : []`); test every template with its lists emptied.
+- JSON-LD printed with `wp_json_encode()` needs "<" escaped (`\u003c`, as React's JsonLd does, or JSON_HEX_TAG):
+  a `</script>` typed into a field otherwise ends the script. Check the escape really changes something.
+- With no Site Icon set, WordPress answers /favicon.ico with its own "W" logo: hook `do_favicon` to the brand icon.
 
 ## Parity and screenshots
 
@@ -49,6 +70,8 @@ project's handoff.md (Failed Attempts) as they happen.
 - One wild shot with fallback fonts (20% and more) is a web font that loaded late under load: re-run that shot.
 - SVG paths typed by hand had typos: copy them by script.
 - Keeping every parity screenshot filled 1.7 GB: keep only failures (the default).
+- Content changed on purpose (real phone/email instead of the source's placeholders): swap it on the reference with
+  `refReplace` AFTER the page settles. React hydration re-renders text after "load" and undoes an early swap.
 
 ## Forms and email
 
@@ -112,10 +135,26 @@ project's handoff.md (Failed Attempts) as they happen.
   site and database. The installer also leaves `dup-installer/` and a boot log: remove them all.
 - A cloned starter theme brings its `.git` folder: the Duplicator filters leave git folders out.
 - A live wp-config left on `local` loads the seeder and sends every lead to the admin only.
+- Contact Form 7 6.2 needs PHP 8.3: below that its Composer platform check is a fatal error on every page. Check the
+  PHP version the host runs for the domain (cPanel > MultiPHP Manager) before the upload. When the host's version
+  differs from the local one, dry-run the site on it first: `php -S 127.0.0.1:8781 -t <wp_root>
+  _plan/tools/setup/wp-router.php` with that PHP, then `curl -H "Host: <site>.test"` a few routes (GET only).
+- A plugin that registers itself with an outside service on activation (it sends `home_url()`) registers the local
+  URL if activated locally, and probes the old site if activated on the new server before DNS moves. Activate it on
+  live once DNS points there.
 - After any plugin install, read debug.log: a second copy of a plugin gives "Cannot redeclare" fatals.
 - The REST user list shows the admin username to visitors unless hidden.
 - The developer may install plugins on live after the move: list them before the handoff.
-- The shared PageSpeed API key runs out: run Lighthouse yourself.
+- The shared PageSpeed API key runs out: run Lighthouse yourself, or pagespeed.web.dev in a browser.
+- Duplicator's installer replaces `.htaccess` on extraction and moves `php.ini`, `.user.ini` and the host's
+  `.htaccess` into `dup-installer/`: the archive is public until the clean-up, and the host's PHP settings and
+  cPanel block need restoring (launch.md).
+- After the DNS switch, the developer's own browser can keep the old IP for up to the old TTL (Chrome has its own
+  cache: chrome://net-internals/#dns, Clear host cache). Phones on mobile data see the new site first.
+- A local site with the live leads key sends its test submissions to the live leads portal: keep lead forwarding
+  off while `WP_ENVIRONMENT_TYPE` is local.
+- Parity against a preview deployment (Vercel, Netlify) on live: the preview is noindex, so `seo:robots` differs
+  by design; Yoast prints no canonical while the site discourages search engines.
 
 ## Agent tooling
 
@@ -158,3 +197,9 @@ project's handoff.md (Failed Attempts) as they happen.
 - Updating the skill does not change a project already started: it keeps its own copy of the tools in `_plan/tools/`
   and the theme. `new-site.py <wp_root>/_plan/site.json --force` refreshes them (kit code only, backup first).
 - An agent reads a skill when the chat starts: after an update, start a new chat.
+- cPanel UAPI works from a logged-in cPanel tab (`fetch('/cpsess<N>/execute/Fileman/...')`): list, save, upload
+  and trash files without the File Manager UI. `save_file_content` writes CRLF line endings (fine for PHP and
+  `.htaccess`). Never read wp-config whole into the chat: edit it in the page and print only the changed lines.
+- Browser upload tools cap single files (10 MB): for a bigger archive, serve it on `127.0.0.1` with CORS for the
+  cPanel origin and `Access-Control-Allow-Private-Network: true`, and let the cPanel page fetch and upload it. Chrome
+  may hold such requests from other sites behind a local-network permission prompt.

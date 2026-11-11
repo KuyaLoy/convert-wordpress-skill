@@ -55,8 +55,11 @@ breakpoint and 1 px above) per sprint. Stable shots: motion off, reveal forced, 
 
 ## 5. ACF rules
 
-JSON first (built by tools/acf/build_field_groups.py); keys stable; Theme Settings registered in PHP and read by
-field key; "modified" bumped only for changed groups; per-group Sync links; return formats: image ID, link array.
+JSON first (built by tools/acf/build_field_groups.py); keys stable; Theme Settings an ACF options page in the JSON
+(ACF > Options Pages; PHP only as fallback), in tabs, read by field key; "modified" bumped only for changed groups;
+synced with tools/acf/sync.php until ACF shows nothing under "Sync available"; fields follow the source's content
+model for a non-technical client (repeaters for lists, plain labels, never one field per text node); return
+formats: image ID, link array.
 
 ## 6. Seeding
 

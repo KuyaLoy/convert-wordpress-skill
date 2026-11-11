@@ -44,8 +44,25 @@ add_filter( 'wpseo_robots_array', 'kitwp_seo_robots' );
  */
 function kitwp_seo_robots_txt( $output, $is_public ) {
 	if ( ! $is_public ) {
-		return $output;
+		// Discourage search engines on (local, staging, before launch): block everything, whatever WordPress prints.
+		unset( $output );
+		return "User-agent: *\nDisallow: /\n";
 	}
 	return str_replace( '{site}', untrailingslashit( home_url() ), KITWP_ROBOTS_TXT );
 }
 add_filter( 'robots_txt', 'kitwp_seo_robots_txt', 999999, 2 );
+
+/**
+ * The thank-you page never goes into Yoast's sitemap (it is noindex and only reached after a form).
+ *
+ * @param int[] $ids Post IDs left out.
+ * @return int[]
+ */
+function kitwp_seo_sitemap_exclude( $ids ) {
+	$page = get_page_by_path( trim( KITWP_THANK_YOU, '/' ) );
+	if ( $page ) {
+		$ids[] = (int) $page->ID;
+	}
+	return $ids;
+}
+add_filter( 'wpseo_exclude_from_sitemap_by_post_ids', 'kitwp_seo_sitemap_exclude' );

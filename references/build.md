@@ -41,6 +41,11 @@ again. Fields replace content, never structure, classes or order.
   description, canonical and Open Graph come from the SEO plugin.
 - **`<html>` and `<body>`** as static: the lang and dir from `KITWP_HTML_ATTRIBUTES` (site.json `html_attributes`),
   no `body_class()` if the static body has no class.
+- **Agency badge:** when the profile has `branding.site_badge`, call `kitwp_agency_badge()` in the footer's bottom
+  bar (next to the copyright or credits). Theme Settings > Branding swaps the image and link or hides it. It is
+  the one addition to the static footer, so the footer parity check allows that element.
+- **Favicon:** the static icons go in `assets/brand/` (favicon.svg, favicon-32.png, apple-touch-icon.png); with no
+  Site Icon set, `/favicon.ico` redirects to the PNG instead of WordPress's "W".
 - **Header, footer, mobile bar, pop-up:** copied markup; whitespace stripped between tags like React
   (`kitwp_tight_start()` / `kitwp_tight_end()`); behaviour in vanilla JS with the same state classes and timings;
   works with JavaScript off where the static site does.
@@ -69,13 +74,26 @@ again. Fields replace content, never structure, classes or order.
   changed.
 - Keys: `group_<key>_<group>`, `field_<key>_<group>_<field>`, `layout_<key>_<group>_<layout>`. Never change a key
   once content is seeded.
-- Sync: ACF > Field Groups > each changed group's own Sync link. (The bulk "Sync changes" did nothing on the
-  reference build.)
+- Sync: `wp eval-file _plan/tools/acf/sync.php` after every builder run (locally, and on live after an upload).
+  It runs ACF's own sync for every pending field group and options page (`dry-run` only lists). Done means ACF >
+  Field Groups and ACF > Options Pages show nothing under "Sync available"; a second run says "Nothing to sync".
+  By hand: each item's own Sync link (the bulk "Sync changes" did nothing on the reference build).
 - Field edits made in wp-admin write JSON into the theme too: on live, copy `acf-json/` back to local afterwards.
-- **Theme Settings** (options page `<key>-theme-settings`, registered in PHP): anything on two or more pages lives
-  here, with tokens (`{phone}`, `{tel}`, `{email}`, `{year}`, `{legal_name}`, `{company_number}`, `{registration}`,
-  more through the `kitwp_tokens` filter). Its defaults are the static copy. `kitwp_setting()` reads by field key, so
-  a setting nobody saved still renders 1:1.
+- **Theme Settings** (options page `<key>-theme-settings`): an ACF options page saved as JSON
+  (`ui_options_page_<key>_theme_settings.json`, written by the builder), so the developer and the client find it in
+  ACF > Options Pages, not hidden in theme code; `acf.php` registers it in PHP only when ACF has not. Capability
+  `edit_pages`, so a client with the Editor role can use it. One group with **tabs** (Business details, Header and
+  menu, Footer, pop-up or sticky bar, 404...). Anything on two or more pages lives here, with tokens (`{phone}`,
+  `{tel}`, `{email}`, `{year}`, `{legal_name}`, `{company_number}`, `{registration}`, more through the
+  `kitwp_tokens` filter). Its defaults are the static copy. `kitwp_setting()` reads by field key, so a setting
+  nobody saved still renders 1:1.
+- **Fields a non-technical client can use** (the developer's rule): follow the source's content model (its content
+  files or types: a heading, a paragraph, an image, a button, a list), not its rendered HTML. One field per real
+  piece of content; a paragraph with bold words or links is one text box (Bold and Link only) printed with the
+  static markup; lists (cards, steps, FAQs, chips, legal sections) are repeaters; pages that share a layout share
+  one group; tabs per section; plain labels ("Hero heading") with a short instruction. Never sentence pieces,
+  separators, breadcrumbs or the same words twice as fields. The templates still print the exact static HTML: the
+  diffs prove it.
 - Component groups (heading, hero, FAQs, icon items, links) are inactive groups used through Clone fields.
 - Field instructions carry the copy rules from the source (the copy brief): length, tone, what not to change.
 - Return formats: image ID, link array. Read with `get_field()` and escape at output.

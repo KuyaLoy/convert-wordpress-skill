@@ -382,7 +382,8 @@ add_action( 'template_redirect', 'kitwp_lead_redirect', 1 );
 function kitwp_lead_mail_failed( $form ) {
 	$submission = WPCF7_Submission::get_instance();
 	if ( $submission && kitwp_is_lead_form( $form ) ) {
-		error_log( '[lead] mail failed: ' . wp_json_encode( kitwp_lead_data( $submission ) ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		// The form only: field values can hold personal or health details and never go into a log.
+		error_log( '[lead] mail failed: ' . $form->title() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 	}
 }
 add_action( 'wpcf7_mail_failed', 'kitwp_lead_mail_failed' );
@@ -471,7 +472,9 @@ function kitwp_lead_extras( $lead ) {
  * Mail-tags for the lead email (Mail tab), on top of the field tags:
  * [_kitk_subject] the Subject line, [_kitk_preheader], [_kitk_tel] phone digits, [_kitk_email] email link,
  * [_kitk_when] When Needed with the picked date, [_kitk_via] Submitted Via, [_kitk_page] page link,
- * [_kitk_received] site time, [_kitk_logo] logo URL, [_kitk_site] site URL, [_kitk_year].
+ * [_kitk_received] site time, [_kitk_logo] logo URL, [_kitk_site] site URL, [_kitk_year], [_kitk_name] the
+ * sender's name (auto-reply greeting), [_kitk_badge] the agency badge for the footer of the lead email and the
+ * auto-reply (KITWP_EMAIL_BADGE; empty when not set).
  * With "Exclude lines with blank mail-tags" on, a row whose tags are all empty is left out, as the static email.
  *
  * @param string|null    $output   Replacement so far.
@@ -525,6 +528,13 @@ function kitwp_lead_special_tags( $output, $name, $html, $mail_tag = null ) {
 			return $h( untrailingslashit( home_url() ) );
 		case '_kitk_year':
 			return wp_date( 'Y' );
+		case '_kitk_name':
+			return $h( $lead['name'] );
+		case '_kitk_badge':
+			if ( ! $html || '' === KITWP_EMAIL_BADGE || '' === KITWP_EMAIL_BADGE_LINK ) {
+				return '';
+			}
+			return '<a href="' . kitwp_mail_h( esc_url_raw( KITWP_EMAIL_BADGE_LINK ) ) . '" target="_blank" style="text-decoration:none;"><img src="' . kitwp_mail_h( get_theme_file_uri( KITWP_EMAIL_BADGE ) ) . '" width="' . (int) KITWP_EMAIL_BADGE_WIDTH . '" alt="' . kitwp_mail_h( KITWP_EMAIL_BADGE_ALT ) . '" style="display:block;margin:0 auto;border:0;outline:none;width:' . (int) KITWP_EMAIL_BADGE_WIDTH . 'px;height:auto;color:#ffffff;font-size:12px;"></a>';
 	}
 	return $output;
 }
@@ -719,3 +729,92 @@ function kitwp_chat_widget() {
 	);
 }
 add_action( 'wp_footer', 'kitwp_chat_widget', 20 );
+
+/**
+ * Tracking fields a leads portal usually asks for: the form's page, the visitor's IP, Google Ads and Meta click IDs.
+ *
+ * @param WPCF7_Submission $sub Submission.
+ * @return array<string, string>
+ */
+function kitwp_leads_tracking( $sub ) {
+	$server = static fn( $k ) => isset( $_SERVER[ $k ] ) ? sanitize_text_field( wp_unslash( $_SERVER[ $k ] ) ) : '';
+	$cookie = static fn( $k ) => isset( $_COOKIE[ $k ] ) ? sanitize_text_field( wp_unslash( $_COOKIE[ $k ] ) ) : '';
+	$ip     = $server( 'HTTP_CF_CONNECTING_IP' );
+	if ( '' === $ip ) {
+		$ip = trim( (string) explode( ',', $server( 'HTTP_X_FORWARDED_FOR' ) )[0] );
+	}
+	if ( '' === $ip ) {
+		$ip = $server( 'REMOTE_ADDR' );
+	}
+	$url = (string) $sub->get_meta( 'url' );
+	if ( '' === $url ) {
+		$url = (string) wp_get_referer();
+	}
+	return [
+		'source_url' => $url,
+		'ip_address' => $ip,
+		'gclid'      => isset( $_REQUEST['gclid'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['gclid'] ) ) : $cookie( 'gclid' ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read only.
+		'fbp'        => $cookie( '_fbp' ),
+		'fbc'        => $cookie( '_fbc' ),
+	];
+}
+
+/**
+ * Send each sent lead form to the leads portal (KITWP_LEADS_PREFIX; endpoint and key from wp-config), server to
+ * server. Only after the email went out, never for spam. Off on local, development and staging, so test
+ * submissions on a copy never reach the portal. Files, consent, the honeypot and the fields in the
+ * "kitwp_leads_skip_fields" filter (health details, dates of birth) stay out. A failure is logged with the status
+ * only and never blocks the visitor.
+ *
+ * @param WPCF7_ContactForm $form Contact form.
+ * @return void
+ */
+function kitwp_leads_send( $form ) {
+	$p = KITWP_LEADS_PREFIX;
+	if ( '' === $p || ! kitwp_is_lead_form( $form ) || ! defined( $p . '_ENDPOINT' ) || ! defined( $p . '_KEY' ) ) {
+		return;
+	}
+	$endpoint = (string) constant( $p . '_ENDPOINT' );
+	$key      = (string) constant( $p . '_KEY' );
+	if ( '' === $key || 0 !== strpos( $endpoint, 'https://' ) || in_array( wp_get_environment_type(), [ 'local', 'development', 'staging' ], true ) ) {
+		return;
+	}
+	$sub = WPCF7_Submission::get_instance();
+	if ( ! $sub ) {
+		return;
+	}
+	$skip   = (array) apply_filters( 'kitwp_leads_skip_fields', [ 'consent', 'company' ], $form );
+	$files  = array_keys( (array) $sub->uploaded_files() );
+	$fields = [];
+	foreach ( (array) $sub->get_posted_data() as $name => $value ) {
+		if ( in_array( $name, $skip, true ) || in_array( $name, $files, true ) || str_starts_with( (string) $name, '_' ) ) {
+			continue;
+		}
+		$value = is_array( $value ) ? implode( ', ', array_filter( $value, 'is_scalar' ) ) : ( is_scalar( $value ) ? (string) $value : '' );
+		if ( '' !== trim( $value ) ) {
+			$fields[ $name ] = trim( $value );
+		}
+	}
+	$lead = [
+		'form'            => $form->title(),
+		'idempotency_key' => wp_generate_uuid4(),
+	] + $fields + kitwp_leads_tracking( $sub );
+	$res  = wp_remote_post(
+		$endpoint,
+		[
+			'timeout'     => 5,
+			'redirection' => 0,
+			'headers'     => [
+				'Authorization' => 'Bearer ' . $key,
+				'Content-Type'  => 'application/json',
+			],
+			'body'        => wp_json_encode( $lead ),
+		]
+	);
+	$code = is_wp_error( $res ) ? 0 : (int) wp_remote_retrieve_response_code( $res );
+	if ( 200 !== $code && 202 !== $code ) {
+		// The status or transport error only: the response body may repeat what the visitor typed.
+		error_log( '[leads] not delivered (' . $form->title() . '): ' . ( is_wp_error( $res ) ? $res->get_error_code() : 'HTTP ' . $code ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+	}
+}
+add_action( 'wpcf7_mail_sent', 'kitwp_leads_send' );

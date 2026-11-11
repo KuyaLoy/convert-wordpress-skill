@@ -58,9 +58,12 @@ done, not the eye.
 ## ACF JSON
 
 - Keys `group_kitk_*`, `field_kitk_*`, `layout_kitk_*`. Never change a key once content is seeded.
-- Field groups come from `../../../_plan/tools/acf/build_field_groups.py` (it bumps `modified` only for groups that
-  changed). Then wp-admin > ACF > Field Groups > each group's own Sync link.
-- Never hide the ACF menu: the licence and the field groups live there, on live too.
+- Field groups and the Theme Settings options page come from `../../../_plan/tools/acf/build_field_groups.py` (it
+  bumps `modified` only for groups that changed). Then `wp eval-file ../../../_plan/tools/acf/sync.php` (or each
+  item's Sync link): ACF > Field Groups and ACF > Options Pages show nothing under "Sync available".
+- Fields are for a non-technical client: the source's content model, repeaters for lists, tabs, plain labels;
+  never one field per rendered text node.
+- Never hide the ACF menu: the licence, the options pages and the field groups live there, on live too.
 
 ## Checks before a change is done
 

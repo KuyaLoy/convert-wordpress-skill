@@ -227,3 +227,35 @@ function kitwp_site_domain() {
 	$host = defined( 'KITWP_DOMAIN' ) && '' !== KITWP_DOMAIN ? KITWP_DOMAIN : (string) wp_parse_url( home_url(), PHP_URL_HOST );
 	return (string) preg_replace( '/^www\./', '', strtolower( $host ) );
 }
+
+/**
+ * The agency badge for the site footer's bottom bar (call it where the static footer has its credits). Theme
+ * Settings > Branding: "Agency badge" (image) and "Agency badge link" replace the defaults, "Hide agency badge"
+ * removes it; the defaults are KITWP_SITE_BADGE* (from the profile's branding). Prints nothing without an image
+ * or a link.
+ *
+ * @return void
+ */
+function kitwp_agency_badge() {
+	if ( kitwp_setting( 'agency_badge_hide' ) ) {
+		return;
+	}
+	$id  = (int) kitwp_setting( 'agency_badge' );
+	$src = $id ? (string) wp_get_attachment_url( $id ) : ( '' !== KITWP_SITE_BADGE ? kitwp_asset( KITWP_SITE_BADGE ) : '' );
+	$url = (string) ( kitwp_setting( 'agency_link' ) ? kitwp_setting( 'agency_link' ) : KITWP_SITE_BADGE_LINK );
+	$alt = $id ? trim( (string) get_post_meta( $id, '_wp_attachment_image_alt', true ) ) : '';
+	$alt = '' !== $alt ? $alt : KITWP_SITE_BADGE_ALT;
+	if ( '' === $src || '' === $url ) {
+		return;
+	}
+	/* translators: %s: the badge's alt text. */
+	$label = sprintf( __( '%s (opens in a new tab)', 'kitwp' ), $alt );
+	printf(
+		'<a href="%1$s" target="_blank" rel="noopener noreferrer" class="shrink-0" data-kitwp-badge="agency" aria-label="%2$s"><img src="%3$s" alt="%4$s" loading="lazy" decoding="async" style="display:block;height:%5$dpx;width:auto"></a>',
+		esc_url( $url ),
+		esc_attr( $label ),
+		esc_url( $src ),
+		esc_attr( $alt ),
+		(int) KITWP_SITE_BADGE_HEIGHT
+	);
+}

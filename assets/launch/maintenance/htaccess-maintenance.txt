@@ -1,0 +1,27 @@
+# {{SITE_NAME}}: TEMPORARY .htaccess for the gap between the DNS switch and the finished install (DNS first).
+# Upload as ".htaccess" in the domain's docroot together with maintenance.html. Every page answers 503 (temporary,
+# so search engines keep the old pages) with maintenance.html; SSL checks and the Duplicator installer still work.
+# The Duplicator installer REPLACES this file when it extracts: from that moment the archive is public until the
+# installer files are removed (references/launch.md, "After the installer"). Delete maintenance.html after the install.
+# Keep any cPanel-generated block that was already in the old .htaccess (paste it below this file).
+
+Options -Indexes
+ErrorDocument 503 /maintenance.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{REQUEST_URI} !^/\.well-known/
+  RewriteCond %{REQUEST_URI} !^/maintenance\.html$
+  RewriteCond %{REQUEST_URI} !^/([^/]+_)?installer(-backup)?\.php$
+  RewriteCond %{REQUEST_URI} !^/dup-installer/
+  RewriteRule ^ - [R=503,L]
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always set Retry-After "3600"
+</IfModule>
+
+# The host's php.ini must never be downloadable.
+<FilesMatch "^(php\.ini|\.user\.ini)$">
+  Require all denied
+</FilesMatch>

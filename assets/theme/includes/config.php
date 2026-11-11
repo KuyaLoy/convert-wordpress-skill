@@ -21,6 +21,31 @@ const KITWP_PRICE_RANGE = '{{PRICE_RANGE}}';
 /** Brand colour: the theme-color meta and the link colour in the lead email. */
 const KITWP_BRAND_COLOUR = '{{BRAND_COLOUR}}';
 
+/**
+ * Agency badge in the footer of the lead email AND the auto-reply ([_kitk_badge]), from the profile's "branding":
+ * a PNG in the theme (email clients do not show SVG or WebP), 2x size, shown at the width below; its link and alt.
+ * Empty path: no badge. A white badge needs the dark footer strip of lead-email.html / autoreply-email.html.
+ */
+const KITWP_EMAIL_BADGE       = '{{EMAIL_BADGE}}';
+const KITWP_EMAIL_BADGE_LINK  = '{{EMAIL_BADGE_LINK}}';
+const KITWP_EMAIL_BADGE_ALT   = '{{EMAIL_BADGE_ALT}}';
+const KITWP_EMAIL_BADGE_WIDTH = {{EMAIL_BADGE_WIDTH}};
+
+/**
+ * Agency badge in the SITE footer (kitwp_agency_badge(), placed in the footer's bottom bar): a theme file (SVG is
+ * fine on the web), its link, alt and height. Theme Settings > Branding can replace the image and link, or hide it.
+ */
+const KITWP_SITE_BADGE        = '{{SITE_BADGE}}';
+const KITWP_SITE_BADGE_LINK   = '{{EMAIL_BADGE_LINK}}';
+const KITWP_SITE_BADGE_ALT    = '{{EMAIL_BADGE_ALT}}';
+const KITWP_SITE_BADGE_HEIGHT = 40;
+
+/**
+ * Leads portal: every sent lead form is also POSTed (JSON, Bearer key) to <PREFIX>_ENDPOINT with <PREFIX>_KEY from
+ * wp-config (the keys never live in the theme). Empty prefix: off. Never on local, development or staging.
+ */
+const KITWP_LEADS_PREFIX = '{{LEADS_PREFIX}}';
+
 /** The <html> lang and dir exactly as the static site prints them (lang="en", lang="ar" dir="rtl"); empty: WordPress's own. */
 const KITWP_HTML_ATTRIBUTES = '{{HTML_ATTRIBUTES}}';
 
@@ -68,6 +93,17 @@ const KITWP_STYLESHEETS = [];
  * them becomes the theme's assets URL, so the theme keeps the static site's assets/ layout.
  */
 const KITWP_INLINE_CSS = [];
+
+/**
+ * CSS printed only while the logged-in WordPress toolbar shows (visitors never get it). A sticky or fixed static
+ * header needs it, or the toolbar covers the header: move the header, any panel that opens below it and anchor
+ * offsets down by WordPress's own --wp-admin--admin-bar--height (32px; 46px at 782px and below). WordPress lets the
+ * toolbar scroll away at 600px and below; keep it fixed there so a mobile menu's close button is never covered.
+ * Example for a sticky header (check the static CSS for every use of the header height):
+ * '@media screen and (max-width:600px){#wpadminbar{position:fixed}}header.site-header{top:var(--wp-admin--admin-bar--height,32px)}'
+ * Empty: WordPress's default (fine for a header that scrolls with the page).
+ */
+const KITWP_ADMIN_BAR_CSS = '';
 
 /** Google Fonts preconnects: only when the static head has them (sites with self-hosted fonts do not). */
 const KITWP_PRECONNECT_FONTS = 'true' === '{{PRECONNECT_FONTS}}';

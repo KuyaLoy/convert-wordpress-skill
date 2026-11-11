@@ -1,5 +1,6 @@
 # Private, per machine or per project: never committed
 /profile.local.json
+/profile.local.assets/
 /handoff.md
 /ai-handoff-summary.md
 /PLAN.md

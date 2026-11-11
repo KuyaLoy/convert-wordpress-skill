@@ -133,3 +133,19 @@ function kitwp_inline_styles() {
 	}
 }
 add_action( 'wp_head', 'kitwp_inline_styles', 7 );
+
+/**
+ * With no Site Icon set, WordPress answers /favicon.ico with its own "W" logo: send it to the brand icon instead.
+ * Settings > General > Site Icon still wins (core handles it).
+ *
+ * @return void
+ */
+function kitwp_favicon_ico() {
+	foreach ( [ 'assets/brand/favicon-32.png', 'assets/brand/apple-touch-icon.png' ] as $file ) {
+		if ( ! has_site_icon() && file_exists( get_stylesheet_directory() . '/' . $file ) ) {
+			wp_safe_redirect( kitwp_asset( $file ) );
+			exit;
+		}
+	}
+}
+add_action( 'do_favicon', 'kitwp_favicon_ico', 1 );
