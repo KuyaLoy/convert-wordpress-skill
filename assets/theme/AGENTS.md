@@ -23,8 +23,8 @@ done, not the eye.
 - `assets/styles/` Sass sources: the static site's BUILT CSS goes in verbatim (no second minifier).
 - `assets/scripts/` theme JavaScript source: vanilla, no jQuery.
 - `includes/` WordPress setup and hooks. Starter: setup, loaders (enqueue), menus, admin, custom. Kit: config
-  (site constants), cleanup, head, acf, helpers, media, forms, schema, seo, seed and seed-pages (local only),
-  snapshot (local only).
+  (site constants), cleanup, head, acf, helpers, media, forms, client-admin, schema, seo, seed and seed-pages
+  (local only), snapshot (local only).
 - `page-templates/` page templates; `template-parts/sections/` one partial per section layout.
 - `acf-json/` ACF local JSON for every field group.
 - `style.css`, `css/` and `js/` are build output: edit the sources, then `npm run build`.
@@ -36,7 +36,7 @@ done, not the eye.
   CSS go here, so the compiled `theme/style.css` gives the same result as the static CSS (swap test 0.000%).
 - `javascript/` theme JavaScript source (esbuild to `theme/js/`): vanilla.
 - `theme/inc/` the starter's helpers; `theme/includes/` the kit: config (site constants), cleanup, head, acf,
-  helpers, media, forms, schema, seo, seed and seed-pages (local only), snapshot (local only).
+  helpers, media, forms, client-admin, schema, seo, seed and seed-pages (local only), snapshot (local only).
 - `theme/page-templates/` page templates; `theme/template-parts/sections/` one partial per section layout.
 - `theme/acf-json/` ACF local JSON for every field group.
 - `theme/style.css` and `theme/js/` are build output: `npm run dev` (or `npm run watch`), `npm run prod` for the
@@ -63,7 +63,8 @@ done, not the eye.
   item's Sync link): ACF > Field Groups and ACF > Options Pages show nothing under "Sync available".
 - Fields are for a non-technical client: the source's content model, repeaters for lists, tabs, plain labels;
   never one field per rendered text node.
-- Never hide the ACF menu: the licence, the options pages and the field groups live there, on live too.
+- Never hide the ACF menu from administrators: the licence, the options pages and the field groups live there, on
+  live too. The client (Editor) does not see it (`includes/client-admin.php`).
 
 ## Checks before a change is done
 

@@ -12,15 +12,35 @@ developer agrees to first.
 - Speed
 - The report
 - The task tracker and the stakeholder message
+- The client pack
 - Done means
 
 ## The checks
 
-1. `python3 _plan/tools/report/live-qa.py https://<domain> <GTM-ID> _setup/seed/redirects.json <local_host>`:
-   every sitemap URL and `/thank-you/` (200, GTM in the head and the noscript, one H1, a description, a canonical,
-   no local host left), every old URL lands on its target in one hop, installer, Duplicator and planning files not
-   public, a missing URL answers 404 twice, http and www reach https in one hop, the REST user list, robots.txt.
-   Exit 3 means the host's bot filter blocked it: run `live-qa-console.js` in a real browser tab instead.
+1. One command checks what we used to check by hand. It only reads the site (GET requests, 0.5 s apart):
+
+   ```
+   python3 _plan/tools/report/live-qa.py https://<canonical host> <GTM-ID> _setup/seed/redirects.json <local_host> \
+     --leftovers <name>_archive.zip,<name>_installer.php --image /wp-content/uploads/<an image>.jpg --json live-qa.json
+   ```
+
+   Give the site on its canonical host (with www if the site uses www). Each check prints PASS or FAIL, and the run
+   ends with ALL PASS or N FAIL. It checks:
+   - Pages: every route answers 200. Routes come from the theme's `tests/parity/routes.json` (or `--routes`), plus
+     every sitemap URL, `/` and the thank-you page. A made-up path answers 404, twice.
+   - Old links: every rule in `redirects.json` answers one 301 to its target, also with `?utm_source=qa` kept.
+   - Host rules: `http://`, `http://www.` and the other https host each answer one 301 to the canonical host.
+   - Private files: planning, handoff, installer, Duplicator, log and config files answer 403 or 404. Add the
+     Duplicator archive and installer names with `--leftovers`.
+   - Certificate: it covers the domain and www and runs more than 14 days. The expiry date is printed.
+   - Search engines: every page is index (the thank-you page noindex), with a canonical on the canonical host.
+     robots.txt has a Sitemap line and the sitemap answers 200.
+   - Local leftovers: no `.test` or `localhost` URL in any page.
+   - Page content: one H1 and a meta description. With a GTM ID: the container and the noscript on every page.
+   - WebP: with `--image`, a browser that accepts WebP gets `image/webp`.
+
+   Before launch, add `--hidden`: then every page must be noindex and robots.txt must block everything. Exit 3
+   means the host's bot filter blocked it: run `live-qa-console.js` in a real browser tab instead.
 2. `node _plan/tools/report/track.mjs https://<domain> <GTM-ID> / /thank-you/`: the container loaded, the
    dataLayer events, the tag hosts; the ads conversion request only on `/thank-you/`.
 3. Real phones (the developer): iOS Safari and Android Chrome: menu, pop-up, forms, call links.
@@ -56,8 +76,8 @@ One PDF for the task tracker:
 2. Fill `report.html` with verified facts only: the summary, what was checked, the website task's requests one by
    one, the tracking task's requests, the test leads, the screenshots, next steps. `grep -n "\[\[" report.html`
    prints nothing when done.
-3. `node pdf.mjs report.html Final-Live-Check.pdf Editing-Guide.pdf` (the editing guide appended, when there is
-   one: a short guide for whoever edits pages, forms and emails).
+3. `node pdf.mjs report.html Final-Live-Check.pdf ../handover/How-to-Edit-Your-Website.pdf` (the editing guide
+   from the client pack appended; make it first: "The client pack" below).
 
 Plain language for the client: no sprint or story numbers, no tool names, no internal notes.
 
@@ -72,8 +92,16 @@ Draft both for the developer; they post them.
   five to eight lines, the same facts, the login with the password placeholder, the same PDF.
 - SEO tasks (Search Console, new copy) belong to whoever owns SEO: leave them out unless the developer asks.
 
+## The client pack
+
+After the checks pass, make the client pack: a one-page "Your new website" sheet, the "How to edit your website"
+guide (screenshots taken as the client's Editor) and a plain-language message, from `_setup/handover/`. Make the
+guide's PDF before the report's, so the report can append it. Steps, the plain-English check and who gets what:
+`references/handover.md`.
+
 ## Done means
 
 Every route 1:1 and editable; forms and emails proven on live; GTM and the conversion proven; old URLs redirect;
 installer and planning files private; the ACF PRO licence active (none with SCF); the board, both handoff files and
-the project's lessons current; the report PDF, the task comment and the stakeholder message handed to the developer.
+the project's lessons current; the report PDF, the client pack, the task comment and the stakeholder message handed to
+the developer.

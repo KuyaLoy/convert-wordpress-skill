@@ -11,7 +11,11 @@ behaves the same at every screen size, keeps every URL and SEO signal, and lets 
 wp-admin: content in ACF PRO or Secure Custom Fields, forms and emails in Contact Form 7. Any stack, any kind of
 business, any country and language.
 
-Its lessons come from real builds: a 36-page Next.js export and a PHP and Tailwind landing page.
+Its lessons come from real builds: a 36-page Next.js export, a PHP and Tailwind landing page, and a clinic site
+taken live on cPanel.
+
+**The yardstick for every choice:** clean quality, delivered fast without losing quality, seen from the client's
+side. The client is usually not technical: what they see, read, edit and receive must be simple and plain.
 
 ## The kit
 
@@ -37,6 +41,7 @@ https://github.com/KuyaLoy/convert-wordpress-skill: ask the developer where thei
 | `references/seo-security.md` | Sprint 6, and the security basics from Sprint 1 |
 | `references/launch.md` | Go-live with Duplicator, other hosts, changes after launch |
 | `references/qa-report.md` | Live QA, test leads, the report, the task comment |
+| `references/handover.md` | After live QA: the client pack (website sheet, editing guide, message) |
 | `references/gotchas.md` | Before anything risky. Add every new lesson there |
 | `references/agents.md` | Each agent; beginner mode; fewer tokens; which model for which step |
 | `references/glossary.md` | Plain-word meanings for newcomers |
@@ -195,6 +200,11 @@ the Lead > **hand off** (page tracker cells `ok`, handoff).
   field falls back to the default.
 - next/image parity: same widths, sizes, srcset rule, width and height attributes, priority preloads.
 - Raw titles, safe map iframes, SVG copied by script. Details: `references/build.md`.
+- **Thank-you and 404 pages always exist.** If the source has none, design them from the site's own parts
+  (header, footer, hero, buttons, type), never a new look: a plain message, the phone, a way home and to the
+  main pages. Thank-you: noindex, out of the sitemap, the conversion fires there, one line per form if the
+  forms differ. 404: real 404 status, text editable in Theme Settings. Both go through the same parity and QA
+  checks as every page (`references/build.md` > Thank-you and 404).
 
 ## Sprint 5: Forms and email
 
@@ -215,6 +225,10 @@ noindex; old URLs as 301s (query strings kept); GTM as the task says; accessibil
 (no secrets, private files 403, REST users hidden, debug off on live). Lighthouse on live only. Details:
 `references/seo-security.md`.
 
+Client wp-admin: `client-admin.php` gives the client's Editor login a short menu (Pages, Media, Theme Settings,
+Contact, enquiries) and one "Your website" dashboard box; administrators keep the full admin
+(`references/build.md` > The client's wp-admin). Ask at intake for the "Need help?" contact (`client_help`).
+
 ## Sprint 7: QA and launch prep
 
 Full parity run (every route, every CSS breakpoint and 1 px past it), old URLs checked locally, real phones, the
@@ -224,20 +238,26 @@ go/no-go list is in the runbook. gate.py must report every sprint DONE.
 ## Launch (the developer does each step; you give one at a time)
 
 Backup of the live site (full if it is an old WordPress) > build the theme assets > a Duplicator backup
-with the filters from `python3 _plan/tools/launch/duplicator-filters.py <root> <theme>` (`--starter tw` for _tw) >
+with the filters from `python3 _plan/tools/launch/duplicator-filters.py <root> <theme>` (`--starter tw` for _tw;
+with Duplicator Pro and WP-CLI, `python3 _plan/tools/launch/package.py <wp_root> <theme>` builds and checks the
+package in one step) >
 database and PHP on the host > the old site into a sibling folder (rollback: move it back) > installer >
 `installer.php` answers 404, no archive left > wp-config `production`, debug off > `.htaccess` from
 `htaccess-live.txt` > wp-admin: search engines allowed, permalinks saved, reCAPTCHA keys and any ACF licence (the
-developer), tracking, the live plugins (S1-02) active, debug.log read once. Rollback if a check fails. Details:
-`references/launch.md`.
+developer), tracking, the live plugins (S1-02) active, debug.log read once > the client's own Editor login
+(`wp user create <login> <email> --role=editor --send-email`; never share the admin account). Rollback if a
+check fails. Details: `references/launch.md`.
 
 ## Live QA and the report
 
-`live-qa.py`, `track.mjs` (tracking), `shots.mjs` and `pdf.mjs` (the report) in `_plan/tools/report/`. Three
+`live-qa.py` (one command, every live check, on the canonical host; `--hidden` before launch), `track.mjs`
+(tracking), `shots.mjs` and `pdf.mjs` (the report) in `_plan/tools/report/`. Three
 test leads (inline form, pop-up, chat) named `TEST <developer> - please ignore`, sent with the real submit button
 after the developer agrees; the developer confirms the emails and the host's delivery log. Fill `report.html` with
 verified facts only (`grep -n "\[\[" report.html` prints nothing), make one PDF, and draft the task comment and the
-stakeholder message (login with `[PASTE PASSWORD HERE]`). Details: `references/qa-report.md`.
+stakeholder message (login with `[PASTE PASSWORD HERE]`, which the developer fills; the agent never types a
+password). Details: `references/qa-report.md`. Then the client pack from `_setup/handover/` (guide screenshots
+taken as the client's Editor, plain English only): `references/handover.md`.
 
 ## Scripts at a glance
 
@@ -261,4 +281,4 @@ stakeholder message (login with `[PASTE PASSWORD HERE]`). Details: `references/q
 Every route 1:1 and editable; forms and emails proven on live; tracking and the conversion proven; old URLs
 redirect; installer and private files not public; any ACF PRO licence active, the fields menu visible; Converter for
 Media and CFDB7 live; every sprint closed through its gate; the board, handoff files and gotchas current; the
-report PDF, the task comment and the stakeholder message handed to the developer.
+report PDF, the client pack, the task comment and the stakeholder message handed to the developer.

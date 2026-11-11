@@ -24,6 +24,6 @@ foreach ( [ 'setup', 'admin', 'menus', 'loaders', 'custom' ] as $kitwp_file ) {
 }
 
 // The kit.
-foreach ( [ 'config', 'cleanup', 'head', 'acf', 'helpers', 'media', 'forms', 'schema', 'seo', 'seed', 'seed-pages', 'snapshot' ] as $kitwp_file ) {
+foreach ( [ 'config', 'cleanup', 'head', 'acf', 'helpers', 'media', 'forms', 'client-admin', 'schema', 'seo', 'seed', 'seed-pages', 'snapshot' ] as $kitwp_file ) {
 	require_once $kitwp_inc . $kitwp_file . '.php';
 }

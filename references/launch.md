@@ -10,6 +10,7 @@ does every hosting step; the agent gives one step at a time, waits for "done", c
 - The package
 - The move
 - After the installer
+- The client's login
 - Other hosts
 - Changes on live after launch
 - Host quirks
@@ -47,6 +48,21 @@ does every hosting step; the agent gives one step at a time, waits for "done", c
   project (never in chat or notes); the developer pastes it into the installer, and the file is deleted after.
 - Check the archive before upload: list it (PHP ZipArchive) and grep for the private paths; the database dump is
   in `dup-installer/dup_descriptors_*/db_dumps/`.
+
+### One command with Duplicator Pro
+
+`python3 _plan/tools/launch/package.py <wp_root> <theme> [--starter tw]`
+
+- It needs WP-CLI and an active Duplicator Pro. Pass `--wp "php <path>/wp-cli.phar"` when `wp` is not on PATH.
+- It takes the filters from `duplicator-filters.py` and saves them in a Duplicator Pro template named "launch".
+  The template turns on the installer password. The installer name gets a hash.
+- It makes a new installer password and writes it to a file outside the project (default: the system temp
+  folder; the path is printed). The password never shows on screen. The developer pastes it into the installer,
+  then deletes the file.
+- It builds the backup, checks the archive for private files, a database dump and the wp-config copy, then copies
+  the archive and the installer (as `*_installer.php`) to `_setup/launch/upload/`.
+- `--dry-run` shows the filter counts and the steps, and builds nothing.
+- Exit codes: 0 ok, 1 usage, 2 Duplicator Pro not active, 3 build failed, 4 private files found (nothing copied).
 
 ## DNS first (optional): the maintenance page
 
@@ -103,6 +119,19 @@ with `curl --resolve <host>:443:<server ip>` (GET only) before the A record chan
 - Then live QA (`references/qa-report.md`).
 - Rollback when a check fails and cannot be fixed quickly: move the WordPress files out, move the old site back,
   restore the old `.htaccess`. A static site needs no database, so it is back at once.
+
+## The client's login
+
+The client gets their own login with the Editor role, never an administrator. The theme's `client-admin.php`
+gives that role a short, plain wp-admin (`references/build.md` > The client's wp-admin).
+
+- Create it on live once the site works, with the client's own email:
+  `wp user create <login> <email> --role=editor --send-email`
+  Without WP-CLI: Users > Add New, role Editor, "Send the new user an email" ticked.
+- The client sets their own password from that email. The agent never types or sees a password.
+- Never share the admin account, not even for a day.
+- The developer opens wp-admin once with an Editor login and checks the menu, the dashboard widget and that a page
+  saves. `KITWP_CLIENT_HELP` in `config.php` is the "Need help?" line; empty hides it.
 
 ## Other hosts
 

@@ -41,7 +41,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 SKILL = os.path.dirname(HERE)
 TEXT = ('.php', '.js', '.mjs', '.py', '.json', '.md', '.txt', '.html', '.xml', '.dist', '.css', '.scss', '.htaccess')
-KIT_FILES = ['config', 'cleanup', 'head', 'acf', 'helpers', 'media', 'forms', 'schema', 'seo', 'seed', 'seed-pages',
+KIT_FILES = ['config', 'cleanup', 'head', 'acf', 'helpers', 'media', 'forms', 'client-admin', 'schema', 'seo', 'seed', 'seed-pages',
              'snapshot']
 
 ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
@@ -181,6 +181,8 @@ values = {
     'EMAIL_BADGE_WIDTH': str(int(branding.get('width', 120))),
     'SITE_BADGE': ('assets/brand/' + os.path.basename(branding['site_badge'])) if branding.get('site_badge') else '',
     # Leads portal: the wp-config constant prefix (<PREFIX>_ENDPOINT, <PREFIX>_KEY); empty = no portal.
+    # The client's dashboard "Need help?" line (site.json or the profile; empty hides it).
+    'CLIENT_HELP': str(site.get('client_help', profile.get('client_help', ''))).replace("'", "\\'"),
     'LEADS_PREFIX': re.sub(r'[^A-Z0-9_]', '', str(profile.get('leads_portal', {}).get('constant_prefix', '')).upper()),
     'GTM_ID': site.get('gtm', ''),
     'LEAD_TO': lead.get('to', ''),
@@ -370,6 +372,7 @@ for tool in ('acf', 'seed', 'build-map', 'report', 'launch', 'setup'):
 for f in ('analyze-source.py', 'snapshot-routes.mjs'):
     plan.append((os.path.join(S, f), os.path.join(root, '_plan', 'tools', f)))
 add_tree(os.path.join(A, 'seed'), os.path.join(root, '_setup', 'seed'))
+add_tree(os.path.join(A, 'handover'), os.path.join(root, '_setup', 'handover'))
 if not a.plan_only and branding.get('email_badge_png'):
     plan.append((branding['email_badge_png'], os.path.join(theme, 'assets', 'email', os.path.basename(branding['email_badge_png']))))
 if not a.plan_only and branding.get('site_badge'):
@@ -389,7 +392,7 @@ plan += [
 
 # The project's own documents and data are never overwritten, not even with --force: the plan, the board, the
 # handoff files, the seed data and the launch files belong to the project once written.
-PROTECTED = ('BUILD-MAP.md', 'handoff.md', 'ai-handoff-summary.md', '_setup/seed/', '_setup/launch/')
+PROTECTED = ('BUILD-MAP.md', 'handoff.md', 'ai-handoff-summary.md', '_setup/seed/', '_setup/launch/', '_setup/handover/')
 # Kit files that hold the project's own data once filled: the content model spec, the routes, the parity settings.
 PROJECT_DATA = ('_plan/tools/acf/build_field_groups.py', '/tests/parity/routes.json', '/tests/parity/parity.config.json')
 stamp = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')

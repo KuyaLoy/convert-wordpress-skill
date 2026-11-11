@@ -5,6 +5,39 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-11
+
+Faster launches and a client pack for clients who are not technical. The yardstick: clean quality, fast without
+losing quality, seen from the client's side.
+
+### Added
+
+- `scripts/launch/package.py`: builds the launch package with Duplicator Pro through WP-CLI, no wp-admin login.
+  It sets a "launch" template (file filters, installer password, hashed installer name), writes the password to
+  a file outside the project, checks the archive for private files, the database dump and the wp-config copy,
+  and copies the archive and installer to `_setup/launch/upload/`. Has `--dry-run`. Tests: `test_package.py`.
+- Client wp-admin (`includes/client-admin.php`): the client's Editor login sees only Dashboard, Pages, Media,
+  Theme Settings, Contact, the enquiries and Profile; no update nags or plugin notices; one "Your website"
+  dashboard box with plain links and a "Need help?" line (`KITWP_CLIENT_HELP` from `client_help`); the fields
+  menu hidden from non-admins. Menus only, nothing removed; enquiries access added at run time for Editors.
+  launch.md: the client's own login (`wp user create ... --role=editor --send-email`).
+- Client pack: `assets/handover/` (copied to `_setup/handover/`): `website-sheet.html` ("Your new website", one
+  A4 page), `editing-guide.html` ("How to edit your website", screenshots taken as the client's Editor) and
+  `client-message.md` (tracker and chat versions, logins "sent separately"). `references/handover.md`.
+- Thank-you and 404 pages always exist: when the source has none, they are designed from the site's own parts
+  (build.md > Thank-you and 404).
+- Gotcha: Duplicator Pro's `*_installer.php.bak` and its `installerPassowrd` property.
+
+### Changed
+
+- `live-qa.py` is the one live QA command: routes and a 404 checked twice, every redirect one 301 with the query
+  kept, host rules to the canonical host (www or not), private and leftover files 403 or 404, the certificate on
+  apex and www (more than 14 days), robots index and canonical, the robots.txt Sitemap line, no `.test` or
+  localhost URLs, WebP with `--image`. PASS or FAIL lines, ALL PASS or N FAIL, `--json`, `--hidden` before
+  launch. Tests: `test_live_qa.py`.
+- qa-report.md: the report appends the pack's `How-to-Edit-Your-Website.pdf`; Done means includes the pack.
+- SKILL.md: the yardstick (quality, speed, the client's view) at the top.
+
 ## [0.5.0] - 2026-11-11
 
 Lessons from the first live launch with the 0.4 kit (a Next.js site to WordPress on cPanel, DNS first).

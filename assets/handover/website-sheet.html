@@ -1,0 +1,126 @@
+<!doctype html>
+<!--
+  "Your new website": a one-page summary for the client (client-facing). Steps: references/handover.md.
+
+  FILL
+  - new-site.py fills the double-brace values. Fill every [[...]] with a fact you checked on the live site, and delete
+    what does not apply. Done when grep -n "\[\[" website-sheet.html prints nothing.
+  - "What changed": 3 to 5 bullets, each one short sentence a non-technical reader understands, about what the
+    client gains (for example "You can now change the words and photos on every page yourself."). No tool names.
+  - Plain English only. No passwords, ever: the login is always "sent to you separately".
+  - It must stay on ONE A4 page: check the PDF has one page. If not, shorten the bullets.
+
+  PDF (from this folder): node ../../_plan/tools/report/pdf.mjs website-sheet.html Your-New-Website.pdf
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your new website: {{SITE_NAME}}</title>
+<style>
+  @page { size: A4; margin: 14mm 13mm; }
+  :root { --brand: {{BRAND_COLOUR}}; --ink: #1d2523; --muted: #4f5a56; --line: #d9dfdc; --soft: #f4f6f5; }
+  * { box-sizing: border-box; }
+  body { margin: 0 auto; max-width: 184mm; padding: 0 4mm; color: var(--ink); background: #fff;
+    font: 10.5pt/1.5 "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  header { border-top: 6px solid var(--brand); padding-top: 10px; margin-bottom: 12px; }
+  h1 { font-size: 22pt; line-height: 1.2; margin: 0 0 2px; }
+  .sub { margin: 0; color: var(--muted); }
+  .address { margin: 12px 0 14px; padding: 12px 16px; background: var(--soft); border-left: 6px solid var(--brand);
+    border-radius: 4px; }
+  .address p { margin: 0; }
+  .address .url { font-size: 18pt; font-weight: 700; word-break: break-all; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; }
+  .card { break-inside: avoid; padding: 2px 0 6px; }
+  .card.wide { grid-column: 1 / -1; }
+  h2 { font-size: 12.5pt; margin: 0 0 6px; padding-bottom: 3px; border-bottom: 3px solid var(--brand); }
+  p, li { margin: 0 0 5px; }
+  ul, ol { margin: 0; padding-left: 20px; }
+  b, strong { font-weight: 700; }
+  a { color: var(--ink); }
+  dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; }
+  dt { font-weight: 700; }
+  dd { margin: 0; }
+  footer { margin-top: 14px; padding-top: 6px; border-top: 1px solid var(--line); font-size: 9pt; color: var(--muted); }
+  @media print { body { padding: 0; max-width: none; } }
+  @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Your new website</h1>
+  <p class="sub">{{SITE_NAME}} &nbsp;|&nbsp; Prepared by {{DEVELOPER}}, [[date the pack was made]]</p>
+</header>
+
+<main>
+
+<div class="address">
+  <p>Your website is live at</p>
+  <p class="url">https://{{DOMAIN}}</p>
+</div>
+
+<div class="grid">
+
+  <section class="card">
+    <h2>How to log in</h2>
+    <ol>
+      <li>Go to <b>{{DOMAIN}}/wp-admin</b>.</li>
+      <li>Type your username and password. We sent them to you separately.</li>
+      <li>Forgot your password? Click <b>Lost your password?</b> on the login page.</li>
+    </ol>
+    <p>The editing guide shows every step, with pictures.</p>
+  </section>
+
+  <section class="card">
+    <h2>What changed</h2>
+    <ul>
+      <li>[[What the client gains, in one short sentence]]</li>
+      <li>[[What the client gains, in one short sentence]]</li>
+      <li>[[What the client gains, in one short sentence]]</li>
+      <li>[[Optional fourth point, or delete this line]]</li>
+      <li>[[Optional fifth point, or delete this line]]</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Where enquiries go</h2>
+    <p>Every form on the website emails the enquiry to <b>{{LEAD_TO}}</b>[[, with copies to the other addresses that
+    get it]].</p>
+    <p>Each enquiry is also saved on the website, in case an email goes missing.</p>
+  </section>
+
+  <section class="card">
+    <h2>Shown on your website</h2>
+    <dl>
+      <dt>Phone</dt><dd>{{PHONE_DISPLAY}}</dd>
+      <dt>Email</dt><dd>{{EMAIL}}</dd>
+      <dt>Address</dt><dd>[[the address shown on the site, or delete this row]]</dd>
+    </dl>
+    <p>Is a detail wrong? You can change it yourself in <b>Theme Settings</b>, or tell us.</p>
+  </section>
+
+  <section class="card wide">
+    <h2>What to do now</h2>
+    <ol>
+      <li>Check your inbox at <b>{{LEAD_TO}}</b>. You should have our test enquiry, marked "TEST". You can delete it.
+        [[Or another first step that fits this client.]]</li>
+      <li>Look through your website. Tell us if any detail is wrong or missing.</li>
+      <li>Log in once to check your login works. Keep your password safe and do not share it.</li>
+    </ol>
+  </section>
+
+  <section class="card wide">
+    <h2>Questions?</h2>
+    <p>Contact {{DEVELOPER}}: [[how to reach us: phone or email]]. We are happy to help with changes, new pages or
+    anything that does not look right.</p>
+  </section>
+
+</div>
+
+</main>
+
+<footer>{{SITE_NAME}} &nbsp;|&nbsp; https://{{DOMAIN}}</footer>
+
+</body>
+</html>

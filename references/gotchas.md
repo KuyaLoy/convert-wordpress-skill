@@ -91,6 +91,9 @@ project's handoff.md (Failed Attempts) as they happen.
 - With no mail program (XAMPP, MAMP, WampServer, serve-wp), every local form answered "There was an error trying
   to send your message", so the thank-you flow could not be tested. On local, when PHP cannot send, the kit keeps
   the email in `_setup/mail/` and reports it as sent (`kitwp_mail_to_file` forces either way).
+- CFDB7 gives `cfdb7_access` to administrators only, so an Editor never sees the enquiries. `client-admin.php`
+  adds it at run time for users who can edit pages (nothing saved).
+- CF7 6.x moved its top-level menu to `wpcf7-dashboard` (older: `wpcf7`). Menu code handles both slugs.
 
 ## Static sources
 
@@ -149,6 +152,8 @@ project's handoff.md (Failed Attempts) as they happen.
 - Duplicator's installer replaces `.htaccess` on extraction and moves `php.ini`, `.user.ini` and the host's
   `.htaccess` into `dup-installer/`: the archive is public until the clean-up, and the host's PHP settings and
   cPanel block need restoring (launch.md).
+- Duplicator Pro keeps the installer as `*_installer.php.bak` in its backups folder (rename on upload), and its
+  template property for the installer password is spelled `installerPassowrd`.
 - After the DNS switch, the developer's own browser can keep the old IP for up to the old TTL (Chrome has its own
   cache: chrome://net-internals/#dns, Clear host cache). Phones on mobile data see the new site first.
 - A local site with the live leads key sends its test submissions to the live leads portal: keep lead forwarding

@@ -46,6 +46,12 @@ const KITWP_SITE_BADGE_HEIGHT = 40;
  */
 const KITWP_LEADS_PREFIX = '{{LEADS_PREFIX}}';
 
+/** Client wp-admin (client-admin.php): hide Posts and Comments from the client. Set false when the site uses them. */
+const KITWP_CLIENT_HIDE_POSTS = true;
+
+/** Client wp-admin: the "Need help?" line on the client's dashboard (an email, a web address or a phone number); empty hides it. */
+const KITWP_CLIENT_HELP = '{{CLIENT_HELP}}';
+
 /** The <html> lang and dir exactly as the static site prints them (lang="en", lang="ar" dir="rtl"); empty: WordPress's own. */
 const KITWP_HTML_ATTRIBUTES = '{{HTML_ATTRIBUTES}}';
 

@@ -67,7 +67,7 @@ Plan about 2 hours on a quiet day (not Friday). The developer does the hosting s
 
 ## 5. Checks (references/qa-report.md has the full list)
 
-- [ ] `python3 _plan/tools/report/live-qa.py https://{{DOMAIN}} {{GTM_ID}} _setup/seed/redirects.json {{LOCAL_HOST}}`
+- [ ] `python3 _plan/tools/report/live-qa.py https://{{DOMAIN}} {{GTM_ID}} _setup/seed/redirects.json {{LOCAL_HOST}}` (use the canonical host: add www if the site uses www; export the real redirects first, the seed file is a sample)
       ALL PASS (bot filter: run `live-qa-console.js` in a real browser instead).
 - [ ] `node _plan/tools/report/track.mjs https://{{DOMAIN}} {{GTM_ID}} / /thank-you/`: GTM loaded; the conversion
       request only on /thank-you/.

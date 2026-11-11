@@ -7,6 +7,7 @@ Read this from Sprint 1 to Sprint 4. The kit files named here are in the theme's
 - Static first, then dynamic
 - Foundation: CSS, head, clean-up, global layout
 - ACF: JSON, the builder, sync, Theme Settings
+- The client's wp-admin
 - Media: sizes, WebP, srcset, priority
 - Templates and pages
 - The seeder
@@ -97,7 +98,26 @@ again. Fields replace content, never structure, classes or order.
 - Component groups (heading, hero, FAQs, icon items, links) are inactive groups used through Clone fields.
 - Field instructions carry the copy rules from the source (the copy brief): length, tone, what not to change.
 - Return formats: image ID, link array. Read with `get_field()` and escape at output.
-- The ACF menu is never hidden.
+- The ACF menu is never hidden from administrators (the client does not see it: next section).
+
+## The client's wp-admin
+
+The client is not technical. They log in as an Editor, never an administrator (`references/launch.md` > The
+client's login). `client-admin.php` gives every user without `manage_options` a short wp-admin:
+
+- The menu: Dashboard, Pages, Media, Theme Settings, Contact (no "Add Contact Form"), the CFDB7 enquiries when the
+  plugin is active, and Profile. The `kitwp_client_menu` filter changes the list.
+- Posts and Comments are hidden while `KITWP_CLIENT_HIDE_POSTS` is true (`config.php`). Set it false when the
+  site has a blog.
+- It hides menus only. No capability is removed, so nothing breaks. One is added at run time: `cfdb7_access`
+  for Editors, so they can read the enquiries (CFDB7 gives it to administrators only).
+- No update nags or plugin notices. ACF's "Theme Settings saved." still shows.
+- The dashboard has one widget, "Your website", with the links "Edit a page", "Change the phone, email or
+  address" and "See enquiries", and a "Need help?" line from `KITWP_CLIENT_HELP` (set at intake, for example the
+  developer's email; empty hides it).
+- ACF's own menu (Field Groups, Tools) is hidden from the client. Editing pages and Theme Settings still works.
+- Check it in Sprint 5 or 6 with a local Editor login: the menu, the widget, a page save, a Theme Settings save,
+  and the enquiries list. A new plugin menu the client needs goes into the filter, not into the kit file.
 
 ## Media: sizes, WebP, srcset, priority
 
@@ -182,3 +202,18 @@ again. Fields replace content, never structure, classes or order.
 | Map iframe src | `kitwp_iframe_src( $src )` |
 | FAQ or breadcrumbs for JSON-LD | `kitwp_schema_add( 'faq', $rows )`, `kitwp_schema_add( 'crumbs', $rows )` |
 | The lead form | `get_template_part( 'template-parts/sections/lead-form', null, $args )` |
+
+## Thank-you and 404
+
+Every site has both, even when the source has neither.
+
+- **Source has them:** copy them 1:1 like any page.
+- **Source has none:** design them from the site's own parts (header, footer, hero or page header, buttons, type
+  scale, colours, spacing). Never a new look. Show it to the developer before it is final.
+- **Thank-you** (`/thank-you/`, `KITWP_THANK_YOU`): a plain message ("Thanks, we have your message. We will be in
+  touch within one business day."), the phone, a button home and links to the main pages. One line per form when
+  the forms differ (add the form's key to the thank-you redirect as `?form=<key>`). noindex, out of the sitemap, robots.txt Disallow; the
+  conversion events fire here.
+- **404:** a friendly "Page not found" in the same style, links to Home, the main pages and Contact, the phone.
+  Its heading and text live in Theme Settings (404 tab). It answers with a real 404 status, never 200.
+- Both are in the page tracker and go through the same parity, accessibility and phone checks as every page.
