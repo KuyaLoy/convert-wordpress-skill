@@ -5,6 +5,11 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+### Changed
+
+- The update command explains how to update a skill saved in a chat app that shows no update card (zip,
+  Upload skill, "Upload and replace", version history kept).
+
 ## [0.6.0] - 2026-11-11
 
 Faster launches and a client pack for clients who are not technical. The yardstick: clean quality, fast without

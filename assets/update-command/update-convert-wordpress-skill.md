@@ -25,5 +25,8 @@ files by hand to force an update.
 In a chat app that saves skills without their folder (only SKILL.md, no `scripts/`): read the newest notes in
 https://raw.githubusercontent.com/KuyaLoy/convert-wordpress-skill/main/CHANGELOG.md, tell the developer what is new,
 and with their OK offer https://raw.githubusercontent.com/KuyaLoy/convert-wordpress-skill/main/SKILL.md as the
-update to the saved convert-to-wordpress skill, the app's own way (for example a skill card). A local clone they
-keep for the kit is updated with the steps above.
+update to the saved convert-to-wordpress skill, the app's own way (for example a skill card). A skill the
+developer uploaded themselves gets no update card: zip the new SKILL.md as `convert-to-wordpress/SKILL.md`
+(keep the saved skill's name and description lines), then Settings > Customize > Skills > Add > Upload skill,
+and choose "Upload and replace" when it asks (it saves a new version; older versions stay in the skill's
+history). A local clone they keep for the kit is updated with the steps above.
