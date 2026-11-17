@@ -43,7 +43,8 @@ static page (the parity SEO diff).
 
 ## Headings, thank-you page, sitemap
 
-- One H1 per page; the static heading outline kept (no levels skipped that the static page did not skip).
+- One H1 per page; headings in order (the static outline kept, no levels skipped that the static page did not
+  skip); checked on every section, not at the end.
 - `/thank-you/`: noindex, out of the sitemap, and reached after every lead (the conversion fires there).
 - Every static route in the sitemap, with the same slug; pages the static site lacked (a blog) are flagged to
   whoever owns SEO.
@@ -71,10 +72,11 @@ static page (the parity SEO diff).
 
 ## Accessibility
 
-WCAG 2.2 AA as the static site delivers it, and never worse: landmarks (`header`, `nav` with labels, `main
-id="main"`, `footer`), a skip link if the static has one, one H1, alt text from the Media Library, labelled form
-fields, `aria-expanded` and focus handling on menus and pop-ups as static, keyboard reachable, reduced motion
-respected. The UX and QA gates check it each sprint.
+WCAG 2.2 AA as the static site delivers it, and never worse, checked per section from the first one: landmarks
+(`header`, `nav` with labels, `main id="main"`, `footer`), a skip link if the static has one, one H1, alt text on
+every content image from the Media Library (decorative: `alt=""`), an `aria-label` on every control without visible
+text (icon buttons, the menu toggle, social links), labelled form fields, `aria-expanded` and focus handling on
+menus and pop-ups as static, keyboard reachable, reduced motion respected. The UX and QA gates check it each sprint.
 
 ## Security
 
@@ -93,8 +95,30 @@ respected. The UX and QA gates check it each sprint.
 
 ## Performance
 
-Parity first: an optimisation must keep the diff clean. The same fonts, preloads and image widths as static;
-images lazy except the priority ones; the static site's own scripts deferred as they were. Caching and compression
-rules are in `htaccess-live.txt`. Measure with Lighthouse on the live site only (a local stack is not
-representative): mobile performance is mostly third-party (reCAPTCHA, tags) and icon fonts; report the numbers
-honestly.
+**Build to Core Web Vitals from the first section**, not as a clean-up at the end. Parity first: an optimisation
+must keep the diff clean, so with a golden master each item matches or beats the static page without changing a
+pixel; for pages and sections the build writes itself, every item applies in full.
+
+- **LCP image:** a head preload (`kitwp_preload_image()`) and `fetchpriority="high"` on it and its `<img>`
+  (`'fetchpriority' => 'high'` in `kitwp_img()`; with a golden master only where the static build prints it, or
+  accepted as an addition in the DOM diff). Never `loading="lazy"` above the fold; everything below it lazy.
+- **Sized srcset:** the static widths and a `sizes` that matches the layout (`KITWP_IMAGE_WIDTHS`), WebP.
+- **Reserved space:** width and height (or `aspect-ratio`) on every image, video and iframe, so nothing shifts.
+- **Fonts:** the static fonts and preloads, `font-display: swap`, and a metric-matched fallback font, so the swap
+  does not move the text. next/font sources already ship one in the compiled CSS; otherwise add it:
+
+  ```css
+  @font-face { font-family: "Inter Fallback"; src: local("Arial");
+    size-adjust: 107%; ascent-override: 90%; descent-override: 22%; line-gap-override: 0%; }
+  /* then: font-family: Inter, "Inter Fallback", sans-serif; (values from a fallback-metrics tool, per font) */
+  ```
+- **Minimal JavaScript, deferred:** vanilla, `defer` or after the load event (the chat widget, maps below the
+  fold), no jQuery for theme code; the static site's own scripts deferred as they were.
+- **No speed plugin** (caching, minify, lazy-load, "optimisation" suites) unless the theme cannot do it; caching
+  and compression rules are in `htaccess-live.txt`. Converter for Media stays (S1-02): it serves WebP for images
+  the client uploads later.
+
+**Measure:** local Lighthouse is a regression guard only (a local stack is not representative): run it after a
+big change to catch a drop. The real check is **PageSpeed Insights** (pagespeed.web.dev, mobile and desktop) on
+staging, when the build has a public one, and on live. Mobile performance is mostly third-party (reCAPTCHA, tags)
+and icon fonts; report the field and lab numbers honestly.

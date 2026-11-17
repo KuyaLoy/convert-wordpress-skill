@@ -178,6 +178,9 @@ update both handoff files.
    the golden master against itself must diff 0.000%.
 5. **S1-05 Design system 1:1:** the static CSS byte for byte (`KITWP_STYLESHEETS`, `KITWP_INLINE_CSS`), or for
    _tw the same Tailwind version and tokens. Swap test (`swaptest.py`): 0.000%. Nothing else styles the page.
+   CSS the build writes itself on _tw: utilities on the `@theme` tokens, custom CSS only for CF7 and what
+   utilities cannot express, no `text-wrap: balance` on headings, letter-spacing end padding
+   (`references/source-types.md` > Writing CSS on _tw).
 6. **S1-06 ACF foundation:** groups and Theme Settings (options page, tabs) from
    `_plan/tools/acf/build_field_groups.py`, then `sync.php` (until nothing syncs); client-friendly fields;
    Theme Settings read by field key.
@@ -191,7 +194,7 @@ update both handoff files.
 
 Every section, every time: **static** (FE copies the rendered HTML, diff 0) > **model** (WP adds fields to the
 builder) > **sync** > **dynamic** (fields replace the copy, every output escaped) > **seed** > **test** (visual, DOM,
-text, headings, keyboard, no notices, no console errors) > **clean** (php -l, PHPCS, duplicates) > **review** by
+text, one H1 and heading order, aria-labels, alt, schema, the CWV items, keyboard, no notices, no console errors) > **clean** (php -l, PHPCS, duplicates) > **review** by
 the Lead > **hand off** (page tracker cells `ok`, handoff).
 
 - Pages, not custom post types, so URLs stay at the root. Fixed templates where pages share a layout; one Flexible
@@ -199,7 +202,11 @@ the Lead > **hand off** (page tracker cells `ok`, handoff).
 - Say it once: anything on two pages lives in Theme Settings, with tokens (`{phone}`, `{year}`...). An empty page
   field falls back to the default.
 - next/image parity: same widths, sizes, srcset rule, width and height attributes, priority preloads.
-- Raw titles, safe map iframes, SVG copied by script. Details: `references/build.md`.
+- Media and maps: logos (the agency badge and its link too), the Site Icon, email images and every content image
+  are seeded into the Media Library and set in ACF or Theme Settings, never hard-coded; maps are live Google
+  iframes from one field that takes a Maps link, embed code or address (the default city until the address is
+  confirmed).
+- Raw titles, SVG copied by script. Details: `references/build.md`.
 - **Thank-you and 404 pages always exist.** If the source has none, design them from the site's own parts
   (header, footer, hero, buttons, type), never a new look: a plain message, the phone, a way home and to the
   main pages. Thank-you: noindex, out of the sitemap, the conversion fires there, one line per form if the
@@ -211,8 +218,10 @@ the Lead > **hand off** (page tracker cells `ok`, handoff).
 Contact Form 7 holds each form and its email; the theme prints CF7's tags as the static markup. Forms post natively
 and answer 303 to `/thank-you/`, so they work without JavaScript; one HTML email part, envelope sender and
 Message-ID on the domain; local mail to the admin and `_setup/mail/`; a chat widget posts to CF7's REST endpoint
-(`assets/chat-save.js`); spam: the honeypot plus reCAPTCHA v3. The visitor's auto-reply (Mail (2)) uses the same
-branded HTML template as the lead email, and both carry the profile's agency badge in the footer (`branding`).
+(`assets/chat-save.js`); spam: the honeypot plus reCAPTCHA v3. CF7's autop is off on every form (no stray `<p>`
+or `<br>`). Every notification and every auto-reply (Mail (2)) uses the branded HTML template, never CF7's plain
+text; both carry the profile's agency badge in the footer (`branding`); the email logo and badge come from Theme
+Settings.
 With a leads portal in the profile (`leads_portal`), every sent lead also goes there server to server (never from
 local, development or staging).
 Details: `references/forms-email.md`.
@@ -222,7 +231,10 @@ Details: `references/forms-email.md`.
 Yoast seeded (head clean-up on, campaign URL and permalink clean-up off, archives off, share images), its schema
 replaced by the static JSON-LD; titles, descriptions, canonicals, robots and headings as static; `/thank-you/`
 noindex; old URLs as 301s (query strings kept); GTM as the task says; accessibility as static or better; hardening
-(no secrets, private files 403, REST users hidden, debug off on live). Lighthouse on live only. Details:
+(no secrets, private files 403, REST users hidden, debug off on live). Core Web Vitals are built in from the
+first section (LCP preload and fetchpriority, sized srcset, nothing lazy above the fold, reserved media space,
+metric-matched fallback font, minimal deferred JS), no speed plugin unless the theme cannot do it. Local
+Lighthouse is a regression guard only; the real check is PageSpeed Insights on staging and live. Details:
 `references/seo-security.md`.
 
 Client wp-admin: `client-admin.php` gives the client's Editor login a short menu (Pages, Media, Theme Settings,

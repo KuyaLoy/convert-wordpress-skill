@@ -98,6 +98,20 @@ compiled CSS in place of its own must diff 0.000%.
 - Plain CSS sources (Barebones): the static BUILT CSS byte for byte, after the framework's autoprefixer and
   minifier, not the source CSS. Vite with `cssMinify: false`: a second minifier drops prefixes.
 
+### Writing CSS on _tw
+
+Copied CSS stays as the source has it (rule 1). Wherever the build writes its own styles on the _tw starter (a page
+or section the source lacks, such as the thank-you page, the 404 or a blog, or a source that is only a design):
+
+- **Sections are Tailwind utilities on the `@theme` tokens** (colours, fonts, type scale, spacing, radii). Custom
+  CSS only for the CF7 form styling and what utilities cannot express, in `tailwind/` files, never per page.
+- **No `text-wrap: balance` on headings** unless the golden master has it: it moves the breaks away from the design.
+- **Letter-spacing and wraps:** browsers add the letter-spacing after a line's last glyph too, so a line is wider
+  or narrower than in the design and wraps elsewhere. Text tokens with letter-spacing get an end padding of
+  |letter-spacing| (`padding-inline-end`), so the wraps match the design at its widths. Only for values taken from
+  a design; copied CSS already wraps like the golden master.
+- Forms follow `references/forms-email.md` (autop off on every form, branded emails).
+
 ## Content, forms, tracking, redirects
 
 - **Content:** content modules (`content/*.ts`, `data/*.json`), Markdown or MDX, or a CMS fetched at build time.

@@ -61,18 +61,31 @@ add_filter( 'wp_editor_set_quality', 'kitwp_webp_quality', 10, 2 );
  *
  * @param int                  $id    Attachment ID.
  * @param string               $sizes The sizes attribute, copied from the static component.
- * @param array<string, mixed> $args  priority (bool, no lazy loading; also queue a preload), alt (overrides the
- *                                    media alt), width and height (the static component's fixed size), class,
- *                                    style, fill (bool, as next/image "fill": no size attributes, absolute).
+ * @param array<string, mixed> $args  priority (bool, no lazy loading; also queue a preload), fetchpriority
+ *                                    ("high" on the LCP image when the static build has it, or when there is no
+ *                                    golden master to match), alt (overrides the media alt), width and height
+ *                                    (the static component's fixed size), class, style, fill (bool, as
+ *                                    next/image "fill": no size attributes, absolute).
  * @return string
  */
 function kitwp_img( $id, $sizes, $args = [] ) {
-	$id   = (int) $id;
-	$meta = $id ? wp_get_attachment_metadata( $id ) : false;
-	if ( ! $meta || empty( $meta['width'] ) ) {
-		return '';
+	$id = (int) $id;
+	if ( $id && 'image/svg+xml' === get_post_mime_type( $id ) ) {
+		// An SVG from the Media Library (a logo): one file, no widths; the size from the static code or the file.
+		$size   = kitwp_svg_size( $id );
+		$meta   = [
+			'width'  => $size[0],
+			'height' => $size[1],
+		];
+		$srcset = [];
+		$src    = (string) wp_get_attachment_url( $id );
+	} else {
+		$meta = $id ? wp_get_attachment_metadata( $id ) : false;
+		if ( ! $meta || empty( $meta['width'] ) ) {
+			return '';
+		}
+		list( $srcset, $src ) = kitwp_img_srcset( $id, $meta );
 	}
-	list( $srcset, $src ) = kitwp_img_srcset( $id, $meta );
 	if ( ! array_key_exists( 'alt', $args ) ) {
 		$args['alt'] = (string) get_post_meta( $id, '_wp_attachment_image_alt', true );
 	}
@@ -142,8 +155,11 @@ function kitwp_srcset_for_sizes( $srcset, $sizes ) {
 function kitwp_img_tag( $srcset, $src, $sizes, $args ) {
 	$fill = ! empty( $args['fill'] );
 	$html = '<img alt="' . esc_attr( (string) ( $args['alt'] ?? '' ) ) . '"';
+	if ( ! empty( $args['fetchpriority'] ) ) {
+		$html .= ' fetchpriority="' . esc_attr( (string) $args['fetchpriority'] ) . '"';
+	}
 	if ( empty( $args['priority'] ) ) {
-		$html .= ' loading="lazy"'; // Priority images load eagerly with no fetchpriority (as the Next 15 build); the template queues a preload.
+		$html .= ' loading="lazy"'; // Priority images load eagerly; fetchpriority only when asked (the Next 15 build prints none).
 	}
 	if ( ! $fill ) {
 		$html .= ' width="' . (int) ( $args['width'] ?? 0 ) . '" height="' . (int) ( $args['height'] ?? 0 ) . '"';
@@ -198,17 +214,109 @@ function kitwp_img_srcset( $id, $meta = null ) {
 /**
  * Queue a priority image for a preload link in <head>, as next/image "priority" does. Call before get_header().
  *
- * @param int    $id    Attachment ID.
- * @param string $sizes The same sizes value the <img> uses.
+ * @param int    $id            Attachment ID.
+ * @param string $sizes         The same sizes value the <img> uses.
+ * @param string $fetchpriority "high" to print it on the preload too (as on the <img>); empty for none.
  * @return void
  */
-function kitwp_preload_image( $id, $sizes ) {
+function kitwp_preload_image( $id, $sizes, $fetchpriority = '' ) {
 	if ( (int) $id ) {
 		$GLOBALS['kitwp_preloads'][] = [
-			'id'    => (int) $id,
-			'sizes' => (string) $sizes,
+			'id'            => (int) $id,
+			'sizes'         => (string) $sizes,
+			'fetchpriority' => (string) $fetchpriority,
 		];
 	}
+}
+
+/**
+ * Width and height of an SVG attachment: what the static code prints (_kitk_attr_size), else the file's own
+ * width and height attributes, else its viewBox.
+ *
+ * @param int $id Attachment ID.
+ * @return array{0: int, 1: int}
+ */
+function kitwp_svg_size( $id ) {
+	$attr = explode( 'x', (string) get_post_meta( (int) $id, '_kitk_attr_size', true ) );
+	if ( 2 === count( $attr ) ) {
+		return [ (int) $attr[0], (int) $attr[1] ];
+	}
+	$file = (string) get_attached_file( (int) $id );
+	$head = is_readable( $file ) ? (string) file_get_contents( $file, false, null, 0, 4096 ) : ''; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local media file.
+	return kitwp_svg_size_of( $head );
+}
+
+/**
+ * Width and height from SVG markup: its width and height attributes, else its viewBox; [0, 0] when neither.
+ *
+ * @param string $svg SVG markup (the start of the file is enough).
+ * @return array{0: int, 1: int}
+ */
+function kitwp_svg_size_of( $svg ) {
+	if ( ! preg_match( '/<svg\b[^>]*>/i', (string) $svg, $tag ) ) {
+		return [ 0, 0 ];
+	}
+	$w = preg_match( '/\swidth\s*=\s*["\']([\d.]+)(?:px)?["\']/i', $tag[0], $mw ) ? (float) $mw[1] : 0;
+	$h = preg_match( '/\sheight\s*=\s*["\']([\d.]+)(?:px)?["\']/i', $tag[0], $mh ) ? (float) $mh[1] : 0;
+	if ( $w && $h ) {
+		return [ (int) round( $w ), (int) round( $h ) ];
+	}
+	if ( preg_match( '/\sviewBox\s*=\s*["\']\s*[-\d.]+[\s,]+[-\d.]+[\s,]+([\d.]+)[\s,]+([\d.]+)\s*["\']/i', $tag[0], $vb ) ) {
+		return [ (int) round( (float) $vb[1] ), (int) round( (float) $vb[2] ) ];
+	}
+	return [ 0, 0 ];
+}
+
+/**
+ * An SVG from the Media Library printed inline, for a logo the static markup has as an inline <svg>: the markup
+ * stays 1:1 and the client can still swap the logo in Theme Settings. The file is sanitised (kitwp_svg_clean()).
+ * Not an SVG (the client uploaded a PNG): the <img> instead.
+ *
+ * @param int                  $id   Attachment ID (an image field's value).
+ * @param array<string, mixed> $args For the <img> fallback: as kitwp_img(), plus sizes.
+ * @return string
+ */
+function kitwp_inline_svg( $id, $args = [] ) {
+	$id = (int) $id;
+	if ( ! $id ) {
+		return '';
+	}
+	if ( 'image/svg+xml' !== get_post_mime_type( $id ) ) {
+		return kitwp_img( $id, (string) ( $args['sizes'] ?? '' ), $args );
+	}
+	$file = (string) get_attached_file( $id );
+	$svg  = is_readable( $file ) ? (string) file_get_contents( $file ) : ''; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local media file.
+	return kitwp_svg_clean( $svg );
+}
+
+/**
+ * Sanitise SVG markup for printing inline: from the first <svg> to the last </svg>, without comments, <script>,
+ * <foreignObject>, on* event attributes, and href / xlink:href values other than "#..." or data images.
+ *
+ * @param string $svg SVG markup.
+ * @return string
+ */
+function kitwp_svg_clean( $svg ) {
+	$svg   = (string) $svg;
+	$start = stripos( $svg, '<svg' );
+	$end   = strripos( $svg, '</svg>' );
+	if ( false === $start || false === $end || $end < $start ) {
+		return '';
+	}
+	$svg = substr( $svg, $start, $end - $start + 6 );
+	$svg = (string) preg_replace( '#<!--.*?-->#s', '', $svg );
+	$svg = (string) preg_replace( '#<(script|foreignObject)\b.*?</\1\s*>#is', '', $svg );
+	$svg = (string) preg_replace( '#<(script|foreignObject)\b[^>]*>#i', '', $svg );
+	$svg = (string) preg_replace( '#\s+on[a-z]+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)#i', '', $svg );
+	$svg = (string) preg_replace_callback(
+		'#\s+((?:xlink:)?href)\s*=\s*("([^"]*)"|\'([^\']*)\')#i',
+		static function ( $m ) {
+			$value = trim( html_entity_decode( '' !== $m[3] ? $m[3] : ( $m[4] ?? '' ) ) );
+			return ( '' === $value || '#' === $value[0] || preg_match( '#^data:image/(png|jpe?g|gif|webp);#i', $value ) ) ? $m[0] : '';
+		},
+		$svg
+	);
+	return trim( $svg );
 }
 
 /**

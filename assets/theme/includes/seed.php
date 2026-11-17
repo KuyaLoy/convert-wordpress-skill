@@ -82,6 +82,9 @@ function kitwp_seed_media() {
 	// The static WebP files are attached below, so WordPress makes no sizes of its own for seeded images.
 	add_filter( 'intermediate_image_sizes_advanced', '__return_empty_array', 99 );
 	add_filter( 'big_image_size_threshold', '__return_false', 99 );
+	// SVG logos from the static build go into the Media Library too; SVG uploads stay closed outside the seeder.
+	add_filter( 'upload_mimes', 'kitwp_seed_svg_mime' );
+	add_filter( 'wp_check_filetype_and_ext', 'kitwp_seed_svg_filetype', 10, 3 );
 
 	foreach ( kitwp_seed_json( 'media.json' ) as $item ) {
 		$existing = kitwp_media_by_source( $item['src'] );
@@ -128,7 +131,7 @@ function kitwp_seed_media() {
 		if ( empty( $meta['sizes'] ) ) {
 			$meta['sizes'] = [];
 		}
-		foreach ( (array) $item['variants'] as $width => $variant ) {
+		foreach ( (array) ( $item['variants'] ?? [] ) as $width => $variant ) { // None for an SVG.
 			$from   = $files . $variant;
 			$target = $name . '-kitk-' . $width . '.webp';
 			if ( ! is_readable( $from ) || ! copy( $from, $dir . '/' . $target ) ) {
@@ -149,7 +152,37 @@ function kitwp_seed_media() {
 
 	remove_filter( 'intermediate_image_sizes_advanced', '__return_empty_array', 99 );
 	remove_filter( 'big_image_size_threshold', '__return_false', 99 );
+	remove_filter( 'upload_mimes', 'kitwp_seed_svg_mime' );
+	remove_filter( 'wp_check_filetype_and_ext', 'kitwp_seed_svg_filetype', 10 );
 	return $report;
+}
+
+/**
+ * Allow SVG while the seeder imports media (only then).
+ *
+ * @param array<string, string> $mimes Allowed types.
+ * @return array<string, string>
+ */
+function kitwp_seed_svg_mime( $mimes ) {
+	$mimes['svg'] = 'image/svg+xml';
+	return $mimes;
+}
+
+/**
+ * WordPress cannot read an SVG's type from its content: trust the .svg extension while the seeder imports media.
+ *
+ * @param array<string, mixed> $data     Type check result.
+ * @param string               $file     Full path.
+ * @param string               $filename File name.
+ * @return array<string, mixed>
+ */
+function kitwp_seed_svg_filetype( $data, $file, $filename ) {
+	unset( $file );
+	if ( 'svg' === strtolower( pathinfo( (string) $filename, PATHINFO_EXTENSION ) ) ) {
+		$data['ext']  = 'svg';
+		$data['type'] = 'image/svg+xml';
+	}
+	return $data;
 }
 
 /**
@@ -214,6 +247,19 @@ function kitwp_seed_settings() {
 	];
 	$fields = kitwp_seed_settings_fields();
 	foreach ( kitwp_seed_json( 'settings.json' ) as $name => $value ) {
+		if ( 'site_icon' === $name ) {
+			// WordPress's Site Icon (Settings > General), from a seeded square image of at least 512 px.
+			$icon = is_string( $value ) && '' !== $value ? kitwp_media_by_source( $value ) : 0;
+			if ( ! $icon ) {
+				++$report['unknown'];
+			} elseif ( (int) get_option( 'site_icon' ) === $icon ) {
+				++$report['same'];
+			} else {
+				update_option( 'site_icon', $icon );
+				++$report['updated'];
+			}
+			continue;
+		}
 		if ( ! isset( $fields[ $name ] ) ) {
 			++$report['unknown'];
 			continue;
@@ -560,6 +606,30 @@ function kitwp_seed_form_defs() {
 }
 
 /**
+ * Why a form definition cannot be seeded ('' when it can): the form and the lead email are required, and every
+ * email (the lead email and the auto-reply) must be the branded HTML template, a full HTML document, never plain text.
+ *
+ * @param string               $key Form key in forms.json.
+ * @param array<string, mixed> $def Definition from kitwp_seed_form_defs().
+ * @return string
+ */
+function kitwp_seed_form_problem( $key, $def ) {
+	if ( '' === $def['form'] || '' === $def['mail']['body'] ) {
+		return 'form or email file missing for "' . $key . '" (see forms.json)';
+	}
+	$emails = [ 'body_file' => $def['mail']['body'] ];
+	if ( $def['mail_2']['active'] ) {
+		$emails['autoreply_file'] = $def['mail_2']['body'];
+	}
+	foreach ( $emails as $file => $body ) {
+		if ( ! preg_match( '/<html[\s>]/i', (string) $body ) ) {
+			return $file . ' of "' . $key . '" is not the branded HTML email (a full HTML document)';
+		}
+	}
+	return '';
+}
+
+/**
  * Hash of a CF7 form's seeded properties, as stored.
  *
  * @param WPCF7_ContactForm $form Contact form.
@@ -587,8 +657,12 @@ function kitwp_seed_forms() {
 	}
 	$ids = (array) get_option( 'kitwp_cf7_forms', [] );
 	foreach ( kitwp_seed_form_defs() as $key => $def ) {
-		if ( '' === $def['form'] || '' === $def['mail']['body'] ) {
-			return [ 'form or email file missing for "' . $key . '" (see forms.json)' => 1 ];
+		$problem = kitwp_seed_form_problem( $key, $def );
+		if ( '' !== $problem ) {
+			return [ $problem => 1 ];
+		}
+		if ( ! $def['mail_2']['active'] ) {
+			$report[ 'no auto-reply for "' . $key . '" (add autoreply_file in forms.json)' ] = 1;
 		}
 		$seed = md5( (string) wp_json_encode( $def ) );
 		$form = ! empty( $ids[ $key ] ) ? wpcf7_contact_form( (int) $ids[ $key ] ) : null;

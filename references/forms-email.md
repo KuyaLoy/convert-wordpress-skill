@@ -27,8 +27,9 @@ Editors change forms and emails in Contact > Contact Forms, and the visitor sees
 - **Remove before you add:** `wpcf7_remove_form_tag()` first, then `wpcf7_add_form_tag()`. Adding never replaces a
   handler CF7 registered.
 - Tag syntax: options before quoted values: `[text* name id:name autocomplete:name placeholder "e.g. Sam Lee"]`.
-- CF7's JS and CSS are off (`wpcf7_load_js`, the clean-up), autop off for lead forms. CF7's response box becomes
-  the static form note.
+- CF7's JS and CSS are off (`wpcf7_load_js`, the clean-up). **Autop is off on every form** (`forms.php`), so CF7
+  adds no stray `<p>` or `<br>` around the fields, and empty paragraphs are removed. CF7's response box becomes the
+  static form note.
 - Per page: the service options come from the page (`wpcf7_form_tag` filter accepts the posted value), a
   `[hidden source]` tag records where the lead came from (`home`, `service:<slug>`, `popup:<path>`, `chat:<path>`),
   and a compact variant can drop fields.
@@ -68,6 +69,9 @@ form uses such names.
   three come from forms.json, so they stay editable in CF7.
 
 ## The auto-reply and the agency badge: one look for both emails
+
+**Every form's notification and auto-reply use the branded HTML template**, never CF7's plain-text default: the
+seeder refuses an email file that is not a full HTML document and reports a form that has no auto-reply.
 
 - The visitor gets an auto-reply (CF7 Mail (2)) in the **same branded HTML template** as the lead email
   (`autoreply-email.html`: logo header, "Hi [_<key>_name],", the thank-you line, the client's phone and email,

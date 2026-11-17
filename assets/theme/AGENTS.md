@@ -17,6 +17,20 @@ The design is the static site (the golden master). Copy its markup and CSS; fiel
 restyle, reorganise or "clean up" the copied markup or CSS. The visual, DOM and text diffs decide when a change is
 done, not the eye.
 
+## Media, maps, forms, speed
+
+- Logos (the agency badge and its link too), the Site Icon, email images and content images live in the Media
+  Library and are set in ACF or Theme Settings, never hard-coded; only UI icons and decorative shapes are theme files.
+- Maps: a live Google iframe from one field (link, embed code or address) through `kitwp_map_src()`.
+- CF7: autop off on every form; every notification and auto-reply in the branded HTML template.
+- Core Web Vitals from the first section: LCP preload and fetchpriority, sized srcset, nothing lazy above the fold,
+  reserved media space, metric-matched fallback font, minimal deferred JS; one H1, heading order, aria-labels, alt.
+  No speed plugin unless the theme cannot do it.
+<!-- starter:tw -->
+- CSS you write yourself: Tailwind utilities on the `@theme` tokens; custom CSS only for CF7 and what utilities
+  cannot express; no `text-wrap: balance` on headings; end padding of |letter-spacing| on text tokens.
+<!-- /starter:tw -->
+
 ## Structure
 
 <!-- starter:barebones -->

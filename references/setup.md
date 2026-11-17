@@ -90,6 +90,7 @@ The fields:
 | `key` | ACF key prefix: `group_<key>_*`, `field_<key>_*` (2 to 6 characters) |
 | `starter` | `barebones` (plain CSS) or `tw` (Tailwind), from analyze-source.py |
 | `schema_type`, `area_served`, `country_code`, `price_range` | The static JSON-LD's values |
+| `map_default` | What the map shows until the address is confirmed, usually the city as words (`Leeds, UK`); empty = `area_served` |
 | `brand_colour`, `og_locale`, `timezone` | As the static site and the business use them (any country and language) |
 | `html_attributes` | The static `<html>` lang and dir, exactly (`lang="en"`, `lang="ar" dir="rtl"`): analyze-source.py reports them |
 | `form_class`, `chat_selector` | The static lead form's class, and the chat widget's root selector if any |

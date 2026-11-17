@@ -25,7 +25,7 @@ only way to open the next sprint.
 | S3 Other templates | The other fixed templates, 1:1 and editable | TODO | 0 / 4 |
 | S4 Flexible pages | Home, about, hubs, contact, thank you, legal, posts, 404 | TODO | 0 / 6 |
 | S5 Forms and email | CF7 forms, lead email, redirect, spam protection | TODO | 0 / 4 |
-| S6 SEO, security, performance | SEO plugin, schema, redirects, headings and ARIA, hardening, Lighthouse | TODO | 0 / 5 |
+| S6 SEO, security, performance | SEO plugin, schema, redirects, headings and ARIA, hardening, Core Web Vitals | TODO | 0 / 5 |
 | S7 QA and launch prep | Full 1:1 run, content proof, runbook, editing guide | TODO | 0 / 3 |
 
 ## Now
@@ -133,7 +133,7 @@ what is still open. Sign-off: `go <date>`, written only after the developer says
 | S6-02 | JSON-LD equal to the static site | TODO | |
 | S6-03 | Old URLs as 301s (Redirection, only if the site has old URLs) | TODO | |
 | S6-04 | Headings, ARIA, keyboard; security hardening | TODO | |
-| S6-05 | Lighthouse and Core Web Vitals (on live) | TODO | |
+| S6-05 | Core Web Vitals: PageSpeed Insights on staging and live (local Lighthouse as a guard) | TODO | |
 
 ## Sprint 7: QA and launch prep (TODO)
 

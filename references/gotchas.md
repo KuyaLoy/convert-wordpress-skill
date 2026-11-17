@@ -73,7 +73,21 @@ project's handoff.md (Failed Attempts) as they happen.
 - Content changed on purpose (real phone/email instead of the source's placeholders): swap it on the reference with
   `refReplace` AFTER the page settles. React hydration re-renders text after "load" and undoes an early swap.
 
+## CSS the build writes itself (_tw, new pages, a design source)
+
+Each was found late on a design-sourced build and forced a rework (`references/source-types.md` > Writing CSS on _tw):
+
+- Custom CSS where Tailwind utilities on the `@theme` tokens would do had to be redone: utilities on tokens from
+  the first section; custom CSS only for CF7 and what utilities cannot express.
+- `text-wrap: balance` on headings moves the line breaks away from the design: leave it off.
+- Wraps that differ from the design: browsers add the letter-spacing after a line's last glyph too. End padding
+  of |letter-spacing| on the text tokens makes the wraps match.
+
 ## Forms and email
+
+- CF7's autop adds stray `<p>` and `<br>` to any form it is left on (found late, forced a rework): it is off on
+  every form now. A notification or auto-reply left on CF7's plain-text default had to be redone in the branded
+  template: the seeder refuses email files that are not full HTML documents.
 
 - A multipart email with an inline (CID) logo was blocked by the host's outgoing filter (550 5.7.1): one HTML part,
   no attachments, the logo by URL, From on the domain, envelope sender set.

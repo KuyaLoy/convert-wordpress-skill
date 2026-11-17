@@ -5,10 +5,44 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+Rules from a design-sourced build: theme CSS on _tw, media and maps, performance and SEO. The golden master still
+wins on what the page looks like; these rules cover what the build writes itself and what the source never decides.
+
+### Added
+
+- Writing CSS on _tw (`references/source-types.md`): sections are Tailwind utilities on the `@theme` tokens,
+  custom CSS only for CF7 and what utilities cannot express, no `text-wrap: balance` on headings, an end padding
+  of |letter-spacing| on text tokens so wraps match the design. Lessons in `gotchas.md`.
+- Media and maps (`references/build.md`): logos (the agency badge and its link too), the Site Icon, email images
+  and content images are seeded into the Media Library and set in ACF or Theme Settings, never hard-coded.
+  - Theme Settings example: Branding gets Logo, Email logo and Email badge; Business gets Map.
+  - The lead email and the auto-reply read their logo and badge from Theme Settings (theme files as the fallback);
+    "Hide agency badge" hides the email badge too.
+  - The seeder sets the Site Icon (`"site_icon"` in settings.json) and imports SVG logos (SVG stays closed for
+    wp-admin uploads).
+  - `kitwp_img()` prints a Media Library SVG; `kitwp_inline_svg()` prints it inline (sanitised), so an inline
+    `<svg>` logo stays 1:1.
+  - `kitwp_map_src()` / `kitwp_map_iframe()`: a live Google Maps iframe from one field that takes a Maps link, the
+    embed code or an address; the default city (`map_default` in site.json) until the address is confirmed.
+- Performance and SEO (`references/seo-security.md`): Core Web Vitals from the first section (LCP preload and
+  fetchpriority, sized srcset, nothing lazy above the fold, reserved media space, metric-matched fallback font,
+  minimal deferred JS), no speed plugin unless the theme cannot do it; one H1, heading order, aria-labels, alt and
+  schema in every section's test step. `kitwp_img()` and `kitwp_preload_image()` take an opt-in `fetchpriority`.
+- `tests/test_theme_php.py`: the map, SVG, CF7 markup and seeded email helpers.
+
 ### Changed
 
+- CF7's autop is off on every form, not only the kit's lead forms, and empty paragraphs are removed.
+- The seeder refuses a form whose lead email or auto-reply file is not a full HTML document (the branded
+  template), and reports a form with no auto-reply.
+- Speed is checked with PageSpeed Insights on staging and live; local Lighthouse is a regression guard only (QA,
+  runbook, report, board, architecture template).
 - The update command explains how to update a skill saved in a chat app that shows no update card (zip,
   Upload skill, "Upload and replace", version history kept).
+
+### Fixed
+
+- The ACF builder's example spec stopped with an error (`ui=1` on a true/false field, which always has it).
 
 ## [0.6.0] - 2026-11-11
 

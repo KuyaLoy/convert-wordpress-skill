@@ -19,7 +19,8 @@ names.
 Playwright: `npm i -D playwright` here, then `npx playwright install chromium` (or use a global install; pw.mjs finds
 both). Merging PDFs needs `pdf-lib` (`npm i pdf-lib`); without it: `qpdf --empty --pages a.pdf b.pdf -- out.pdf`.
 
-Lighthouse (mobile, on the live site; the shared PageSpeed API key often runs out):
+Lighthouse: a regression guard during the build, and the fallback when the shared PageSpeed API key runs out. The
+real check is PageSpeed Insights (pagespeed.web.dev) on staging and live:
 
 ```
 npx -y lighthouse@12 https://example.com --quiet --chrome-flags="--headless=new" \

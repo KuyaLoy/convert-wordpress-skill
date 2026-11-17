@@ -64,8 +64,10 @@ Settings and a template page open without errors; Contact Form 7 lists the forms
 
 ## Speed
 
-Lighthouse mobile on the live site (command in the tools README), on Home, one template page and Contact. Report
-the numbers as they are, with one plain sentence on what limits them (usually third-party scripts and icon fonts).
+PageSpeed Insights (pagespeed.web.dev), mobile and desktop, on the live site (and on staging before launch when
+there is a public one): Home, one template page and Contact. Local Lighthouse (command in the tools README) is only
+a regression guard during the build and when the PageSpeed key runs out. Report the numbers as they are, with one
+plain sentence on what limits them (usually third-party scripts and icon fonts).
 
 ## The report
 

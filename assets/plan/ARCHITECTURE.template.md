@@ -84,8 +84,10 @@ hidden from visitors; XML-RPC as the host sets it; debug off on live; only the p
 
 ## 10. Performance
 
-Parity first: any optimisation must keep the diff clean. Same fonts and preloads as static; images lazy except the
-priority ones; caching rules in htaccess-live.txt. Lighthouse on the live server only.
+Parity first: any optimisation must keep the diff clean. Core Web Vitals from the first section: LCP preload and
+fetchpriority, sized srcset, nothing lazy above the fold, reserved media space, metric-matched fallback font,
+minimal deferred JS. Caching rules in htaccess-live.txt; no speed plugin unless the theme cannot do it. Local
+Lighthouse is a regression guard; PageSpeed Insights on staging and live is the check.
 
 ## 11. Research sources (with the date checked)
 

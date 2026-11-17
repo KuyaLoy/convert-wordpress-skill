@@ -45,8 +45,10 @@ again. Fields replace content, never structure, classes or order.
 - **Agency badge:** when the profile has `branding.site_badge`, call `kitwp_agency_badge()` in the footer's bottom
   bar (next to the copyright or credits). Theme Settings > Branding swaps the image and link or hides it. It is
   the one addition to the static footer, so the footer parity check allows that element.
-- **Favicon:** the static icons go in `assets/brand/` (favicon.svg, favicon-32.png, apple-touch-icon.png); with no
-  Site Icon set, `/favicon.ico` redirects to the PNG instead of WordPress's "W".
+- **Favicon:** the Site Icon (Settings > General), seeded from the static build's square icon (at least 512 px):
+  settings.json `"site_icon": "/brand/icon-512.png"`. The static icons in `assets/brand/` (favicon.svg,
+  favicon-32.png, apple-touch-icon.png) are only the fallback while no Site Icon is set; then `/favicon.ico`
+  redirects to the PNG instead of WordPress's "W".
 - **Header, footer, mobile bar, pop-up:** copied markup; whitespace stripped between tags like React
   (`kitwp_tight_start()` / `kitwp_tight_end()`); behaviour in vanilla JS with the same state classes and timings;
   works with JavaScript off where the static site does.
@@ -121,6 +123,18 @@ client's login). `client-admin.php` gives every user without `manage_options` a 
 
 ## Media: sizes, WebP, srcset, priority
 
+**Every image the client might change lives in the Media Library**, seeded by the seeder and set in ACF or Theme
+Settings, never hard-coded in a template: the logos (header, footer, the agency badge and its link), the Site Icon,
+the email images (logo, badge) and every content image. Only true UI assets (icons, arrows, decorative shapes)
+stay theme files.
+
+- Logos: Theme Settings > Branding (`logo`, `email_logo`, `email_badge`, `agency_badge`, `agency_link`). An `<img>`
+  logo: `kitwp_img()` (SVG works: one file, its size from the static code or the file). A logo the static markup has
+  as an inline `<svg>`: `kitwp_inline_svg()` prints the Media Library file inline, sanitised, so the DOM stays 1:1;
+  a PNG the client uploads instead comes out as an `<img>`. The seeder accepts SVG; wp-admin uploads still do not.
+- Email images: PNG (email clients do not show SVG or WebP); the lead email and the auto-reply read them from Theme
+  Settings, with the theme files as the fallback.
+
 - Sizes `<key>-<width>` for every static width (`KITWP_IMAGE_WIDTHS`), width only, never cropped; WebP output at
   quality 75, like next/image (`media.php`).
 - The seeder imports the static build's own WebP files as those sizes, so no image is re-encoded.
@@ -144,7 +158,12 @@ client's login). `client-admin.php` gives every user without `manage_options` a 
 - **Explicit, not automatic:** a layout choice the static code makes by rule becomes a visible field, seeded with
   what the static page shows.
 - **Titles** raw (`kitwp_title()`): WordPress texturizes `&` into `&#038;`. Menu titles too.
-- **Map iframes:** `kitwp_iframe_src()` (`esc_attr( esc_url_raw() )`; `esc_url()` breaks the `&`).
+- **Maps are live Google iframes, never a static image,** from one field (Theme Settings > Business "Map", or a
+  page field) that takes a Google Maps link, the embed code or an address: `kitwp_map_src()` turns any of them
+  into the embed URL, printed with `kitwp_iframe_src()` (`esc_attr( esc_url_raw() )`; `esc_url()` breaks the `&`).
+  Until the address is confirmed, the map shows the default city (`map_default` in site.json). A copied section
+  keeps its own iframe markup and only takes the src; a new section can use `kitwp_map_iframe()`. A short
+  `maps.app.goo.gl` link cannot be read: ask for the address-bar link, the embed code or the address.
 - **SVG paths and long markup** are copied by script, never retyped.
 - **A blog the static site lacks:** a Blog page as the posts page; `home.php` renders its Page Sections with a
   post-cards layout; `archive.php` keeps archives in the site design until they redirect; posts get the page head,
@@ -199,7 +218,8 @@ client's login). `client-admin.php` gives every user without `manage_options` a 
 | Seeded media by static path | `kitwp_media_by_source( '/photos/x.jpg' )` |
 | Theme file URL, site-relative link | `kitwp_asset( $path )`, `kitwp_rel_url( $url )` |
 | No whitespace between tags | `kitwp_tight_start()` ... `kitwp_tight_end()` |
-| Map iframe src | `kitwp_iframe_src( $src )` |
+| Map from a link, embed code or address | `kitwp_map_src( $value )`, then `kitwp_iframe_src()`; `kitwp_map_iframe()` |
+| Logo from the Media Library | `kitwp_img( $id, '' )`; inline SVG: `kitwp_inline_svg( $id )` |
 | FAQ or breadcrumbs for JSON-LD | `kitwp_schema_add( 'faq', $rows )`, `kitwp_schema_add( 'crumbs', $rows )` |
 | The lead form | `get_template_part( 'template-parts/sections/lead-form', null, $args )` |
 

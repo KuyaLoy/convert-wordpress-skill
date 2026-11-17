@@ -83,7 +83,10 @@ function kitwp_head_preloads() {
 		}
 		$kitwp_srcset = kitwp_srcset_for_sizes( $kitwp_srcset, $kitwp_item['sizes'] );
 		if ( $kitwp_srcset ) {
-			echo '<link rel="preload" as="image" imagesrcset="' . esc_attr( implode( ', ', $kitwp_srcset ) ) . '" imagesizes="' . esc_attr( $kitwp_item['sizes'] ) . "\">\n";
+			$kitwp_fp = empty( $kitwp_item['fetchpriority'] ) ? '' : ' fetchpriority="' . esc_attr( $kitwp_item['fetchpriority'] ) . '"';
+			echo '<link rel="preload" as="image" imagesrcset="' . esc_attr( implode( ', ', $kitwp_srcset ) ) . '" imagesizes="' . esc_attr( $kitwp_item['sizes'] ) . '"' . $kitwp_fp . ">\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $kitwp_fp is escaped above.
+		} elseif ( isset( $kitwp_item['id'] ) && 'image/svg+xml' === get_post_mime_type( (int) $kitwp_item['id'] ) ) {
+			echo '<link rel="preload" as="image" href="' . esc_url( (string) wp_get_attachment_url( (int) $kitwp_item['id'] ) ) . "\">\n"; // A Media Library SVG logo.
 		}
 	}
 }

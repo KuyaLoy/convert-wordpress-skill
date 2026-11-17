@@ -74,7 +74,7 @@ Plan about 2 hours on a quiet day (not Friday). The developer does the hosting s
 - [ ] One real test lead per form (inline, pop-up, chat) with the real submit button: lands on /thank-you/, email
       arrives, every recipient "Accepted" in cPanel > Track Delivery.
 - [ ] Real phones (iOS Safari, Android Chrome): menu, pop-up, forms, call links.
-- [ ] Lighthouse mobile on Home, one template page, Contact (numbers go in the report as they are).
+- [ ] PageSpeed Insights, mobile and desktop, on Home, one template page, Contact (numbers go in the report as they are).
 - [ ] Search Console: sitemap `sitemap_index.xml` submitted (whoever owns SEO).
 - [ ] Next 30 days: Tools > Redirection > 404s weekly; add a redirect for anything real.
 

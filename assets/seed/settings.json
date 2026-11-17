@@ -6,5 +6,9 @@
   "email": "{{EMAIL}}",
   "address": { "locality": "", "region": "", "postcode": "", "country": "AU" },
   "schema_image": "/assets/logo-mark.png",
+  "logo": "/brand/logo.svg",
+  "email_logo": "/brand/email-logo.png",
+  "site_icon": "/brand/icon-512.png",
+  "map": "",
   "qf_service_options": [ { "label": "General enquiry" }, { "label": "Not sure, need advice" } ]
 }

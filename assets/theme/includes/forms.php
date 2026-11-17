@@ -275,15 +275,21 @@ function kitwp_cf7_service_values( $tag ) {
 add_filter( 'wpcf7_form_tag', 'kitwp_cf7_service_values' );
 
 /**
- * No automatic paragraphs in the lead forms (the Form tab is the static markup).
- *
- * @param bool $autop CF7 setting.
- * @return bool
+ * No automatic paragraphs in any CF7 form: the Form tab is the markup, so CF7 adds no stray <p> or <br> around
+ * the fields (lead forms, the chat and any other form a template prints).
  */
-function kitwp_cf7_autop( $autop ) {
-	return isset( $GLOBALS['kitwp_form_ctx'] ) ? false : $autop;
+add_filter( 'wpcf7_autop_or_not', '__return_false' );
+
+/**
+ * Empty paragraphs left in a form's markup (a blank line in the Form tab, an editor's paste) are removed.
+ *
+ * @param string $html Form elements.
+ * @return string
+ */
+function kitwp_cf7_no_empty_p( $html ) {
+	return (string) preg_replace( '#<p>(?:\s|&nbsp;|<br\s*/?>)*</p>#i', '', (string) $html );
 }
-add_filter( 'wpcf7_autop_or_not', 'kitwp_cf7_autop' );
+add_filter( 'wpcf7_form_elements', 'kitwp_cf7_no_empty_p' );
 
 /**
  * Print the pop-up's form, as the static QuoteModal: general options, field ids prefixed "qm-".
@@ -432,6 +438,43 @@ function kitwp_mail_h( $text ) {
 }
 
 /**
+ * The logo in the email header: Theme Settings > Branding "Email logo" (a PNG from the Media Library, seeded from
+ * the static build), else the theme's assets/email/email-logo.png.
+ *
+ * @return string URL.
+ */
+function kitwp_email_logo_url() {
+	$id  = (int) kitwp_setting( 'email_logo' );
+	$url = $id ? (string) wp_get_attachment_url( $id ) : '';
+	return '' !== $url ? $url : get_theme_file_uri( 'assets/email/email-logo.png' );
+}
+
+/**
+ * The agency badge in the email footers: Theme Settings > Branding "Email badge" (a PNG at 2x from the Media
+ * Library) and "Agency badge link", else the defaults in config.php (KITWP_EMAIL_BADGE*). "Hide agency badge"
+ * hides it here too.
+ *
+ * @return array{src: string, link: string, alt: string} Empty src or link: no badge.
+ */
+function kitwp_email_badge() {
+	if ( kitwp_setting( 'agency_badge_hide' ) ) {
+		return [
+			'src'  => '',
+			'link' => '',
+			'alt'  => '',
+		];
+	}
+	$id  = (int) kitwp_setting( 'email_badge' );
+	$src = $id ? (string) wp_get_attachment_url( $id ) : '';
+	$alt = $id ? trim( (string) get_post_meta( $id, '_wp_attachment_image_alt', true ) ) : '';
+	return [
+		'src'  => '' !== $src ? $src : ( '' !== KITWP_EMAIL_BADGE ? get_theme_file_uri( KITWP_EMAIL_BADGE ) : '' ),
+		'link' => (string) ( kitwp_setting( 'agency_link' ) ? kitwp_setting( 'agency_link' ) : KITWP_EMAIL_BADGE_LINK ),
+		'alt'  => '' !== $alt ? $alt : KITWP_EMAIL_BADGE_ALT,
+	];
+}
+
+/**
  * Values the lead email needs beyond the fields, worked out as the static handler did.
  *
  * @param array<string, string> $lead From kitwp_lead_data().
@@ -523,7 +566,7 @@ function kitwp_lead_special_tags( $output, $name, $html, $mail_tag = null ) {
 		case '_kitk_received':
 			return $h( $extra['received'] );
 		case '_kitk_logo':
-			return $h( get_theme_file_uri( 'assets/email/email-logo.png' ) );
+			return $h( kitwp_email_logo_url() );
 		case '_kitk_site':
 			return $h( untrailingslashit( home_url() ) );
 		case '_kitk_year':
@@ -531,10 +574,11 @@ function kitwp_lead_special_tags( $output, $name, $html, $mail_tag = null ) {
 		case '_kitk_name':
 			return $h( $lead['name'] );
 		case '_kitk_badge':
-			if ( ! $html || '' === KITWP_EMAIL_BADGE || '' === KITWP_EMAIL_BADGE_LINK ) {
+			$badge = kitwp_email_badge();
+			if ( ! $html || '' === $badge['src'] || '' === $badge['link'] ) {
 				return '';
 			}
-			return '<a href="' . kitwp_mail_h( esc_url_raw( KITWP_EMAIL_BADGE_LINK ) ) . '" target="_blank" style="text-decoration:none;"><img src="' . kitwp_mail_h( get_theme_file_uri( KITWP_EMAIL_BADGE ) ) . '" width="' . (int) KITWP_EMAIL_BADGE_WIDTH . '" alt="' . kitwp_mail_h( KITWP_EMAIL_BADGE_ALT ) . '" style="display:block;margin:0 auto;border:0;outline:none;width:' . (int) KITWP_EMAIL_BADGE_WIDTH . 'px;height:auto;color:#ffffff;font-size:12px;"></a>';
+			return '<a href="' . kitwp_mail_h( esc_url_raw( $badge['link'] ) ) . '" target="_blank" style="text-decoration:none;"><img src="' . kitwp_mail_h( $badge['src'] ) . '" width="' . (int) KITWP_EMAIL_BADGE_WIDTH . '" alt="' . kitwp_mail_h( $badge['alt'] ) . '" style="display:block;margin:0 auto;border:0;outline:none;width:' . (int) KITWP_EMAIL_BADGE_WIDTH . 'px;height:auto;color:#ffffff;font-size:12px;"></a>';
 	}
 	return $output;
 }

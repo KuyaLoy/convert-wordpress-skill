@@ -1,4 +1,7 @@
 [
+  { "src": "/brand/logo.svg", "alt": "Example Co", "attrWidth": 160, "attrHeight": 40 },
+  { "src": "/brand/email-logo.png", "alt": "Example Co", "width": 400, "height": 100, "variants": {} },
+  { "src": "/brand/icon-512.png", "alt": "", "width": 512, "height": 512, "variants": {} },
   {
     "src": "/photos/team.jpg",
     "alt": "The team at work",

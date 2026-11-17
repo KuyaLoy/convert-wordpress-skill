@@ -24,12 +24,19 @@ const KITWP_BRAND_COLOUR = '{{BRAND_COLOUR}}';
 /**
  * Agency badge in the footer of the lead email AND the auto-reply ([_kitk_badge]), from the profile's "branding":
  * a PNG in the theme (email clients do not show SVG or WebP), 2x size, shown at the width below; its link and alt.
- * Empty path: no badge. A white badge needs the dark footer strip of lead-email.html / autoreply-email.html.
+ * The fallback: Theme Settings > Branding "Email badge" (Media Library) and "Agency badge link" win when set.
+ * Empty path and no Theme Settings badge: no badge. A white badge needs the dark footer strip of the email templates.
  */
 const KITWP_EMAIL_BADGE       = '{{EMAIL_BADGE}}';
 const KITWP_EMAIL_BADGE_LINK  = '{{EMAIL_BADGE_LINK}}';
 const KITWP_EMAIL_BADGE_ALT   = '{{EMAIL_BADGE_ALT}}';
 const KITWP_EMAIL_BADGE_WIDTH = {{EMAIL_BADGE_WIDTH}};
+
+/**
+ * The map's default while the address is not confirmed (kitwp_map_src()): usually the city, as words. Theme
+ * Settings > Business "Map" replaces it (a Google Maps link, the embed code or the address).
+ */
+const KITWP_MAP_DEFAULT = '{{MAP_DEFAULT}}';
 
 /**
  * Agency badge in the SITE footer (kitwp_agency_badge(), placed in the footer's bottom bar): a theme file (SVG is

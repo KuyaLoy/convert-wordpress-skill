@@ -158,6 +158,8 @@ values = {
     'STARTER': 'Barebones' if starter == 'barebones' else '_tw',
     'SCHEMA_TYPE': site.get('schema_type', 'Organization'),
     'AREA_SERVED': site.get('area_served', ''),
+    # The map's default until the address is confirmed (usually the city); falls back to area_served.
+    'MAP_DEFAULT': str(site.get('map_default', '') or site.get('area_served', '')).replace("'", "\\'"),
     'COUNTRY_CODE': site.get('country_code', ''),
     'PRICE_RANGE': site.get('price_range', ''),
     'BRAND_COLOUR': site.get('brand_colour', '#000000'),
