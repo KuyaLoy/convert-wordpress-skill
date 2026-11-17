@@ -5,6 +5,10 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-11-17
+
+No agent ends a turn silently: every stop sends a short report upward with its next step.
+
 ### Changed
 
 - Never stop silently (SKILL.md rule 15): every turn that ends without the work going on (a sprint gate, a part
