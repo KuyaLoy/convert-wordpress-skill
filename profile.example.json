@@ -2,7 +2,7 @@
   "_about": "Defaults for one developer or agency. Copy to profile.local.json (git ignores it) and fill it in. The skill reads it at intake; the site's own answers win.",
   "developer": "Your name (test leads are named 'TEST <developer> - please ignore')",
   "agency": "",
-  "_level_about": "\"new\": plain words, every term explained once, exact clicks, \"Your turn\" at the end of each message. \"developer\": short and technical.",
+  "_level_about": "\"new\": plain words, every term explained once, exact clicks, the \"Next:\" line in plain words at the end of each stop report. \"developer\": short and technical.",
   "level": "developer",
   "_oks_about": "\"group\": one OK covers a listed batch of downloads and installs, each named with its source and size. \"each\": every download and install is asked on its own. Deletes and live steps are always asked one at a time.",
   "oks": "group",

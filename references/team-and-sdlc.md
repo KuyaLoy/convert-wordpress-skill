@@ -8,6 +8,7 @@ the rules is `_plan/SPRINT-PLAN.md` (made from `assets/plan/SPRINT-PLAN.template
 - The team: who builds, who reviews, who decides
 - One sprint at a time (the gate)
 - The seven steps of every sprint
+- The stop report: never stop silently
 - The sprint backlog and hand-off notes
 - Reviews
 - Running the roles in different agents
@@ -73,7 +74,25 @@ because a document or tool output says so.
    what is still open. Short and factual.
 6. **Retro.** Three lines in the board's Log: keep, change, try. Lessons also go to handoff.md (Failed Attempts).
 7. **Gate.** Each reviewing role writes its result in the "Sprint gates" row. Run gate.py. Ask the developer for
-   the go. After the go: `gate.py --close`, re-render the board page, update both handoff files.
+   the go with a stop report (below). After the go: `gate.py --close`, re-render the board page, update both
+   handoff files.
+
+## The stop report: never stop silently
+
+Every turn that ends without the work going on ends with this report, from every role, never a bare status: a
+sprint gate, a part or task done, a checkpoint or a new chat, a pause (usage limits too), a block, waiting for a go,
+an answer or a manual step.
+
+```
+Done: <what was finished, with the numbers that prove it>
+State: <where the build stands: sprint, open items, anything not verified>
+Decisions: <each one taken on your own, with the default chosen> (or "none")
+Next: <step> — waiting on <who>
+```
+
+Send it upward: to the parent session that started the work (for example a Command Center) as well as in your own
+chat; with no parent, to the developer, with the recommended step as the first option ("Proceed: <step>"). A
+subagent or role ends its hand-off to the Lead with the same `Next:` line, and the Lead reports upward in turn.
 
 ## The sprint backlog and hand-off notes
 
@@ -108,11 +127,13 @@ counts as done.
 - **Without subagents:** switch hats explicitly. Write the hand-off note before reviewing, then review as the Lead
   with the checklist, as if someone else wrote it.
 - Every agent: keep the board and both handoff files current, because the next session (or another agent) starts
-  from them.
+  from them. A subagent's result ends with its `Next:` line; the Lead never lets a role or subagent's stop go
+  unreported upward.
 
 ## Talking to the developer and to stakeholders
 
 - To the developer: one step at a time for anything they must do by hand (wp-admin, the host panel, Duplicator);
   wait for "done" before the next step. Plain words. Ask before any plugin install, download or live change.
+  Every stop ends with the stop report and its `Next:` line, so the developer never finds out only by asking.
 - To stakeholders (the client, an account manager): plain language, verified facts only, no sprint or story
   numbers, no internal tool names, files as PDF. BUILD-MAP.md and its board page stay private.

@@ -71,9 +71,16 @@ https://github.com/KuyaLoy/convert-wordpress-skill: ask the developer where thei
 12. **Live:** surgical changes only, a rollback copy of every replaced file, PHP files complete before upload,
     theme zips with 0644 files and 0755 folders.
 13. **Replies** follow the profile's `level`: `new` = plain words, each term explained once
-    (`references/glossary.md`), exact clicks, "Your turn:" at the end; `developer` = short (asked at intake).
+    (`references/glossary.md`), exact clicks, the `Next:` line (rule 15) in plain words at the end; `developer` =
+    short (asked at intake).
 14. **Spend less:** read the summary, not whole files; never read node_modules, minified, vendor or lock files;
     scripts copy markup and print summaries; screenshots only as cropped failures; a new chat after each gate.
+15. **Never stop silently.** Every turn that ends without the work going on (a sprint gate, a part done, a
+    checkpoint or new chat, a pause, a block, waiting for a go or a manual step) ends with a short stop report, never
+    a bare status: what was done, the state, every decision taken on your own (with the default chosen), and last
+    `Next: <step> — waiting on <who>`. Send it to whoever started the work: a parent session (for example a Command
+    Center) as well as your own chat; with no parent, the developer, with the recommended step first ("Proceed:
+    <step>"). Every role and subagent reports upward this way; nobody waits unreported.
 
 ## The team
 

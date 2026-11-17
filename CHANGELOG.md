@@ -5,6 +5,17 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+### Changed
+
+- Never stop silently (SKILL.md rule 15): every turn that ends without the work going on (a sprint gate, a part
+  done, a checkpoint or new chat, a pause, a block, waiting for a go or a manual step) ends with a stop report:
+  done, state, decisions taken on the agent's own with the default chosen, and last
+  `Next: <step> — waiting on <who>`. It goes upward to the parent session (for example a Command Center) as well as
+  the agent's own chat, else to the developer with "Proceed: <step>" first. Every role and subagent; the shape is in
+  `references/team-and-sdlc.md` > The stop report, and the sprint plan template's session rules.
+- Beginner mode: the `Next:` line in plain words replaces "Your turn:" at the end of a message (SKILL.md rule 13,
+  `references/agents.md`, `profile.example.json`).
+
 ## [0.7.0] - 2026-11-17
 
 Rules from a design-sourced build: theme CSS on _tw, media and maps, performance and SEO. The golden master still

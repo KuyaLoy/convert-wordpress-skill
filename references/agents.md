@@ -73,7 +73,8 @@ Profile `level: new` (or the developer says they are new to this):
 
 - Plain words. The first time a term comes up, say what it means in a few words (`references/glossary.md`).
 - Every manual step with the exact clicks ("In Local, click + at the bottom left, then Create a new site").
-- End every message with **Your turn:** and the one thing they do next (or "Nothing: I am working on it").
+- End every message that stops the work with the stop report (`references/team-and-sdlc.md`), its last line
+  `Next: <step> — waiting on <who>` in plain words: the one thing they do next, with the exact clicks.
 - Ask in multiple choice with the recommended answer first. Say what each step costs (paid plugins, AI credits).
 
 `level: developer`: short, commands and paths, no explanations they did not ask for.
@@ -90,7 +91,8 @@ a minified bundle tens of thousands. So:
 - Let the scripts do the copying and the checking: they print a summary and write the detail to a file. Read that
   file only when something failed.
 - Screenshots only for a failure, cropped to the region. Batch shell commands.
-- One sprint per chat: after a gate closes, start a new chat ("continue the WordPress conversion").
+- One sprint per chat: after a gate closes, send the stop report, then start a new chat ("continue the WordPress
+  conversion").
 - Model choice where the agent offers it: the strongest model for Sprint 0 analysis, CSS and layout failures the
   diffs cannot place, forms and email, the security review and the launch; a faster one for running scripts,
   seeding, lint loops, board and handoff updates and re-runs of failed checks.
@@ -131,4 +133,5 @@ says the same for agents that read AGENTS.md.
 
 The project carries its own memory: `ai-handoff-summary.md` (read first), `handoff.md` (the full record),
 `BUILD-MAP.md` (the board) and `_plan/`. Any agent, any session: read the summary, run gate.py, continue from the
-Next action. Before stopping, update both handoff files.
+Next action. Before stopping, update both handoff files and send the stop report upward (the parent session,
+else the developer).

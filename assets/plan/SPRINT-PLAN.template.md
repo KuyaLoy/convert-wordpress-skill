@@ -82,7 +82,7 @@ started, not even "while waiting"; a blocker is recorded and raised, not worked 
    wp-admin screens, anything open.
 6. **Retro.** Three lines in the board's Log: keep, change, try. Lessons go to handoff.md too.
 7. **Gate.** Each role writes its result in "Sprint gates"; `python3 _plan/tools/build-map/gate.py BUILD-MAP.md`
-   must pass; ask the developer for the go; write `go <date>` only when they say it; then
+   must pass; ask the developer for the go with the stop report; write `go <date>` only when they say it; then
    `gate.py BUILD-MAP.md --close` opens the next sprint.
 
 ## 4. Per-section workflow (every section, every time)
@@ -122,7 +122,9 @@ passes, and the developer said go.
 
 - Start: read ai-handoff-summary.md, then run gate.py to see where the sprint stands.
 - During: one story at a time; BUILD-MAP updated as stories move.
-- Stop: update both handoff files (and the board page after a sprint closes).
+- Stop: update both handoff files (and the board page after a sprint closes), then send the stop report upward
+  (the parent session, else the developer): done, state, decisions taken with the default chosen, and last
+  `Next: <step> — waiting on <who>`. Never stop silently.
 
 ## 7. Sprint backlog (the Lead writes it at each sprint's planning)
 
