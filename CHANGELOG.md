@@ -5,6 +5,8 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-17
+
 Rules from a design-sourced build: theme CSS on _tw, media and maps, performance and SEO. The golden master still
 wins on what the page looks like; these rules cover what the build writes itself and what the source never decides.
 
