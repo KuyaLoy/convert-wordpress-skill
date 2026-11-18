@@ -8,7 +8,10 @@
     "quick": "node parity.mjs --widths=quick",
     "full": "node parity.mjs --widths=full",
     "self": "node parity.mjs --self --widths=390,1440",
-    "region": "node region-check.mjs"
+    "region": "node region-check.mjs",
+    "states": "node design-check.mjs --states",
+    "motion": "node design-check.mjs --motion",
+    "long": "node design-check.mjs --long"
   },
   "dependencies": {
     "pixelmatch": "^7.1.0",

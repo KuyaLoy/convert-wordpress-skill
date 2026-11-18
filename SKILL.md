@@ -104,8 +104,8 @@ One agent builds the whole site. No role-play team in the chat: the old roles ar
 | P5 Fix and QA loop | Fix the whole findings list; full QA again; repeat until QA finds 0; launch prep | The developer's **Go-live** |
 | P6 Launch and live QA | Live, live QA, the report and the client pack | Done |
 
-**QA per phase** = gate.py + the parity scripts + one read-only check by a fresh subagent on a faster model
-(Sonnet), against the QA checklist. Findings go in BUILD-MAP.md "QA findings" (`open` > `fixed` after a re-check, or `decided`).
+**QA per phase** = gate.py + the parity and design checks + one fresh read-only check against the QA checklist (a
+subagent, or a new chat in tools without subagents; a faster model where the tool lets you pick). Findings go in BUILD-MAP.md "QA findings" (`open` > `fixed` after a re-check, or `decided`).
 
 ```
 python3 _plan/tools/build-map/gate.py BUILD-MAP.md           # 0 may close, 1 open items listed, 2 a rule broken
@@ -129,26 +129,27 @@ handoff files.
    (GitHub link, zip, folder or only its address) if not given with `/convert-to-wordpress <source>`; built
    websites before?; live domain and host; lead email recipients; country, languages, right-to-left; the task's
    scope; old URLs to keep. ACF PRO is the default (Secure Custom Fields only if the developer asks for it).
-   Then `python3 <kit>/scripts/new-site.py --start <wp_root>` (handoff files: a closed chat loses nothing).
-4. **Get the source:** `python3 <kit>/scripts/get-source.py <source> --into <web folder>`: the copy `<name>-source`
-   (clone, safe unzip, copy, or a capture of the live site; the original is never touched).
-5. **Study the copy:** `python3 <kit>/scripts/analyze-source.py <name>-source --env doctor.json --json
-   <wp_root>/_plan/analyze.json --site-draft <wp_root>/_plan/site.json`: stack, starter, routes, forms, tracking,
-   fonts, secrets to never copy, the golden master (`references/source-types.md`). Ask only what is still open.
-6. **Finish** `site.json` (`references/setup.md`), then `python3 <kit>/scripts/new-site.py <wp_root>/_plan/site.json
-   --plan-only` (plan, tools, BUILD-MAP.md, private-files block). Then P0, up to the Plan OK.
+4. **Start:** `python3 <kit>/scripts/start.py <source> --root <wp_root> --name "<Site>" --env doctor.json`: the
+   folder and two handoff files (a closed chat loses nothing), the working copy `<name>-source` next to it (clone,
+   safe unzip, copy, or a capture of the live site; the original is never touched), and the study of the copy:
+   stack, starter, routes, forms, tracking, fonts, secrets to never copy, the golden master
+   (`references/source-types.md`). One line per step; the full study in `_plan/analyze.txt`. Ask only what is
+   still open.
+5. **Finish** `_plan/site.json` (start.py drafted it; `references/setup.md`), then `python3 <kit>/scripts/new-site.py
+   <wp_root>/_plan/site.json --plan-only` (plan, tools, BUILD-MAP.md, private-files block). Then P0, up to the
+   Plan OK. Three commands in all: doctor.py, start.py, new-site.py.
 
 ## P0 Plan (no code)
 
-- **P0-01 Study the source and set the golden master:** `_plan/SOURCE-NOTES.md`; serve the golden master unchanged
-  (its own local site such as `<site>-ref.test`, or `serve.py`). Until launch the live static site can stand in;
-  it changes at launch, so capture it first.
+- **P0-01 Study the source and set the golden master:** `_plan/PLAN.md` > The source (start.py filled its table);
+  serve the golden master unchanged (its own local site such as `<site>-ref.test`, or `serve.py`). Until launch the
+  live static site can stand in; it changes at launch, so capture it first.
 - **P0-02 Plan documents** (templates already in `_plan/`), short:
-  - `BUILD-PLAN.md`: the goal and success measures, the phases for this site, the per-section workflow, Done.
+  - `PLAN.md`: the goal and success measures, the source, how it is built (stack, 1:1 method, checks, the states
+    to check: menu, tabs, sliders...), the phases for this site, the per-section workflow, Done. One page to read
+    for the Plan OK.
   - `CONTENT-MODEL.md`: every route plus `/thank-you/` and the 404; Theme Settings; menus; template field groups;
     Page Sections layouts; forms; media; key naming.
-  - `ARCHITECTURE.md`: stack, starter theme, parity method, folders, code and ACF rules, seeding, forms, SEO,
-    security, performance, research sources with the date checked.
   - `OLD-SITE-URLS.md`: every old URL, KEEP or a 301 target (the old sitemap, REST counts, the designer's map,
     archive and theme-part URLs, campaign URLs).
 - **P0-03 Board and handoff:** every page and its sections in BUILD-MAP.md "Pages" (keep its headings: render.py
@@ -163,19 +164,18 @@ handoff files.
 
 ## P1 Setup (in one go, after the Plan OK)
 
-1. **P1-01 WordPress, admin, settings, plugins** (tools in `_plan/tools/setup/`). Made by the local app (doctor:
-   `wordpress: existing`): `get-wordpress.py <wp_root> --verify`, then `make-wp-config.py <wp_root> --existing`.
-   Otherwise the database (phpMyAdmin, the app's tool, or `CREATE DATABASE db_<site> CHARACTER SET utf8mb4 COLLATE
-   utf8mb4_unicode_520_ci;`), `get-wordpress.py <wp_root>` (checksums, never overwrites), `make-wp-config.py
-   <wp_root> --db db_<site>` (password only from `DB_PASSWORD`; local, debug log, no file editing, an
-   `ACF_PRO_LICENSE` line). No address of its own (doctor: `serve: serve-wp`): `serve-wp.py <wp_root>
-   --background`, `--no-cron`. Then **`install-wp.py <wp_root> --url <local url> --title "<Site>" --profile
-   <kit>/profile.local.json`**: installs WordPress with the default local admin from the profile (`local_admin`,
-   e.g. `agency-dev`; local sites only), permalinks `/%postname%/`, "Discourage search engines", the fresh-install
-   samples removed, Contact Form 7 and Yoast SEO (checksums) and ACF PRO from the profile's zip, all active. The
-   developer pastes the ACF PRO licence. The business's language and date formats in Settings. Profile
-   `extra_plugins` marked `required` go in here too. **The ACF menu shows** to administrators, on live too.
-   Converter for Media and Contact Form CFDB7 are not installed locally: they go on live at launch.
+1. **P1-01 WordPress, admin, settings, plugins:** one command, `python3 _plan/tools/setup/setup.py
+   <wp_root>/_plan/site.json --profile <kit>/profile.local.json`. From site.json and doctor.json it creates the local
+   database if missing (never drops one), gets WordPress with checksums (or verifies the one a local app made), writes
+   wp-config (local, debug log, no file editing, an `ACF_PRO_LICENSE` line), starts `serve-wp.py` when the local app
+   has no site addresses, then `install-wp.py`: the default local admin from the profile (`local_admin`, e.g.
+   `agency-dev`; local sites only), permalinks `/%postname%/`, "Discourage search engines", the fresh-install samples
+   removed, Contact Form 7 and Yoast SEO (checksums) and ACF PRO from the profile's zip, all active. `--dry-run`
+   shows the steps first. Exit 1 lists open items (no ACF PRO zip or local password yet: the developer adds them to
+   the profile, then run it again). The developer pastes the ACF PRO licence. The business's language and date
+   formats in Settings. Profile `extra_plugins` marked `required` go in here too. **The ACF menu shows** to
+   administrators, on live too. Converter for Media and Contact Form CFDB7 are not installed locally: they go on
+   live at launch. The separate scripts (`references/setup.md`) stay for a step that needs repeating.
 2. **P1-02 Theme.** Get the starter into `wp-content/themes/<theme>/`: Barebones
    (github.com/benchmarkstudios/barebones) for plain CSS, or _tw generated with the slug and prefix (`wp scaffold
    _tw <theme> --theme_name="<Site>" --prefix=<prefix>`, or underscoretw.com) for Tailwind. Then
@@ -201,9 +201,18 @@ handoff files.
 ## P2 Pages (section by section)
 
 Every section, every time: **static** (copy the rendered HTML, diff 0) > **model** (fields in the builder) >
-**sync** > **dynamic** (fields replace the copy, every output escaped) > **seed** > **check** (visual, DOM, text,
-one H1 and heading order, aria-labels, alt, schema, the CWV items, no notices, no console errors) > **clean** (php
--l, PHPCS, duplicates) > the section's board row `built`. Then the phase's QA run marks them `checked`.
+**sync** > **dynamic** (fields replace the copy, every output escaped) > **seed** > **check and clean** in one call:
+`python3 tests/parity/check-section.py <route> --section <selector>` (pixel and text at the quick widths, DOM, php
+-l, PHPCS, duplicates; one line back, OK before moving on), plus one H1 and heading order, aria-labels, alt, schema,
+the CWV items, no notices, no console errors > the section's board row `built`. Then the phase's QA run marks them
+`checked`.
+
+**Design checks** (numbers first, images only for failures; `references/build.md` > Design checks):
+`design-check.mjs --states` (hover, focus and the clicks PLAN.md lists: open menu, tabs, sliders, against the source
+in the same state), `--motion` (transition and animation duration, delay, easing against the source) and `--long`
+(the page from `long-content.php make <route>` with every field long: no overflow, no clipped text from 320 to
+1920). States and motion at the end of each page; all three in each QA run from P2 on. The pass marks are in
+`design-check.config.json` (defaults until the first real build sets the final ones).
 
 - Pages, not custom post types, so URLs stay at the root. Fixed templates where pages share a layout; one Flexible
   Content field ("Page Sections") for one-off pages. Grids list pages by template in menu order.
@@ -252,7 +261,8 @@ Contact, enquiries) and one "Your website" dashboard box; administrators keep th
 ## P5 Fix and QA loop
 
 Fix every finding on the board, then a **full** QA run on the whole site (every route, every CSS breakpoint and 1 px
-past it, old URLs checked locally, real phones, the seeder twice, the Sonnet check); repeat until a run finds 0 and
+past it, the design checks, old URLs checked locally, real phones, the seeder twice, the read-only check;
+the long-content test pages removed before the package); repeat until a run finds 0 and
 no finding is `open`. Then launch prep: `RUNBOOK.md` and `htaccess-live.txt` in `_setup/launch/` completed,
 a short editing guide. Then the stop report asking for the **Go-live** (the go/no-go list is in the runbook).
 
@@ -286,17 +296,16 @@ developer fills; the agent never types a password). Details: `references/qa-repo
 | Script (in the project: `_plan/tools/...`) | Does |
 |---|---|
 | `scripts/doctor.py` | This computer: tools, the local WordPress app, where to build (`--json`) |
-| `scripts/get-source.py` | The working copy: git clone or GitHub zip, safe unzip, copy, or `capture-site.mjs` |
-| `scripts/analyze-source.py` | Studies the source: stack, routes, Tailwind, forms, tracking, the golden-master method |
+| `scripts/start.py` | The intake in one call: new-site.py --start, get-source.py (the copy) and analyze-source.py (the study) |
+| `scripts/get-source.py`, `analyze-source.py` | The working copy (clone, zip, folder or a capture); the study of it |
 | `scripts/new-site.py` | `--plan-only` for P0; then prepares the starter theme and copies the kit in |
 | `scripts/snapshot-routes.mjs` | Rendered HTML of every route, for client-rendered or server sources |
-| `scripts/setup/get-wordpress.py`, `make-wp-config.py` | WordPress with checksums (`--verify`); wp-config (`--existing`) |
-| `scripts/setup/serve-wp.py` | WordPress at its own port when the local app has no site addresses |
-| `scripts/setup/install-wp.py` | Local WordPress in one go: install, the default local admin, settings, starter plugins |
+| `scripts/setup/setup.py` | P1-01 in one call: database, get-wordpress, make-wp-config, serve-wp (if needed), install-wp |
+| `scripts/setup/install-wp.py` and the others | Install, admin, settings, plugins; the steps one by one when one needs repeating |
 | `scripts/acf/build_field_groups.py`, `sync.php` | ACF JSON, stable keys (`--check`); database sync |
 | `scripts/seed/export.mjs`, `export-pages.py` | Static content into `_setup/seed/` for Tools > Seeder |
 | `scripts/build-map/gate.py`, `render.py` | The phase gate; the private progress page |
-| `scripts/parity/` (the theme's `tests/parity/`) | Pixel, text, SEO and DOM diffs; breakpoints; mirror and server for cloud runs |
+| `scripts/parity/` (the theme's `tests/parity/`) | `check-section.py` (one call per section), pixel, text, SEO and DOM diffs, `design-check.mjs` (states, motion, long content), `long-content.php`; mirror and server for cloud runs |
 | `scripts/update.py` | Updates this skill from GitHub (`--check` only looks); `/update-convert-wordpress-skill` runs it |
 
 ## Done means

@@ -12,11 +12,12 @@ Read this in P1 and P2. The kit files named here are in the theme's `includes/` 
 - Templates and pages
 - The seeder
 - Snapshots and parity checks
+- Design checks: states, motion, long content
 - Kit functions at a glance
 
 ## Static first, then dynamic
 
-Every section goes through the same steps (BUILD-PLAN section 3): first copy the section's
+Every section goes through the same steps (PLAN.md section 4): first copy the section's
 rendered HTML from the golden master into its partial (same tags, classes, attributes, order) with the copy
 hardcoded, and diffs it to zero. Only then does the WordPress developer add fields, sync, wire, seed and test
 again. Fields replace content, never structure, classes or order.
@@ -201,6 +202,31 @@ stay theme files.
   srcset swap. One wild shot with fallback fonts is a font that loaded late under load: re-run that shot first.
 - Where to run: wherever a browser reaches both sites. A cloud shell cannot reach `.test` sites: use snapshots, the
   mirror and serve.py there, or run on the developer's machine.
+
+## Design checks: states, motion, long content
+
+The diffs prove the still page. These prove what moves and what the client changes, against the source site in the
+same state, numbers first (computed values, measured boxes) and images only for failing rows
+(`tests/parity/report/design-check/`). Hosts from `parity.config.json`; settings and pass marks in
+`design-check.config.json`; results in `report/design-check.json` (the same row shape as figma-to-wordpress).
+
+```
+node design-check.mjs --states        # hover and focus-visible of every link, button, tab and field in header, main, footer;
+                                      # plus each "states" entry: click a trigger (menu, tab, slider arrow), compare the region
+node design-check.mjs --motion        # transition and animation: property, duration, delay, easing, iterations per element
+php long-content.php make /about/     # a copy at /kit-long-test-about/: title, every text field ~3x, WYSIWYG x3, rows doubled
+node design-check.mjs --long --routes=/kit-long-test-about/   # 320 to 1920: page overflow, clipped text
+php long-content.php remove           # deletes exactly the IDs it made (marker _kitwp_long_test)
+```
+
+- List the states in PLAN.md and in `design-check.config.json` "states" (name, route, click selector, the region it
+  changes, widths, wait for a slider). Elements are matched by DOM path, which the 1:1 DOM diff keeps equal.
+- Default pass marks (until the first real build sets the final ones): colours and keywords exact, sizes within
+  1 px, durations and delays within 10 ms, easing exact; long content: page overflow at most 1 px, 0 clipped text
+  (line clamps and ellipsis are intended and skipped).
+- JavaScript-driven motion (a slider's autoplay interval, a counter) is not a CSS value: compare the timing in the
+  source code and note it in PLAN.md.
+- One long page per template is enough; remove the test pages before the launch package (P5).
 
 ## Kit functions at a glance
 

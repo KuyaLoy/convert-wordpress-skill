@@ -7,8 +7,8 @@ Updated: **{{DATE}}** | Phase: **P0 Plan** | Next: **P1 Setup**
 
 Status key: phases and steps `DONE` `IN PROGRESS` `TODO` `BLOCKED`; sections `todo` `building` `built` `checked`
 `fixed`; QA findings `open` `fixed` `decided`, severity `blocker` `major` `minor`.
-Plan: `_plan/BUILD-PLAN.md` | Content: `_plan/CONTENT-MODEL.md` | Build rules: `_plan/ARCHITECTURE.md` |
-Source notes: `_plan/SOURCE-NOTES.md` | Session state: `handoff.md`
+Plan: `_plan/PLAN.md` (goal, source, how it is built) | Content: `_plan/CONTENT-MODEL.md` | Old URLs:
+`_plan/OLD-SITE-URLS.md` | Session state: `handoff.md`
 
 Phase rule: one phase at a time. After each phase QA only logs findings in "QA findings"; nothing is fixed before
 P5 except a `blocker` (the site breaks, or the next phase cannot start). `python3 _plan/tools/build-map/gate.py
@@ -49,7 +49,7 @@ Written only after the developer says it in the chat: `ok <date>`.
 | # | Decision | Status | Recommendation / answer |
 |---|---|---|---|
 | D1 | Local folder, URL, database | DECISION | `{{SITE_DIR}}`, http://{{LOCAL_HOST}}, DB `db_{{THEME}}` |
-| D2 | Starter theme | DECISION | Tailwind source: _tw. Plain CSS: Barebones (from analyze-source.py) |
+| D2 | Starter theme | DECISION | Tailwind source: _tw. Plain CSS: Barebones (from start.py) |
 | D3 | Spam protection | DECISION | CF7 reCAPTCHA v3 + the static honeypot; badge position |
 | D4 | Editor for ACF pages | DECISION | Block editor unless the developer says classic |
 | D5 | Pages the static site lacks (blog, archives) | DECISION | In the site's design, new URLs flagged to SEO |
@@ -62,8 +62,8 @@ Written only after the developer says it in the chat: `ok <date>`.
 
 | ID | Step | Status | Notes |
 |---|---|---|---|
-| P0-01 | Study the source (analyze-source.py) and set the golden master | IN PROGRESS | |
-| P0-02 | Plan docs: BUILD-PLAN, CONTENT-MODEL, ARCHITECTURE, SOURCE-NOTES, OLD-SITE-URLS | TODO | |
+| P0-01 | Study the source (start.py) and set the golden master | IN PROGRESS | |
+| P0-02 | Plan docs: PLAN, CONTENT-MODEL, OLD-SITE-URLS | TODO | |
 | P0-03 | This board (pages and sections listed) and the handoff files | TODO | |
 | P0-04 | Decisions D1 to D7 and the plan OK | TODO | |
 
@@ -71,7 +71,7 @@ Written only after the developer says it in the chat: `ok <date>`.
 
 | ID | Step | Status | Notes |
 |---|---|---|---|
-| P1-01 | WordPress, admin, settings and plugins in one go (install-wp.py) | TODO | |
+| P1-01 | WordPress, admin, settings and plugins in one go (setup.py) | TODO | |
 | P1-02 | Theme (starter by the Tailwind rule, new-site.py, prefix, PHPCS) | TODO | |
 | P1-03 | Golden master served, parity tools self-test at 0.000% | TODO | |
 | P1-04 | Design system 1:1 (built CSS, swap test 0.000%) | TODO | |

@@ -146,8 +146,10 @@ export const INSTALL = {
     { id: "claude", label: "Claude Code", folder: "~/.claude/skills/convert-to-wordpress" },
     { id: "codex", label: "Codex", folder: "~/.agents/skills/convert-to-wordpress" },
     { id: "cursor", label: "Cursor", folder: "~/.cursor/skills/convert-to-wordpress" },
-    { id: "gemini", label: "Gemini CLI", folder: "~/.gemini/skills/convert-to-wordpress" },
     { id: "antigravity", label: "Antigravity", folder: "~/.gemini/config/skills/convert-to-wordpress" },
+    { id: "opencode", label: "OpenCode", folder: "~/.config/opencode/skills/convert-to-wordpress" },
+    { id: "cline", label: "Cline", folder: "~/.cline/skills/convert-to-wordpress" },
+    { id: "devin", label: "Devin Desktop", folder: "~/.config/devin/skills/convert-to-wordpress" },
     { id: "other", label: "Others", folder: "~/.agents/skills/convert-to-wordpress" },
   ],
   steps: [

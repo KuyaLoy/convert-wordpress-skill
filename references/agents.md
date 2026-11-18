@@ -17,15 +17,20 @@ that reads skills can run it. Paths in SKILL.md are relative to the skill folder
 
 ## Where the skill lives, and updating it
 
-The folder must be named `convert-to-wordpress` (the `name` in SKILL.md).
+The folder must be named `convert-to-wordpress` (the `name` in SKILL.md; Cursor and Cline refuse a skill whose
+folder and name differ). SKILL.md's frontmatter has only `name`, `description` and `license`, so every tool reads
+it, and its steps are plain words: where a step needs something only some tools have (subagents, a question tool,
+a parent session), it says what to do without it.
 
 | Agent | Personal (all projects) | One project |
 |---|---|---|
 | Claude Code | `~/.claude/skills/convert-to-wordpress/` | `.claude/skills/convert-to-wordpress/` |
 | Codex | `~/.agents/skills/convert-to-wordpress/` | `.agents/skills/convert-to-wordpress/` |
 | Cursor | `~/.cursor/skills/` or `~/.agents/skills/` | `.cursor/skills/` or `.agents/skills/` (it also reads `.claude/skills/`) |
-| Gemini CLI | `~/.gemini/skills/` or `~/.agents/skills/` | `.gemini/skills/` or `.agents/skills/` |
-| Antigravity | `~/.gemini/config/skills/` | `.agents/skills/` |
+| Antigravity and Antigravity CLI (the CLI replaced Gemini CLI on 18 Jun 2026) | `~/.gemini/config/skills/` | `.agents/skills/` |
+| OpenCode | `~/.config/opencode/skills/` (it also reads `~/.agents/skills/` and `~/.claude/skills/`) | `.opencode/skills/` |
+| Cline | `~/.cline/skills/` (each skill is also a slash command) | see Cline's docs |
+| Devin Desktop (was Windsurf) | `~/.config/devin/skills/` or `~/.agents/skills/` | see Devin's docs |
 | Grok Build and others that read skills | `~/.agents/skills/` (check the tool's docs) | `.agents/skills/` |
 | Claude apps (claude.ai, Cowork) | Upload the folder as a skill (zipped), or save it from a skill card | |
 
@@ -109,7 +114,7 @@ a minified bundle tens of thousands. So:
   (`tests/parity/README.md`), or run it on the developer's machine.
 - Windows paths: `D:/sites/<site>` works in Python and Node; Git Bash uses `/d/sites/<site>`.
 - An app in a browser chat cannot run the build: it can read uploaded files and write the P0 plan. For the
-  build, use an agent that runs commands on the developer's computer (Claude Code, Codex, Cursor, Gemini CLI...).
+  build, use an agent that runs commands on the developer's computer (Claude Code, Codex, Cursor, Antigravity CLI, OpenCode, Cline...).
 - A browser tool (the developer's browser, or the agent's own) is for phpMyAdmin, the WordPress installer, wp-admin
   checks, the test leads and the live checks a bot filter blocks. Check which browser profile it drives before
   blaming the local stack.
@@ -119,10 +124,10 @@ a minified bundle tens of thousands. So:
 
 When the agent can start subagents, use them where the team needs a second pair of eyes or parallel hands:
 
-- the read-only QA check at the end of each phase (a fresh subagent on a faster model, e.g. Sonnet, that did not
-  write the code; the brief is in `references/phases-and-qa.md`);
+- the read-only QA check at the end of each phase (a fresh subagent that did not write the code, on a faster model
+  where the tool lets you pick, e.g. Sonnet; without subagents, a new chat with the same brief; the brief is in `references/phases-and-qa.md`);
 - a long mechanical job (seeding a batch of pages, exporting content), checked by you afterwards;
-- independent research (plugin docs, a host's limits) whose sources go into ARCHITECTURE.md.
+- independent research (plugin docs, a host's limits) whose sources go into PLAN.md (Research sources).
 
 Without subagents, run the QA check in a new chat, or re-read the changed files with the QA checklist.
 

@@ -78,7 +78,7 @@ Intake started {day}. Folder: {root}.
 ## Failed Attempts
 
 ## Next Steps
-1. Finish the intake (SKILL.md > Start: get-source, analyze-source, site.json, new-site.py --plan-only).
+1. Finish the intake (SKILL.md > Start: start.py, site.json, new-site.py --plan-only).
 """,
         'ai-handoff-summary.md': f"""{INTAKE}
 # AI handoff summary: {name} WordPress build
@@ -90,7 +90,7 @@ Status: ACTIVE
 - Intake (SKILL.md > Start). The answers so far are in handoff.md.
 
 ## Next action
-- Continue the intake from the first step not done: get-source, analyze-source, site.json, new-site.py --plan-only.
+- Continue the intake from the first step not done: start.py, site.json, new-site.py --plan-only.
 """,
     }
     made = []
@@ -403,7 +403,7 @@ PROJECT_DATA = ('_plan/tools/acf/build_field_groups.py', '/tests/parity/routes.j
 stamp = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
 written, kept, backed = [], [], []
 
-# analyze-source.py --json <wp_root>/_plan/analyze.json fills section 1 of SOURCE-NOTES.md.
+# analyze-source.py --json <wp_root>/_plan/analyze.json (start.py writes it) fills PLAN.md's source table.
 an_path = os.path.join(os.path.dirname(os.path.abspath(a.site_json)), "analyze.json")
 an = json.load(open(an_path, encoding='utf-8')) if os.path.exists(an_path) else None
 
@@ -437,8 +437,8 @@ def source_rows(text):
         text = text.replace("How it is produced and where it is served (see the skill's references/source-types.md).",
                             f'From analyze-source.py: {gm}', 1)
     if an.get('private_files'):
-        text = text.rstrip() + ('\n\n## 6. Secrets and personal data in the source (never copied, never read)\n\n'
-                                + '\n'.join(f'- `{x}`' for x in an['private_files']) + '\n')
+        text = text.replace('<!-- kit:secrets -->', '**Secrets and personal data in the source** (never copied, never '
+                            'read): ' + ', '.join(f'`{x}`' for x in an['private_files']), 1)
     return text
 
 
@@ -498,7 +498,10 @@ for src, dst in plan:
             shutil.copy2(dst, bak)
     written.append(r)
     if src.endswith(TEXT) or os.path.basename(src).startswith('.'):
-        write(dst, source_rows(fill(read(src))) if dst.endswith('SOURCE-NOTES.md') else parity_tune(dst, fill(read(src))))
+        if dst.endswith(os.sep + 'PLAN.md'):
+            write(dst, source_rows(fill(read(src))).replace('<!-- kit:secrets -->\n\n', ''))
+        else:
+            write(dst, parity_tune(dst, fill(read(src))))
     elif not a.dry_run:
         os.makedirs(os.path.dirname(dst), exist_ok=True)
         shutil.copyfile(src, dst)
@@ -561,7 +564,7 @@ if left:
     print('placeholders still to fill: ' + ', '.join(sorted(left)))
 build = 'npm install && npm run build' if starter == 'barebones' else 'npm install && npm run dev'
 if a.plan_only:
-    print('next: P0 planning in _plan/ and BUILD-MAP.md; in P1, after WordPress and the starter theme, run this '
-          'again without --plan-only.')
+    print('next: P0 planning in _plan/PLAN.md, CONTENT-MODEL.md, OLD-SITE-URLS.md and BUILD-MAP.md; after the Plan OK, '
+          '_plan/tools/setup/setup.py, the starter theme, then this again without --plan-only.')
 else:
     print(f'next: in {rel(theme_root)}: {build}; php -l and PHPCS on the theme; activate it; then the P1 steps.')

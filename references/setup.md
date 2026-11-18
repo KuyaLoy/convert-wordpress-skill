@@ -40,12 +40,14 @@ Ask the developer-level questions too when they apply (in the same batch):
 - The old site, if one is replaced: its URL, its full sitemap, and for WordPress its REST page and post counts
   (`/wp-json/wp/v2/pages?per_page=1`, header `X-WP-Total`). A designer's redirect map can miss archive and
   theme-part URLs (on the reference build it missed 30 of 96).
-- Repo documents: redirect map, copy brief, open items, design system spec (`_plan/SOURCE-NOTES.md`).
+- Repo documents: redirect map, copy brief, open items, design system spec (`_plan/PLAN.md` > The source).
 - Lead email: To (the client's inbox), Bcc (the profile's list), From (`<Site> <no-reply@domain>`).
 - Country and language: languages, right-to-left, timezone, how dates and phone numbers are written.
 
-As soon as the folder is chosen: `python3 <kit>/scripts/new-site.py --start <wp_root> --name "<Site>"` writes two
-short handoff files there, so a closed chat loses nothing ("continue the WordPress conversion" picks it up).
+As soon as the folder and the source are known: `python3 <kit>/scripts/start.py <source> --root <wp_root> --name
+"<Site>" --env doctor.json` writes two short handoff files there (a closed chat loses nothing: "continue the
+WordPress conversion" picks it up), makes the working copy and studies it (`references/source-types.md`), and copies
+doctor.json to `_plan/` for setup.py.
 
 ## Where WordPress runs
 
@@ -65,7 +67,7 @@ long or spaced paths when doctor.py warns.
 
 ## site.json and the profile
 
-`analyze-source.py --env doctor.json --site-draft <wp_root>/_plan/site.json` writes a first one (starter, GTM, html
+start.py (analyze-source.py `--site-draft`) writes a first one (starter, GTM, html
 attributes, fonts from the source; folder, address and how WordPress is made from doctor.py); without it, copy
 `assets/site.example.json`. new-site.py refuses the example values (Example Co, example.com, an empty folder). Fill
 the rest from the intake. Then create the project (P0: plan, board, handoff files, tools; no WordPress needed
@@ -107,7 +109,7 @@ plugins, reply style. site.json wins where both set a value.
 |---|---|---|
 | `<www>/<site>` | WordPress, the plan (`_plan/`), setup files (`_setup/`), BUILD-MAP and handoff (`<www>`: the web folder doctor.py found) | The only folder the build writes |
 | The source | The designer's code (a folder, a repo or a zip) | Never touched |
-| `<www>/<name>-source` | The working copy `get-source.py --into <www>` makes (clone or GitHub zip, safe unzip, copy, or a live capture; `.source.json`: where it came from, the commit or SHA-256) | Builds and `npm install` happen here only |
+| `<www>/<name>-source` | The working copy start.py makes (get-source.py `--into <www>`) (clone or GitHub zip, safe unzip, copy, or a live capture; `.source.json`: where it came from, the commit or SHA-256) | Builds and `npm install` happen here only |
 | `<www>/<site>-ref` | The golden master: the static build, served unchanged | Never edited |
 
 The private files (`_plan`, `_setup`, BUILD-MAP.md, the handoff files, debug.log) are blocked by the root
@@ -115,7 +117,10 @@ The private files (`_plan`, `_setup`, BUILD-MAP.md, the handoff files, debug.log
 
 ## The database
 
-Ask first, then use what the developer has (doctor.py's `db` shows the app's defaults):
+setup.py creates it on the local app's database host (`CREATE DATABASE IF NOT EXISTS`, never a drop), covered by the
+Plan OK. When it cannot reach MySQL (the app is stopped, or the root user has a password), start the app or have the
+developer set `DB_PASSWORD` in their own shell; or create it by hand, using what the developer has (doctor.py's `db`
+shows the app's defaults):
 
 - **phpMyAdmin** in the developer's browser (most apps have it: http://localhost/phpmyadmin/, or the app's
   Database button). With a browser tool, open it, let the developer log in if it asks for a password, then run in
@@ -131,7 +136,19 @@ make-wp-config.py.
 
 ## WordPress
 
-All of P1-01 runs in one go after the Plan OK (it listed these downloads); no question at each step.
+All of P1-01 runs in one go after the Plan OK (it listed these downloads); no question at each step:
+
+```
+python3 _plan/tools/setup/setup.py <wp_root>/_plan/site.json --profile <kit>/profile.local.json [--dry-run]
+```
+
+It reads site.json (`wp_root`, `local_host`, `site_name`, `timezone`, `wordpress`, `serve`) and `_plan/doctor.json`
+(the local app's database host, port and user, its PHP), and runs the steps below in order, stopping at the first
+that fails: the database (`CREATE DATABASE IF NOT EXISTS db_<site>`, local host only, never drops anything; a
+password only from `DB_PASSWORD` in the developer's shell, else the app's documented default), get-wordpress.py,
+make-wp-config.py, serve-wp.py (only for `serve: serve-wp`), install-wp.py. Line 1 says OK, WARN (open items from
+install-wp.py, exit 1) or FAIL, then one line per step. Run it again after fixing: every step keeps what is there.
+The steps one by one, for a step that needs repeating:
 
 **A WordPress the local app made** (doctor `wordpress: existing`: Local, DDEV, wp-env): the developer makes the site
 in the app, then:

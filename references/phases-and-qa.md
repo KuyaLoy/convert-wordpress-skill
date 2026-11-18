@@ -1,7 +1,7 @@
 # Phases, QA and the fix loop
 
 Read this at the start of every phase and whenever you are unsure what happens next. The project's own copy of
-the rules is `_plan/BUILD-PLAN.md` (made from `assets/plan/BUILD-PLAN.template.md`); the status is on
+the rules is `_plan/PLAN.md` (made from `assets/plan/PLAN.template.md`); the status is on
 `BUILD-MAP.md`, checked by `_plan/tools/build-map/gate.py`.
 
 ## Contents
@@ -10,7 +10,7 @@ the rules is `_plan/BUILD-PLAN.md` (made from `assets/plan/BUILD-PLAN.template.m
 - QA after each phase: it only logs
 - The fix loop: until QA finds 0
 - The QA checklist
-- The read-only QA check (a Sonnet subagent)
+- The read-only QA check
 - The progress page
 - The developer's two gates
 - The stop report: never stop silently
@@ -70,7 +70,10 @@ Every QA run checks the items that apply to what the phase built (P5: all of the
 |---|---|---|
 | Scope (owner) | Every request in the task is met or listed as open; nothing outside scope added | The task vs the board |
 | 1:1 visual (UI) | Pixel diff within anti-aliasing at every test width and 1 px past each breakpoint; no restyled CSS | `tests/parity/` (`parity.mjs`, `breakpoints.mjs`, `region-check.mjs`) |
-| 1:1 markup and text | DOM and text diff clean; one H1, heading order as the source; alt text; aria-labels | `domdiff.py`, `parity.mjs` text and SEO output |
+| 1:1 markup and text | DOM and text diff clean; one H1, heading order as the source; alt text; aria-labels | `domdiff.py`, `parity.mjs` text and SEO output, `check-section.py` per section |
+| States (UI, UX) | Hover, focus-visible and the clicks PLAN.md lists (open menu, tabs, sliders) equal to the source in the same state | `design-check.mjs --states` |
+| Motion (UI) | Transition and animation duration, delay and easing equal to the source (pass marks in design-check.config.json) | `design-check.mjs --motion` |
+| Long content (UX, P2 on) | Every field filled long: no page overflow and no clipped text from 320 to 1920 | `long-content.php make <route>`, `design-check.mjs --long` |
 | Behaviour (UX) | Menus, pop-ups, forms, keyboard, focus, reduced motion as the source | Real browser at 390 and 1440 |
 | Editing (UX) | Every text and image editable; fields in page order with instructions; Theme Settings for repeated items | wp-admin as the client's Editor |
 | Code | `php -l`, PHPCS clean, the duplicate function check, every output escaped, globals prefixed, no notices in debug.log, no console errors | The theme's composer scripts; debug.log |
@@ -80,15 +83,17 @@ Every QA run checks the items that apply to what the phase built (P5: all of the
 | Security (P4 on) | No secrets in files, private files 403, REST users hidden, file editing off, nonces and capability checks | `live-qa.py --hidden` style checks locally, a code read |
 | Speed (P4 on) | LCP preload and fetchpriority, sized srcset, nothing lazy above the fold, reserved media space, deferred JS; local Lighthouse not below the source | `references/seo-security.md` > Performance |
 
-## The read-only QA check (a Sonnet subagent)
+## The read-only QA check
 
-Each QA run ends with one fresh, read-only check by a subagent on a faster model (Claude Code: `model: "sonnet"`),
-so the author never approves their own work. It reads, runs read-only commands and reports; it changes nothing.
+Each QA run ends with one fresh, read-only check, so the author never approves their own work: a subagent where the
+tool has them (on a faster model where it lets you pick: in Claude Code `model: "sonnet"`), else a new chat with the
+same brief. It reads the numbers first (the scripts' summaries, `report/design-check.json`) and opens images only for
+failing rows. It reads, runs read-only commands and reports; it changes nothing.
 Brief it in a few lines:
 
 ```
 Read-only QA for <site>, phase <P>. Do not change any file, setting or database.
-Read: BUILD-MAP.md (Pages, QA findings), _plan/ARCHITECTURE.md, and the files this phase changed: <list>.
+Read: BUILD-MAP.md (Pages, QA findings), _plan/PLAN.md, report/design-check.json (if run), and the files this phase changed: <list>.
 Check them against the QA checklist in <kit>/references/phases-and-qa.md (the rows for this phase).
 Script results are in: <parity output folder>. Local site: <url>.
 Reply with findings only, one line each: where | what | blocker, major or minor. Nothing found: "0 found".

@@ -41,15 +41,11 @@ Details: `references/setup.md` > Starter plugins, `references/launch.md` > After
 After the plan OK, without asking at each step (the plan lists the downloads):
 
 ```
-python3 <kit>/scripts/doctor.py --name <site> --json doctor.json        # tools, local app, folder, database
-CREATE DATABASE db_<site> CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;   (if the local app did not)
-python3 _plan/tools/setup/get-wordpress.py <wp_root>                      # latest.zip, SHA-1 and core MD5 checked
-python3 _plan/tools/setup/make-wp-config.py <wp_root> --db db_<site>      # local, debug log, ACF_PRO_LICENSE line
-python3 _plan/tools/setup/install-wp.py <wp_root> --url http://<site>.test --title "<Site>" \
-        --profile <kit>/profile.local.json [--timezone <Area/City>]       # install, admin, settings, plugins
+python3 _plan/tools/setup/setup.py <wp_root>/_plan/site.json --profile <kit>/profile.local.json [--dry-run]
 ```
 
-install-wp.py: the default local admin from the profile's `local_admin` (username, e.g. `agency-dev`, email,
+One command (doctor.py ran at intake): the local database if missing, WordPress with checksums, wp-config (local,
+debug log, the `ACF_PRO_LICENSE` line), serve-wp.py when the local app has no site addresses, then install-wp.py: the default local admin from the profile's `local_admin` (username, e.g. `agency-dev`, email,
 password), local sites only; permalinks `/%postname%/`, search engines discouraged, the fresh-install samples,
 Hello Dolly and Akismet removed; Contact Form 7 and Yoast from wordpress.org with every file checked; ACF PRO from
 the developer's zip; all activated. The developer pastes the ACF PRO licence into `ACF_PRO_LICENSE` in wp-config.

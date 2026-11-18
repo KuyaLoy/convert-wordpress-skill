@@ -1,0 +1,27 @@
+{
+  "_about": "design-check.mjs settings. Hosts come from parity.config.json. Pass marks are the kit's defaults until the first real build sets the final ones; change them only with a reason in PLAN.md.",
+  "regions": ["header", "main", "footer"],
+  "maxElements": 80,
+  "stateWidths": [390, 1440],
+  "motionWidth": 1440,
+  "longWidths": [320, 375, 768, 1024, 1440, 1920],
+  "longRoutes": [],
+  "longIgnore": [".swiper", ".splide", ".slick-list", ".glide__track", ".flickity-viewport", "[data-marquee]"],
+  "states": [],
+  "_states_example": [
+    { "name": "open menu", "route": "/", "widths": [390], "click": "header .menu-toggle", "check": "header" },
+    { "name": "second tab", "route": "/services/", "click": "[role=tab]:nth-of-type(2)", "check": "[role=tabpanel]" },
+    { "name": "slider next", "route": "/", "click": ".slider .next", "check": ".slider", "wait": 600 }
+  ],
+  "styleProps": ["color", "background-color", "border-top-color", "border-bottom-color", "outline-style", "outline-color",
+    "outline-width", "outline-offset", "box-shadow", "text-decoration-line", "opacity", "transform", "font-weight",
+    "letter-spacing", "width", "height"],
+  "passMarks": {
+    "px": 1,
+    "ms": 10,
+    "colourExact": true,
+    "easingExact": true,
+    "overflowPx": 1,
+    "clippedText": 0
+  }
+}

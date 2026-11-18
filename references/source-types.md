@@ -17,20 +17,20 @@ get it, served unchanged, that every WordPress page is compared against.
 
 ## Study first
 
-1. `python3 <kit>/scripts/get-source.py <GitHub link, zip, folder or web address> --into <web folder>` makes the
-   working copy `<name>-source` (ask first: a clone, a zip link or a capture is a download). Then
-   `python3 <kit>/scripts/analyze-source.py <name>-source --env doctor.json --json <wp_root>/_plan/analyze.json
-   --site-draft <wp_root>/_plan/site.json` (read only). It reports the stack, the build scripts, built output already
+1. `python3 <kit>/scripts/start.py <GitHub link, zip, folder or web address> --root <wp_root> --name "<Site>"
+   --env doctor.json` (ask first: a clone, a zip link or a capture is a download) makes the folder and its handoff
+   files, the working copy `<name>-source` next to it (get-source.py) and studies that copy (analyze-source.py, read
+   only; full output in `_plan/analyze.txt`, one summary line on screen). The study reports the stack, the build scripts, built output already
    there, Tailwind (and so the starter theme), routes and dynamic routes, content sources, forms and the code that
    sends mail, tracking ids (placeholders like GTM-XXXXXXX are skipped), fonts (Google and self-hosted), icons and
    front-end libraries, images, redirect sources, files holding secrets or personal data, and the golden-master
    method. `--site-draft` writes a first site.json (starter, GTM, html attributes, fonts; never overwrites);
-   new-site.py copies analyze.json into section 1 of SOURCE-NOTES.md.
+   new-site.py copies analyze.json into PLAN.md's source table.
    Files it lists as secrets or personal data (`.env`, `env.php`, lead files) are never read, copied or seeded.
 2. Read what it points at: `package.json`, the framework config (`next.config.*`, `vite.config.*`,
    `astro.config.*`, `nuxt.config.*`, `svelte.config.*`), the layout and page files, the content modules, the
    repo's README and docs.
-3. Write `_plan/SOURCE-NOTES.md` (template in `assets/plan/`): what the source is, how the golden master is made,
+3. Finish `_plan/PLAN.md` > The source (template in `assets/plan/`): what the source is, how the golden master is made,
    which repo documents are still valid, rules that must hold in WordPress, open items that are not ours to fix.
 4. Never build in the source folder: copy it first (`npm install` and builds write files).
 
@@ -141,7 +141,7 @@ Several: a decision for the board before P1 (`references/build.md`, any country,
 
 - Missing secrets, private packages or an old toolchain: try the documented build in a copy once, record the
   error, then use the live static site as the golden master (snapshots of every route plus its assets), and say so
-  in SOURCE-NOTES.md and the decisions.
+  in PLAN.md and the decisions.
 - The live site changes at launch: capture it (snapshots, a mirror of its assets) before then.
 
 ## Only a live site (no files)
@@ -152,4 +152,4 @@ browser renders it plus every same-origin file it uses, with links made root-rel
 copy is the golden master: serve it with `python3 tests/parity/serve.py <name>-source 8080` (site.json `ref_url`
 `http://localhost:8080`). Ask first, only for a site the developer owns or may rebuild; check `capture-log.txt` and
 `--max-pages` for big sites. Files on other origins (CDNs, Google Fonts) stay remote, as on the live site; a builder's
-own scripts (chat, booking, analytics) are rebuilt or replaced, never copied (record them in SOURCE-NOTES.md).
+own scripts (chat, booking, analytics) are rebuilt or replaced, never copied (record them in PLAN.md).

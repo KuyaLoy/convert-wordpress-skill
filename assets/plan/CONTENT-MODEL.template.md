@@ -1,7 +1,7 @@
 # {{SITE_NAME}}: content model
 
 Status: **P0 draft**. Written {{DATE}}. What gets built and where every piece of content lives.
-Source: see `SOURCE-NOTES.md`. Design reference: the golden master (`ARCHITECTURE.md`).
+Source and design reference: `PLAN.md` (the source, the golden master).
 
 ## 1. Principles
 

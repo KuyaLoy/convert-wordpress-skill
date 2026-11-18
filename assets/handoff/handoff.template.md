@@ -29,7 +29,7 @@ Turn the static site for https://{{DOMAIN}} into WordPress with ACF PRO and Cont
 |---|---|
 | `ai-handoff-summary.md` | Short AI brief of this file. Read first |
 | `BUILD-MAP.md` | Private board: phases, pages and sections, QA findings, the developer's gates |
-| `_plan/` | BUILD-PLAN, CONTENT-MODEL, ARCHITECTURE, SOURCE-NOTES, OLD-SITE-URLS, tools/ |
+| `_plan/` | PLAN, CONTENT-MODEL, OLD-SITE-URLS, site.json, analyze.json, tools/ |
 | `_setup/seed/` | Seed files for Tools > Seeder |
 | `_setup/launch/` | RUNBOOK.md, htaccess-live.txt, report.html |
 | `wp-content/themes/{{THEME}}/` | The theme (<!-- starter:tw -->`theme/` is what WordPress loads: <!-- /starter:tw -->`includes/`, `acf-json/`; `tests/parity/`) |
@@ -48,6 +48,6 @@ References (read only): the static source folder and its build, the old site if 
 
 ## Next Steps
 
-1. Study the source: `python3 _plan/tools/analyze-source.py <static source>`; set the golden master.
+1. Finish `_plan/PLAN.md` (start.py filled the source table; the full study is in `_plan/analyze.txt`); set the golden master.
 2. Write the plan docs, list every page and section on BUILD-MAP.md, settle the decisions.
 3. Ask for the Plan OK (the stop report lists the P1 downloads), then P1 Setup in one go.

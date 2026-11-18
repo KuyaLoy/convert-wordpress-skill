@@ -8,7 +8,7 @@ Status: ACTIVE
 - Waiting on: the developer's Plan OK (with the decisions on BUILD-MAP.md).
 
 ## Next action
-- Run `python3 _plan/tools/analyze-source.py <static source>` and write `_plan/SOURCE-NOTES.md`.
+- Finish `_plan/PLAN.md` (start.py filled its source table; `_plan/analyze.txt` has the full study).
 
 ## Verified facts
 - BUILD-MAP.md, _plan/ and these handoff files were created by new-site.py [verified {{DATE}}: new-site.py output]

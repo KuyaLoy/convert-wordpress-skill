@@ -5,7 +5,7 @@ website uses the same list.
 
 | Word | What it means |
 |---|---|
-| AI agent | An AI app that can run commands and edit files on your computer (Claude Code, Codex, Cursor, Gemini CLI). A chat in the browser alone cannot build the site. |
+| AI agent | An AI app that can run commands and edit files on your computer (Claude Code, Codex, Cursor, Antigravity CLI, OpenCode). A chat in the browser alone cannot build the site. |
 | Skill | A folder of instructions and tools the agent follows. This one rebuilds a website in WordPress. |
 | WordPress | The most used system for running websites. Your team edits words, photos and pages in a dashboard instead of in code. |
 | CMS | Content management system: the dashboard where people edit the site without code. WordPress is one. |

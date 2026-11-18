@@ -8,8 +8,8 @@ convert-to-wordpress skill on the {{STARTER}} starter theme.
 - `../../../ai-handoff-summary.md` (short), then only the section you need from `../../../handoff.md`.
 - Work follows `../../../BUILD-MAP.md` section by section, one phase at a time: run
   `python3 ../../../_plan/tools/build-map/gate.py ../../../BUILD-MAP.md` before you start and before a phase closes.
-- The plan lives in `../../../_plan/`: BUILD-PLAN (goal, phases, per-section workflow, Done), CONTENT-MODEL (fields),
-  ARCHITECTURE (how it is built), SOURCE-NOTES (what the static source says).
+- The plan lives in `../../../_plan/`: PLAN (goal, the source, how it is built, phases, per-section workflow, Done),
+  CONTENT-MODEL (fields), OLD-SITE-URLS (redirects).
 
 ## The rule above all others: 1:1
 
@@ -85,6 +85,7 @@ done, not the eye.
 1. Build the CSS and JS after any source change (<!-- starter:barebones -->`npm run build`<!-- /starter:barebones --><!-- starter:tw -->`npm run dev`<!-- /starter:tw -->).
 2. `php -l` on changed files; `composer install` once, then `vendor/bin/phpcs`; the duplicate function check
    (`grep -h "^function" <!-- starter:tw -->theme/<!-- /starter:tw -->includes/*.php | sed 's/(.*//' | sort | uniq -d` prints nothing).
-3. Parity checks (visual, DOM, text, SEO) against the golden master for any front-end change.
+3. One call per section: `python3 tests/parity/check-section.py <route> --section <selector>` (pixel, text, DOM,
+   php -l, PHPCS, duplicates; one line back). Design checks (`design-check.mjs --states --motion`) at the end of a page.
 4. Update BUILD-MAP.md, handoff.md and ai-handoff-summary.md.
 5. Never type passwords, licence keys or API keys. Ask before installing any plugin.

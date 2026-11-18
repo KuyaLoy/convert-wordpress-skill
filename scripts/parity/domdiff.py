@@ -5,7 +5,8 @@
     python3 domdiff.py static.html static.html            self-test: every region SAME
 
 Regions come from domdiff.config.json next to this file (tag, class or id, optionally the parent's class), for
-example {"header": {"tag": "header"}, "main": {"tag": "main"}, "footer": {"tag": "footer"}}. Without a region
+example {"header": {"tag": "header"}, "main": {"tag": "main"}, "footer": {"tag": "footer"}}; a region can also be
+a simple selector (tag, .class, #id, tag.class, tag#id: the first match). Without a region
 argument every region except "main" is compared. A signature is the tag, sorted classes, the attributes that
 matter (ids, aria, sizes, alt, loading, fetchpriority, href path, image file name) and the element's own text.
 Ignored on purpose: style and srcset (compare those separately), CF7's hidden inputs (_wpcf7*, _wpnonce) and the
@@ -148,6 +149,17 @@ def matcher(spec):
     return ok
 
 
+def spec_for(name):
+    """A region from the config, or a simple selector given on the command line: tag, .class, #id, tag.class,
+    tag#id (check-section.py passes the section's selector this way)."""
+    if name in CFG['regions']:
+        return CFG['regions'][name]
+    m = re.fullmatch(r'([a-z][a-z0-9-]*)?(?:\.([\w-]+))?(?:#([\w-]+))?', name.strip(), re.I)
+    if not m or not any(m.groups()):
+        sys.exit(f'domdiff: unknown region "{name}" (add it to domdiff.config.json, or give tag, .class or #id)')
+    return {k: v for k, v in zip(('tag', 'class', 'id'), m.groups()) if v}
+
+
 def region(html, spec):
     p = P()
     p.feed(html)
@@ -169,7 +181,7 @@ def main():
     names = args[2:] or [k for k in CFG['regions'] if k != 'main']
     bad, same, none, out = 0, 0, 0, []
     for name in names:
-        x, y = region(a, CFG['regions'][name]), region(b, CFG['regions'][name])
+        x, y = region(a, spec_for(name)), region(b, spec_for(name))
         if not x and not y:
             none += 1
             out.append(f'NONE  {name}: not found in either file')

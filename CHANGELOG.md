@@ -5,6 +5,58 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-11-18
+
+Fewer commands and files, the same checks; design checks beyond the still page; any agent that reads skills.
+
+### Added
+
+- **`scripts/start.py`:** the intake in one call after doctor.py: `new-site.py --start`, `get-source.py` (the
+  working copy) and `analyze-source.py` (the study, full output in `_plan/analyze.txt`), one line per step; doctor.json
+  copied to `_plan/`. Intake = doctor.py > start.py > new-site.py --plan-only (three commands, was five).
+- **`scripts/setup/setup.py`:** P1-01 in one call after the Plan OK, from site.json and doctor.json: the local
+  database (`CREATE DATABASE IF NOT EXISTS`, local host only, never drops), get-wordpress.py (or `--verify`),
+  make-wp-config.py (`--db` or `--existing`, `--no-cron` for serve-wp), serve-wp.py when needed, install-wp.py.
+  Stops at the first failure; install-wp's open items pass through (exit 1). `--dry-run` lists the steps.
+- **`check-section.py`** (the theme's `tests/parity/`): one check per section in one call: pixel and text
+  (region-check.mjs on the section, or parity.mjs on the route), DOM (domdiff.py), php -l, PHPCS and the duplicate
+  function check; one line back, failures only, the rest in `report/check-section.log`.
+- **Design checks** (`design-check.mjs`, `design-check.config.json`): `--states` (hover, focus-visible and the
+  configured clicks: open menu, tabs, sliders, against the source in the same state), `--motion` (transition and
+  animation duration, delay, easing per element) and `--long` (page overflow and clipped text from 320 to 1920 on a
+  long-content test page). Numbers first, images only for failing rows; rows in `report/design-check.json`, the
+  same shape as figma-to-wordpress's Figma checks. Default pass marks: colours exact, sizes 1 px, times 10 ms, easing
+  exact, overflow 1 px, 0 clipped text (the first real build sets the final ones).
+- **`long-content.php`** (CLI, local only): `make <route>` copies a page with every text field about three times as
+  long, WYSIWYG repeated and repeater rows doubled (marker `_kitwp_long_test`, noindex); `remove` deletes exactly
+  the IDs it made.
+
+### Changed
+
+- **One plan document:** `_plan/PLAN.md` (goal, the source, how it is built, phases, per-section workflow, Done)
+  replaces BUILD-PLAN.md, ARCHITECTURE.md and SOURCE-NOTES.md; new-site.py fills its source table. CONTENT-MODEL.md
+  and OLD-SITE-URLS.md stay. Projects started on 0.8 keep their files.
+- `region-check.mjs` also compares the region's text, prints failures only (`--all` for every row), keeps images
+  only for failures and ends with `OK|FAIL region-check: n of m pass`. `domdiff.py` takes a simple selector as a
+  region (tag, .class, #id, tag.class).
+- Install table: Antigravity CLI (it replaced Gemini CLI on 18 Jun 2026), Devin Desktop (was Windsurf), OpenCode and
+  Cline added (README, `references/agents.md`, the website).
+- Steps in plain words for any agent: the read-only QA check is a subagent where the tool has one, else a new chat;
+  it reads the numbers first and opens images only for failures.
+
+### Fixed
+
+- Git Bash on Windows rewrites `/about/` into `C:/Program Files/Git/about/`: check-section.py stops with the fix
+  (`MSYS_NO_PATHCONV=1`, or the route without its first slash); a gotcha says so for every parity tool.
+
+### Checked
+
+- Run once on a local test site (Laragon, serve-wp on a port, Secure Custom Fields): start.py, new-site.py
+  `--plan-only` (PLAN.md filled), setup.py (database, WordPress 7.1.4 with 3,782 files checked, wp-config, serve-wp,
+  admin, Contact Form 7, Yoast SEO, SCF; a second run keeps everything), check-section.py (pass, and a text, DOM and
+  PHPCS fault caught), design-check.mjs (a hover colour, a 0.15 s vs 0.3 s transition and a clipped long heading
+  caught), long-content.php make and remove. Test site, database and pages removed afterwards.
+
 ## [0.8.0] - 2026-11-18
 
 Phase by phase, straight through: setup in one go, QA that only logs, one fix loop until QA finds 0, two gates.

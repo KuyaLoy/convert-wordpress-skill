@@ -6,7 +6,7 @@ ACF PRO or the free Secure Custom Fields, forms and emails in Contact Form 7. Ma
 WordPress, including sites made with AI tools that now need a CMS.
 
 It works with any source (plain HTML, Next.js, React, Astro, Vue, Gatsby, Nuxt, SvelteKit...), any kind of business,
-and any country or language, and with any agent that reads skills: Claude, Codex, Cursor, Gemini CLI, Antigravity,
+and any country or language, and with any agent that reads skills: Claude, Codex, Cursor, Antigravity, OpenCode, Cline, Devin Desktop,
 Grok Build and others.
 
 Website: https://kuyaloy.github.io/convert-wordpress-skill/
@@ -42,8 +42,10 @@ Clone this repository into your agent's skills folder. The folder must be named 
 | Claude Code | `~/.claude/skills/convert-to-wordpress` | `.claude/skills/convert-to-wordpress` |
 | Codex | `~/.agents/skills/convert-to-wordpress` | `.agents/skills/convert-to-wordpress` |
 | Cursor | `~/.cursor/skills/` or `~/.agents/skills/` | `.cursor/skills/` or `.agents/skills/` |
-| Gemini CLI | `~/.gemini/skills/` or `~/.agents/skills/` | `.gemini/skills/` or `.agents/skills/` |
-| Antigravity | `~/.gemini/config/skills/` | `.agents/skills/` |
+| Antigravity, Antigravity CLI (was Gemini CLI) | `~/.gemini/config/skills/` | `.agents/skills/` |
+| OpenCode | `~/.config/opencode/skills/` | `.opencode/skills/` |
+| Cline | `~/.cline/skills/` | see Cline's docs |
+| Devin Desktop (was Windsurf) | `~/.config/devin/skills/` or `~/.agents/skills/` | see Devin's docs |
 | Grok Build and others | `~/.agents/skills/` (check the tool's docs) | `.agents/skills/` |
 
 ```

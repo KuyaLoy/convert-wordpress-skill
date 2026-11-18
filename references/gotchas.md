@@ -191,7 +191,10 @@ Each was found late on a design-sourced build and forced a rework (`references/s
   process exactly (`pgrep -f "^php -S"`) and kill by PID.
 - `wp package install` can fail behind a proxy that injects tokens; the _tw generator also works in the browser
   (underscoretw.com) and gives the same zip.
-- Research links found before a context reset are lost: write sources (with the date checked) into ARCHITECTURE.md
+- Git Bash on Windows (the shell many agents use there) rewrites an argument that starts with `/` into a Windows
+  path: `check-section.py /about/` arrives as `C:/Program Files/Git/about/`. Run the parity tools with
+  `MSYS_NO_PATHCONV=1`, or give routes without the first slash (`about/`); check-section.py stops with this hint.
+- Research links found before a context reset are lost: write sources (with the date checked) into PLAN.md
   as you go. Re-check plugin versions right before installing.
 - The first HTML file a folder walk finds is often not the home page (about.html sorts before index.html): read
   site-wide facts such as the `<html lang dir>` attributes from `index.html` nearest the top.

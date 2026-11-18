@@ -10,7 +10,10 @@ sitemap, `/thank-you/`, and a missing URL for the 404).
 | `parity.config.json` | WordPress and reference hosts, quick and full widths, blocked requests, hidden and masked elements, reveal class, frozen clock |
 | `breakpoints.mjs` | Full-run widths from the static CSS: every breakpoint and 1 px past it (`breakpointsFromCss` in the config) |
 | `swaptest.py` | P1-04 swap test: the golden master with the theme's CSS swapped in (same origin), to run `parity.mjs` against |
-| `region-check.mjs` | P1-06: pixel diff of single regions (header, footer, pop-up) before the pages under them exist |
+| `check-section.py` | One call per section: pixel and text (region-check.mjs on the section), DOM (domdiff.py), php -l, PHPCS, duplicates; one line back |
+| `region-check.mjs` | P1-06: pixel and text diff of single regions (header, footer, pop-up, a section); images only for failures |
+| `design-check.mjs` | States (hover, focus, configured clicks), motion (durations, easing) and long content; settings in `design-check.config.json` |
+| `long-content.php` | CLI, local only: a copy of a page with every text field long, for `design-check.mjs --long`; `remove` deletes it |
 | `domdiff.py` | DOM diff of regions (header, main, footer, pop-up) between a static page and a WordPress snapshot |
 | `domdiff.config.json` | Optional: the site's regions and local hosts (see the defaults at the top of domdiff.py) |
 | `mkmirror.py` | Builds a static mirror of the WordPress pages from `_setup/snapshots/` for cloud runs |
@@ -28,6 +31,14 @@ node parity.mjs --routes=/,/about/ --widths=390,1440
 ```
 
 Screenshots are kept only for failing rows (`--keep=all` keeps every one). The reference build kept them all: 1.7 GB.
+
+## One section, and the design checks
+
+```
+python3 check-section.py /about/ --section section.hero      # OK check-section /about/ section.hero: pixel+text 6/6, dom same, ...
+npm run states && npm run motion                             # design-check.mjs, rows in report/design-check.json
+php long-content.php make /about/ && node design-check.mjs --long --routes=/kit-long-test-about/
+```
 
 ## The swap test (P1-04) and the global layout (P1-06)
 
@@ -57,3 +68,5 @@ python3 domdiff.py golden/home.html snapshot/home.html header footer
 
 Output: the failing rows (at most 20) and one summary line (`OK parity: 12 of 12 pass`); `--all` prints every
 row; `report/parity-log.txt` keeps them all. domdiff.py prints one line per region that differs (`-v` for all).
+check-section.py, region-check.mjs and design-check.mjs print the summary first (`OK|FAIL <tool>: ...`), then the
+failing rows. On Windows in Git Bash, run them with `MSYS_NO_PATHCONV=1` (it rewrites `/about/` into a path).
