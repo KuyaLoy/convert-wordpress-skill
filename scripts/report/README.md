@@ -13,7 +13,7 @@ report template to `_setup/launch/report.html`. Nothing here sends anything: eve
 | `pw.mjs` | Finds Playwright: the local install first, then a global one | (used by the scripts above) |
 
 Report: fill `_setup/launch/report.html` with verified facts only (`grep -n "\[\[" report.html` prints nothing when
-done), put the screenshots next to it, then make the PDF. Plain language for the client: no sprint numbers, no tool
+done), put the screenshots next to it, then make the PDF. Plain language for the client: no phase numbers, no tool
 names.
 
 Playwright: `npm i -D playwright` here, then `npx playwright install chromium` (or use a global install; pw.mjs finds

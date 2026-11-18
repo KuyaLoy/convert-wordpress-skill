@@ -1,6 +1,6 @@
 # SEO, tracking, accessibility, security, performance
 
-Read this in Sprint 6, and in Sprint 1 for the security basics. Code: the theme's `seo.php`, `schema.php`,
+Read this in P4, and in P1 for the security basics. Code: the theme's `seo.php`, `schema.php`,
 `cleanup.php`, `head.php`; seed files: `seo.json`, `og-images.json`, `redirects.json`.
 
 ## Contents
@@ -16,7 +16,7 @@ Read this in Sprint 6, and in Sprint 1 for the security basics. Code: the theme'
 
 ## The SEO plugin, seeded
 
-Yoast SEO by default (decision D3; ask before installing). The seeder's SEO step writes:
+Yoast SEO by default (installed by install-wp.py in P1). The seeder's SEO step writes:
 
 - **Head clean-up on:** feeds, shortlinks, REST and oEmbed links, RSD and WLW, generator, emoji, powered-by and
   pingback headers.
@@ -76,7 +76,7 @@ WCAG 2.2 AA as the static site delivers it, and never worse, checked per section
 (`header`, `nav` with labels, `main id="main"`, `footer`), a skip link if the static has one, one H1, alt text on
 every content image from the Media Library (decorative: `alt=""`), an `aria-label` on every control without visible
 text (icon buttons, the menu toggle, social links), labelled form fields, `aria-expanded` and focus handling on
-menus and pop-ups as static, keyboard reachable, reduced motion respected. The UX and QA gates check it each sprint.
+menus and pop-ups as static, keyboard reachable, reduced motion respected. Each phase's QA run checks it (the QA checklist).
 
 ## Security
 
@@ -114,11 +114,18 @@ pixel; for pages and sections the build writes itself, every item applies in ful
   ```
 - **Minimal JavaScript, deferred:** vanilla, `defer` or after the load event (the chat widget, maps below the
   fold), no jQuery for theme code; the static site's own scripts deferred as they were.
-- **No speed plugin** (caching, minify, lazy-load, "optimisation" suites) unless the theme cannot do it; caching
-  and compression rules are in `htaccess-live.txt`. Converter for Media stays (S1-02): it serves WebP for images
-  the client uploads later.
+- **No speed plugin by default:** caching and compression rules are in `htaccess-live.txt`, and the theme does the
+  rest. Converter for Media goes on live at launch: it serves WebP for images the client uploads later.
 
 **Measure:** local Lighthouse is a regression guard only (a local stack is not representative): run it after a
 big change to catch a drop. The real check is **PageSpeed Insights** (pagespeed.web.dev, mobile and desktop) on
 staging, when the build has a public one, and on live. Mobile performance is mostly third-party (reCAPTCHA, tags)
 and icon fonts; report the field and lab numbers honestly.
+
+**The aim: a pass, not a must.** Optimized by default means PageSpeed Insights should pass on live; a heavy design
+(video, big animation, many fonts) may not, and the design is never changed for a score. When live misses a pass
+after the theme items above, add one speed plugin that fits the host, on live (and staging), with the developer's
+OK: the host's own cache first (LiteSpeed Cache on a LiteSpeed host, the host's plugin on managed WordPress hosts),
+otherwise one well-kept caching plugin. Turn on only page cache and browser cache, then CSS/JS options one at a
+time; after each, run the live parity spot check and `live-qa.py`: anything that changes a pixel or breaks a form is
+turned off again. Report before and after numbers.

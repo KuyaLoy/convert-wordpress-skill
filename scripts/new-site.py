@@ -3,8 +3,8 @@
 site's values. Safe to run again (it keeps what is there and reports it).
 
     python3 scripts/new-site.py --start <wp_root> [--name "Site"]   at intake: the folder and two short handoff files
-    python3 scripts/new-site.py site.json --plan-only     Sprint 0: plan, board, handoff files, tools
-    python3 scripts/new-site.py site.json                 Sprint 1: prepare the starter theme and copy the kit in
+    python3 scripts/new-site.py site.json --plan-only     P0: plan, board, handoff files, tools
+    python3 scripts/new-site.py site.json                 P1: prepare the starter theme and copy the kit in
     options: [--profile profile.local.json] [--dry-run] [--force]
 
 site.json: copy assets/site.example.json and fill it in (the intake answers). The profile holds the developer's or
@@ -52,7 +52,7 @@ ap.add_argument('--allow-example', action='store_true', help=argparse.SUPPRESS)
 ap.add_argument('--profile')
 ap.add_argument('--dry-run', action='store_true')
 ap.add_argument('--force', action='store_true')
-ap.add_argument('--plan-only', action='store_true', help='Sprint 0: only the plan, the board, the handoff files and the tools (no WordPress or theme yet)')
+ap.add_argument('--plan-only', action='store_true', help='P0: only the plan, the board, the handoff files and the tools (no WordPress or theme yet)')
 a = ap.parse_args()
 
 INTAKE = '<!-- kit:intake: written by new-site.py --start; --plan-only replaces it and keeps the notes below -->'
@@ -192,6 +192,9 @@ values = {
     'LEAD_FROM': lead.get('from', f"{site['site_name']} <no-reply@{site['domain']}>"),
     'DEVELOPER': site['developer'] if site.get('developer') not in (None, '', 'the developer') else profile.get('developer', 'the developer'),
     'DATE': f'{today.day} {today:%b %Y}',
+    # The handoff summary's "Updated:" stamp: YYYY-MM-DD HH:MM and the numeric timezone (the handoff skill's format).
+    'NOW': (lambda t: t.strftime('%Y-%m-%d %H:%M ') + t.strftime('%z')[:3] + ':' + t.strftime('%z')[3:])(
+        datetime.datetime.now().astimezone()),
 }
 
 
@@ -248,7 +251,7 @@ def move_aside(p):
         shutil.move(p, dst)
 
 
-# 1. The starter theme (skipped with --plan-only: Sprint 0 has no WordPress yet).
+# 1. The starter theme (skipped with --plan-only: P0 has no WordPress yet).
 if a.plan_only:
     if not os.path.isdir(root) and not a.dry_run:
         os.makedirs(root)
@@ -328,7 +331,7 @@ else:
                         write(p, new)
             notes.append(f'Barebones prepared: {len(changed)} files renamed or updated; moved aside: '
                          + (', '.join(moved) if moved else 'nothing'))
-            notes.append('By hand (S1 theme story): includes/admin.php TinyMCE text-size formats (classes the static CSS '
+            notes.append('By hand (P1 theme step): includes/admin.php TinyMCE text-size formats (classes the static CSS '
                          'lacks), the Barebones Sass in assets/styles (replaced by the static CSS), index.php welcome text.')
     else:
         fn = os.path.join(theme, 'functions.php')
@@ -558,7 +561,7 @@ if left:
     print('placeholders still to fill: ' + ', '.join(sorted(left)))
 build = 'npm install && npm run build' if starter == 'barebones' else 'npm install && npm run dev'
 if a.plan_only:
-    print('next: Sprint 0 planning in _plan/ and BUILD-MAP.md; in Sprint 1, after WordPress and the starter theme, run this '
+    print('next: P0 planning in _plan/ and BUILD-MAP.md; in P1, after WordPress and the starter theme, run this '
           'again without --plan-only.')
 else:
-    print(f'next: in {rel(theme_root)}: {build}; php -l and PHPCS on the theme; activate it; then the Sprint 1 stories.')
+    print(f'next: in {rel(theme_root)}: {build}; php -l and PHPCS on the theme; activate it; then the P1 steps.')

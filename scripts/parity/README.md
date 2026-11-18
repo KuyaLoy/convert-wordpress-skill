@@ -9,8 +9,8 @@ sitemap, `/thank-you/`, and a missing URL for the 404).
 | `parity.mjs` | Pixel diff (pixelmatch), visible text diff and SEO diff per route and width; HTML report in `report/` |
 | `parity.config.json` | WordPress and reference hosts, quick and full widths, blocked requests, hidden and masked elements, reveal class, frozen clock |
 | `breakpoints.mjs` | Full-run widths from the static CSS: every breakpoint and 1 px past it (`breakpointsFromCss` in the config) |
-| `swaptest.py` | S1-05 swap test: the golden master with the theme's CSS swapped in (same origin), to run `parity.mjs` against |
-| `region-check.mjs` | S1-07: pixel diff of single regions (header, footer, pop-up) before the pages under them exist |
+| `swaptest.py` | P1-04 swap test: the golden master with the theme's CSS swapped in (same origin), to run `parity.mjs` against |
+| `region-check.mjs` | P1-06: pixel diff of single regions (header, footer, pop-up) before the pages under them exist |
 | `domdiff.py` | DOM diff of regions (header, main, footer, pop-up) between a static page and a WordPress snapshot |
 | `domdiff.config.json` | Optional: the site's regions and local hosts (see the defaults at the top of domdiff.py) |
 | `mkmirror.py` | Builds a static mirror of the WordPress pages from `_setup/snapshots/` for cloud runs |
@@ -23,13 +23,13 @@ npm install
 npx playwright install chromium
 npm run self        # reference against itself: must be 0.000%
 npm run quick       # all routes, quick widths
-npm run full        # sprint end: all routes, full widths
+npm run full        # each phase's QA run and P5: all routes, full widths
 node parity.mjs --routes=/,/about/ --widths=390,1440
 ```
 
 Screenshots are kept only for failing rows (`--keep=all` keeps every one). The reference build kept them all: 1.7 GB.
 
-## The swap test (S1-05) and the global layout (S1-07)
+## The swap test (P1-04) and the global layout (P1-06)
 
 ```
 python3 swaptest.py --ref http://<site>-ref.test --map swap.json   # see the top of swaptest.py for swap.json

@@ -6,7 +6,7 @@ Plan about 2 hours on a quiet day (not Friday). The developer does the hosting s
 
 ## 0. Go / no-go (the day before)
 
-- [ ] Every sprint closed: `python3 _plan/tools/build-map/gate.py BUILD-MAP.md` says all sprints are DONE; final
+- [ ] P5 closed: `python3 _plan/tools/build-map/gate.py BUILD-MAP.md` shows QA found 0 and the Go-live; final
       local parity run clean; seeder second run "same" everywhere.
 - [ ] New copy the static site did not have (a blog page, say) approved by the client; new URLs told to whoever
       runs SEO.

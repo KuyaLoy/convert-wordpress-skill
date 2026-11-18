@@ -81,7 +81,7 @@ One PDF for the task tracker:
 3. `node pdf.mjs report.html Final-Live-Check.pdf ../handover/How-to-Edit-Your-Website.pdf` (the editing guide
    from the client pack appended; make it first: "The client pack" below).
 
-Plain language for the client: no sprint or story numbers, no tool names, no internal notes.
+Plain language for the client: no phase or step numbers, no tool names, no internal notes.
 
 ## The task tracker and the stakeholder message
 

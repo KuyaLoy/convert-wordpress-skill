@@ -14,10 +14,11 @@ website uses the same list.
 | Golden master | Your current site exactly as visitors see it. The new site is compared with it, page by page. |
 | Source | Your current site's files: a GitHub link, a zip or a folder. With only the web address, the agent saves a copy of the pages. |
 | 1:1 | The new site looks and works exactly like the old one, at every screen size, at the same web addresses. |
-| Sprint | One stage of the work (the plan, the foundation, the pages, the forms, SEO, checks). There are eight before launch. |
-| Gate | The stop at the end of a sprint: the agent checks everything, shows you, and waits for your "go". |
-| ACF PRO | Advanced Custom Fields PRO, a paid WordPress plugin that gives every page its edit boxes. |
-| Secure Custom Fields (SCF) | A free plugin kept by WordPress.org that works like ACF PRO: the same edit boxes, no licence. |
+| Phase | One stage of the work: the plan, setup, the pages, the forms, SEO and speed, then the fix loop. Seven in all, launch included. |
+| Gate | One of your two OKs: the plan, and going live. Everything between runs without stopping. |
+| QA finding | A problem the checks found. They are listed after each phase and all fixed together at the end, until the checks find none. |
+| ACF PRO | Advanced Custom Fields PRO, a paid WordPress plugin that gives every page its edit boxes. The default. |
+| Secure Custom Fields (SCF) | A free plugin kept by WordPress.org that works like ACF PRO: the same edit boxes, no licence. Used only if you ask for it. |
 | Contact Form 7 | A free plugin that runs the site's forms and sends their emails. |
 | Yoast SEO | A free plugin for page titles, descriptions and other search settings. |
 | Duplicator | A plugin that packs the finished site and moves it to your web host (the free version is enough; Pro is paid). |

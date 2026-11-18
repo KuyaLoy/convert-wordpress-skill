@@ -1,6 +1,6 @@
 # Study the source: any stack to a golden master
 
-Read this in Sprint 0, before planning. Every site arrives differently (plain HTML, Next.js, a React app, Astro,
+Read this in P0, before planning. Every site arrives differently (plain HTML, Next.js, a React app, Astro,
 Vue...). Study the code first, write down what it does, and produce one golden master: the site exactly as visitors
 get it, served unchanged, that every WordPress page is compared against.
 
@@ -135,7 +135,7 @@ That list is the UX gate's checklist.
 
 Note the `<html lang dir>` (analyze-source.py prints it), every language the site has and how its URLs are built
 (`/en/`, `/ar/`, subdomains, Next.js i18n routing). One language: set the Site Language and keep the static `lang`.
-Several: a decision for the board before Sprint 1 (`references/build.md`, any country, any language).
+Several: a decision for the board before P1 (`references/build.md`, any country, any language).
 
 ## When the source cannot be built
 

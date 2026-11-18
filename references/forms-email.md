@@ -1,6 +1,6 @@
 # Forms and email: Contact Form 7, 1:1
 
-Read this in Sprint 5. The code is the theme's `includes/forms.php`; the seed files are `_setup/seed/forms.json`,
+Read this in P3. The code is the theme's `includes/forms.php`; the seed files are `_setup/seed/forms.json`,
 `quote-form.txt`, `chat-form.txt` and `lead-email.html`.
 
 ## Contents

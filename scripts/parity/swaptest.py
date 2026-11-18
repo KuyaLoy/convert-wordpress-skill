@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The swap test (S1-05): the golden master with the theme's CSS in place of its own must diff 0.000%.
+"""The swap test (P1-04): the golden master with the theme's CSS in place of its own must diff 0.000%.
 
     python3 swaptest.py --ref <golden master URL> --map swap.json [--routes routes.json] [--out swap] [--port 8772]
     python3 serve.py swap 8772 &

@@ -24,10 +24,10 @@ Website: https://kuyaloy.github.io/convert-wordpress-skill/
   Contact Form 7; the fields menu always shows.
 - **Builds 1:1, static first:** every section is copied as static HTML and diffed to zero, then made editable (ACF
   JSON with stable keys, sync, seed, clean). Pixel, DOM, text and SEO diffs prove each page.
-- **Works as a full team:** owner, manager, lead developer guiding a front-end and a WordPress developer, UI, UX,
-  security, tester and QA. Builders build, reviewers sign the gates, nobody approves their own work.
-- **One sprint at a time:** `gate.py` refuses to open the next sprint until every story, page and gate is done and
-  the developer says go.
+- **Phase by phase, straight through:** plan (your OK), setup in one go (WordPress, the default local admin, ACF
+  PRO, Contact Form 7, Yoast, the theme), pages section by section, forms and email, SEO, security and speed. QA
+  after each phase only logs findings; one fix loop at the end until QA finds 0; then your go for live.
+- **QA that is not the author:** `gate.py`, the parity scripts and a fresh read-only subagent check every phase.
 - **Goes live and proves it:** a Duplicator runbook (the free plugin is enough) with rollback, live QA (pages,
   tracking, redirects, private files, host rules), test leads, and a client-ready PDF report.
 - **Keeps a memory:** `handoff.md` and `ai-handoff-summary.md` in every project, so any agent or developer can carry
@@ -85,8 +85,8 @@ Give the skill the site to convert, as a GitHub link, a zip, a folder, or only i
 ```
 
 Or in plain words: "Convert the site in C:/sites/my-site to WordPress". It checks your computer, makes a working
-copy (the original is never touched), studies it, asks only what it cannot find out, writes the plan and Sprint 0,
-and stops at the gate for your go. Later: "continue the WordPress conversion" (it reads the handoff summary),
+copy (the original is never touched), studies it, asks only what it cannot find out, writes the plan,
+and stops for your OK. Later: "continue the WordPress conversion" (it reads the handoff summary),
 "where are we?", "go". New to this? Say so: every reply then uses plain words and exact clicks.
 
 ## Requirements
@@ -101,8 +101,9 @@ and stops at the gate for your go. Later: "continue the WordPress conversion" (i
 
 ## Safety
 
-The skill never types passwords, licence keys or API keys (you paste them), asks before every download, plugin
-install, database change, delete and live step, never edits the source or the golden master, and keeps planning
+The skill never types passwords, licence keys or API keys (you paste them; the one exception is your default local
+admin password, read from your private profile for local sites only), asks for your OK on the plan (which lists the
+downloads and installs) and before any other download, delete and every live step, never edits the source or the golden master, and keeps planning
 files private (blocked on the web server and left out of the launch package).
 
 ## Layout

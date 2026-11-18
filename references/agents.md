@@ -43,9 +43,9 @@ chat reads the new version. A copy saved in a Claude app updates by uploading th
 Run `python3 <kit>/scripts/doctor.py` first: it shows what is ready, what is missing (with the install line for this
 system) and which local WordPress app to use. Needed, by step:
 
-- Sprint 0: Python 3.9 or later (standard library only); git for GitHub links (without git, GitHub zips work); for
+- P0 Plan: Python 3.9 or later (standard library only); git for GitHub links (without git, GitHub zips work); for
   a source that is only a web address, Node.js and Playwright with Chromium (the capture).
-- From Sprint 1: a local WordPress app (Laragon, Local, MAMP, XAMPP, WampServer, Herd, DDEV, wp-env or a native
+- From P1 Setup: a local WordPress app (Laragon, Local, MAMP, XAMPP, WampServer, Herd, DDEV, wp-env or a native
   PHP and MySQL), PHP 8.1 to 8.4; Node.js 18 or later and Playwright with Chromium (`npm install -g playwright`,
   then `npx playwright install chromium`) for the diffs and the report; Composer for PHPCS. WP-CLI is optional.
 - No Python at all (`python3`, `py -3` and `python` all fail): install it first (Windows `winget install -e --id
@@ -58,13 +58,15 @@ system) and which local WordPress app to use. Needed, by step:
 
 - With a question tool (AskUserQuestion and similar): one batch of questions at intake, with the recommended answer
   first. Without one: a short numbered list in the chat, and wait.
-- Ask before: any download, plugin or package install, database change, delete, live change, publishing a board
-  page. With profile `oks: group` (the default), one OK covers the items listed with it, each named with its source
-  and size ("Sprint 1 setup: WordPress, latest.zip from wordpress.org, about 30 MB; Barebones from GitHub; Contact
-  Form 7 and Yoast SEO from wordpress.org. OK?"); with `oks: each`, ask one by one. Deletes and live steps are
-  always asked one at a time.
-- Never type a password, licence key or API key. The developer pastes them; reports say `[PASTE PASSWORD HERE]`. If
-  the developer pastes one into the chat by mistake: do not repeat it, point to where it belongs, suggest changing it.
+- Two gates: the **Plan OK** and the **Go-live** (`references/phases-and-qa.md`). The Plan OK lists the P1
+  downloads, each with its source and size ("P1 setup: WordPress, latest.zip from wordpress.org, about 30 MB;
+  Barebones from GitHub; ACF PRO from your zip; Contact Form 7 and Yoast SEO from wordpress.org"), so setup then runs
+  in one go. With profile `oks: each`, ask for each of those on its own instead. Ask first for anything the plan did
+  not list; deletes outside a fresh install and live steps are always asked one at a time.
+- Never type a password, licence key or API key, except the default local admin password that install-wp.py reads
+  from profile.local.json (local sites only, never printed). The developer pastes the rest; reports say
+  `[PASTE PASSWORD HERE]`. If the developer pastes one into the chat by mistake: do not repeat it, point to where it
+  belongs, suggest changing it.
 - Manual steps (wp-admin, the host panel, Duplicator): one at a time, wait for "done".
 
 ## Replies: beginner mode
@@ -73,7 +75,7 @@ Profile `level: new` (or the developer says they are new to this):
 
 - Plain words. The first time a term comes up, say what it means in a few words (`references/glossary.md`).
 - Every manual step with the exact clicks ("In Local, click + at the bottom left, then Create a new site").
-- End every message that stops the work with the stop report (`references/team-and-sdlc.md`), its last line
+- End every message that stops the work with the stop report (`references/phases-and-qa.md`), its last line
   `Next: <step> — waiting on <who>` in plain words: the one thing they do next, with the exact clicks.
 - Ask in multiple choice with the recommended answer first. Say what each step costs (paid plugins, AI credits).
 
@@ -91,9 +93,9 @@ a minified bundle tens of thousands. So:
 - Let the scripts do the copying and the checking: they print a summary and write the detail to a file. Read that
   file only when something failed.
 - Screenshots only for a failure, cropped to the region. Batch shell commands.
-- One sprint per chat: after a gate closes, send the stop report, then start a new chat ("continue the WordPress
-  conversion").
-- Model choice where the agent offers it: the strongest model for Sprint 0 analysis, CSS and layout failures the
+- Context: from 50% finish the section or page, checkpoint (board, both handoff files), send the stop report and
+  continue in a new chat ("continue the WordPress conversion"); at 75% checkpoint at the next safe point.
+- Model choice where the agent offers it: the strongest model for P0 analysis, CSS and layout failures the
   diffs cannot place, forms and email, the security review and the launch; a faster one for running scripts,
   seeding, lint loops, board and handoff updates and re-runs of failed checks.
 
@@ -106,7 +108,7 @@ a minified bundle tens of thousands. So:
 - A cloud sandbox cannot reach the developer's local sites: run parity there against snapshots and a mirror
   (`tests/parity/README.md`), or run it on the developer's machine.
 - Windows paths: `D:/sites/<site>` works in Python and Node; Git Bash uses `/d/sites/<site>`.
-- An app in a browser chat cannot run the build: it can read uploaded files and write the Sprint 0 plan. For the
+- An app in a browser chat cannot run the build: it can read uploaded files and write the P0 plan. For the
   build, use an agent that runs commands on the developer's computer (Claude Code, Codex, Cursor, Gemini CLI...).
 - A browser tool (the developer's browser, or the agent's own) is for phpMyAdmin, the WordPress installer, wp-admin
   checks, the test leads and the live checks a bot filter blocks. Check which browser profile it drives before
@@ -117,12 +119,12 @@ a minified bundle tens of thousands. So:
 
 When the agent can start subagents, use them where the team needs a second pair of eyes or parallel hands:
 
-- the sprint review (always a fresh reviewer that did not write the code);
-- a developer task from the sprint backlog (the task card: backlog row, files to read, acceptance, test commands),
-  reviewed by the Lead afterwards;
+- the read-only QA check at the end of each phase (a fresh subagent on a faster model, e.g. Sonnet, that did not
+  write the code; the brief is in `references/phases-and-qa.md`);
+- a long mechanical job (seeding a batch of pages, exporting content), checked by you afterwards;
 - independent research (plugin docs, a host's limits) whose sources go into ARCHITECTURE.md.
 
-Without subagents, review in a new session, or switch hats explicitly (`references/team-and-sdlc.md`).
+Without subagents, run the QA check in a new chat, or re-read the changed files with the QA checklist.
 
 ## Agents without skill support
 

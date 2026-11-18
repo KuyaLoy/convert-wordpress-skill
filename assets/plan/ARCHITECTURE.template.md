@@ -1,6 +1,6 @@
 # {{SITE_NAME}}: architecture
 
-Status: **Sprint 0 draft**. Written {{DATE}}. How the WordPress site is built.
+Status: **P0 draft**. Written {{DATE}}. How the WordPress site is built.
 
 ## 1. Stack
 
@@ -27,7 +27,7 @@ Status: **Sprint 0 draft**. Written {{DATE}}. How the WordPress site is built.
 - **Behaviour:** the same state classes and timings in vanilla JS; works with JavaScript off.
 
 Checks: pixel, DOM, text and SEO diffs (tools/parity/) at quick widths per section, the full set (every CSS
-breakpoint and 1 px above) per sprint. Stable shots: motion off, reveal forced, clock frozen, maps and chat masked.
+breakpoint and 1 px above) at each phase's QA run. Stable shots: motion off, reveal forced, clock frozen, maps and chat masked.
 
 ## 3. Folders
 

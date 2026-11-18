@@ -5,6 +5,55 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-11-18
+
+Phase by phase, straight through: setup in one go, QA that only logs, one fix loop until QA finds 0, two gates.
+
+### Changed
+
+- **Phases replace sprints:** P0 Plan (the developer's Plan OK) > P1 Setup > P2 Pages (section by section) > P3
+  Forms and email > P4 SEO, security, speed > P5 Fix and QA loop > the developer's Go-live > P6 Launch and live QA.
+  After each phase QA only logs findings in one list on the board; nothing is fixed before P5 except a blocker (the
+  site breaks, or the next phase cannot start). P5 fixes the whole list and runs the full QA again until it finds 0.
+  Two developer gates (Plan OK, Go-live); no go per phase (SKILL.md rules 4 and 6, `references/phases-and-qa.md`).
+- **No role-play team:** the roles (owner, lead, UI, UX, security, tester, QA) are now the QA checklist. QA per
+  phase = gate.py + the parity scripts + one read-only check by a fresh subagent on a faster model (Sonnet).
+  `references/team-and-sdlc.md` is now `references/phases-and-qa.md`; `_plan/SPRINT-PLAN.md` is now
+  `_plan/BUILD-PLAN.md` (shorter: goal, phases, per-section workflow, Done, every session).
+- **Board = progress page:** BUILD-MAP.md has Phases (with the QA run), Developer gates, steps per phase, Pages (page,
+  route, section, status: todo, building, built, checked, fixed), QA findings (F-001...; blocker, major, minor;
+  open, fixed after a re-check, or decided) and the Log, in the figma-to-wordpress skill's words. `gate.py` (exit
+  0/1/2) rewritten for it; `render.py` writes `progress.json` in the shared shape (figma-to-wordpress's keys and
+  phase ids) and the same progress page (its layout, MIT); the old board template is gone. Boards made with 0.7 or
+  older keep their kit version.
+- **Passwords:** rule 5 allows one exception: the developer's default local admin password, read by install-wp.py
+  from `profile.local.json` for local sites only and never printed. Live admins keep their own password, typed by
+  the developer.
+- **ACF PRO by default:** the intake no longer asks ACF PRO or Secure Custom Fields (SCF only when asked).
+- **Optimized by default:** SEO standard; PageSpeed Insights aimed at a pass, not a must. A heavy design that misses
+  it on live gets one speed plugin that fits the host, checked for parity after each option; the design is never
+  changed for a score (`references/seo-security.md` > Performance).
+- **Converter for Media and Contact Form CFDB7** are installed on live at launch, not locally (setup, launch,
+  essentials).
+- **Context rule:** from 50% finish the section or page, checkpoint and continue in a new chat; cap 75% (replaces
+  "a new chat after each gate").
+- **Handoff templates** aligned with the handoff skill 1.2: summary header with `Updated: YYYY-MM-DD HH:MM +zz:zz`
+  (new `{{NOW}}` value in new-site.py), tagged facts, "Waiting on"; the generated summary passes its checker.
+
+### Added
+
+- `scripts/setup/install-wp.py`: local WordPress in one go: install with the default local admin from the profile's
+  new `local_admin` (e.g. `agency-dev`), permalinks, search engines discouraged, timezone, the WordPress block in
+  .htaccess, the fresh-install samples removed, Contact Form 7 and Yoast SEO from wordpress.org (every file checked
+  against the official checksums), ACF PRO from the profile's zip (or SCF with `--fields scf`), all activated,
+  debug.log read. Refuses unless the URL is local and wp-config says `local`. Plugins unzip into a temp folder with
+  Windows long-path support and move into place only when complete.
+- `references/wordpress-essentials.md`: the WordPress rules in one page (plugins local and live, local setup,
+  theme, fields, forms and email, SEO, security, speed, launch, live QA, passwords), a stable path other skills
+  read.
+- `tests/test_phases.py`: gate rules (work ahead, bad values, QA run, blockers, the fix loop and the go-live),
+  render.py, install-wp.py's local-only guard.
+
 ## [0.7.1] - 2026-11-17
 
 No agent ends a turn silently: every stop sends a short report upward with its next step.

@@ -1,7 +1,8 @@
 # Setup: intake, local WordPress, theme, plugins
 
-Read this in Sprint 0 (intake) and Sprint 1 (foundation). Every download, install, database change and folder
-access needs the developer's OK first. The developer types every password and licence key.
+Read this in P0 (intake) and P1 (setup). The developer's Plan OK covers the downloads and installs the plan lists;
+anything else needs its own OK. The developer types every password and licence key, except the default local admin
+password install-wp.py reads from profile.local.json.
 
 ## Contents
 
@@ -29,10 +30,7 @@ source, the task, the profile) and ask once, in one batch, the suggestion first.
 2. "What do you have of the site?" A GitHub link, a zip, a folder, or only its web address (then the live site is
    captured; only a site they own or may rebuild). Usually given with `/convert-to-wordpress <source>`.
 3. "Have you built websites before?" Sets `level` (`new` or `developer`) for every reply after this one.
-4. "Which fields plugin: ACF PRO (paid, advancedcustomfields.com) or the free Secure Custom Fields?" Both run the
-   kit unchanged. The move to live uses Duplicator: the free version is enough for a normal site. Say it plainly
-   before Sprint 1.
-5. "Where will the site live, and what is its domain?" The host (cPanel or another), the live domain.
+4. "Where will the site live, and what is its domain?" The host (cPanel or another), the live domain.
 
 Ask the developer-level questions too when they apply (in the same batch):
 
@@ -53,7 +51,7 @@ short handoff files there, so a closed chat loses nothing ("continue the WordPre
 
 doctor.py's `suggestion` says how, for the local app it found:
 
-| doctor `serve` | Apps | What to do in Sprint 1 |
+| doctor `serve` | Apps | What to do in P1 |
 |---|---|---|
 | `vhost` | Laragon, Laravel Herd | The app gives every folder in its web folder its own address (`<site>.test`): download WordPress into `<www>/<site>` |
 | `local-app` | Local | The developer makes the site in Local (+, Create a new site); the skill keeps that WordPress (`get-wordpress.py --verify`, `make-wp-config.py --existing`) |
@@ -70,7 +68,7 @@ long or spaced paths when doctor.py warns.
 `analyze-source.py --env doctor.json --site-draft <wp_root>/_plan/site.json` writes a first one (starter, GTM, html
 attributes, fonts from the source; folder, address and how WordPress is made from doctor.py); without it, copy
 `assets/site.example.json`. new-site.py refuses the example values (Example Co, example.com, an empty folder). Fill
-the rest from the intake. Then create the project (Sprint 0: plan, board, handoff files, tools; no WordPress needed
+the rest from the intake. Then create the project (P0: plan, board, handoff files, tools; no WordPress needed
 yet):
 
 ```
@@ -133,8 +131,10 @@ make-wp-config.py.
 
 ## WordPress
 
+All of P1-01 runs in one go after the Plan OK (it listed these downloads); no question at each step.
+
 **A WordPress the local app made** (doctor `wordpress: existing`: Local, DDEV, wp-env): the developer makes the site
-in the app (its own admin user and password), then:
+in the app, then:
 
 1. `python3 _plan/tools/setup/get-wordpress.py <wp_root> --verify`: every core file against the official list.
 2. `python3 _plan/tools/setup/make-wp-config.py <wp_root> --existing`: adds the kit block (environment local, debug
@@ -143,8 +143,7 @@ in the app (its own admin user and password), then:
 
 **Otherwise** (doctor `wordpress: download`):
 
-1. Ask: "May I download WordPress (latest.zip from wordpress.org, about 30 MB) into `<wp_root>`?" With profile
-   `oks: group`, list it with the theme and the plugins in one OK.
+1. The database (above).
 2. `python3 _plan/tools/setup/get-wordpress.py <wp_root>`: SHA-1 of the zip and every core file against the official
    MD5 list; never overwrites; sets 0644/0755. No network in this shell: the developer downloads the zip and you
    pass `--zip`.
@@ -152,13 +151,32 @@ in the app (its own admin user and password), then:
    generated and never printed; `WP_ENVIRONMENT_TYPE` local, debug log on (display off), `DISALLOW_FILE_EDIT`.
 4. doctor `serve: serve-wp`: `python3 _plan/tools/setup/serve-wp.py <wp_root> --background` (the PHP doctor.py
    found; `--port` if 8081 is taken).
-5. The installer, http://<local_host>/wp-admin/install.php: fill the site title, the admin username (profile) and
-   email if asked; the developer types the password.
 
-Then, for both: Permalinks `/%postname%/`; timezone and language as the business; Reading "Discourage search
-engines" on (local only). Delete the sample post, page and comment, Akismet and Hello Dolly, and later the default
-themes: with the developer's OK (permanent deletes are their click). PHP 8.3 or 8.4 locally (on the reference build
-an old PHP 8.1 build could not reach wordpress.org over HTTPS).
+**Then, for both:**
+
+```
+python3 _plan/tools/setup/install-wp.py <wp_root> --url http://<site>.test --title "<Site>"         --profile <kit>/profile.local.json [--timezone <Area/City>] [--php <doctor's php>] [--dry-run]
+```
+
+- Local only: it refuses unless wp-config says `WP_ENVIRONMENT_TYPE` local and the URL is a local address
+  (localhost, 127.0.0.1, `*.test`, `*.localhost`, `*.local`).
+- Not installed yet: installs WordPress with the **default local admin** from the profile's `local_admin`
+  (username, e.g. `agency-dev`, and email). The password is the developer's default local password, which they put
+  once in `profile.local.json` > `local_admin.password` (git ignores that file), or in `KITWP_ADMIN_PASSWORD` in
+  their own shell. The script passes it to PHP through the environment and never prints it; the agent never types
+  or repeats it. Already installed (a local app made it): users and passwords stay as they are.
+- Settings: permalinks `/%postname%/`, "Discourage search engines" on, the timezone, the WordPress block in
+  `.htaccess`. Fresh install only: the sample post, page and comment, Hello Dolly and Akismet removed.
+- Plugins: Contact Form 7 and Yoast SEO from wordpress.org (every file checked against the official checksums), ACF
+  PRO from the profile's `plugin_zips.acf_pro` (`--fields scf`: Secure Custom Fields instead, only when the
+  developer asks), all activated; debug.log read. A plugin folder that exists is kept.
+- Exit 0 all done; 1 open items listed (no ACF PRO zip yet: the developer downloads it from their ACF account and
+  sets the path, then run it again); 2 refused.
+- Then: language and date formats as the business (Settings > General); the developer pastes the ACF PRO licence.
+  Default themes are removed later, with the developer's OK. PHP 8.3 or 8.4 locally (on the reference build an old
+  PHP 8.1 build could not reach wordpress.org over HTTPS).
+- **Live** never uses install-wp.py or the default password: the live admin gets its own strong password, typed by
+  the developer.
 
 ## The starter theme: Barebones or _tw
 
@@ -195,12 +213,11 @@ dev`), and activate the theme (Appearance > Themes, or `wp theme activate <theme
 
 ## Starter plugins
 
-ACF PRO or Secure Custom Fields, Contact Form 7 and Yoast SEO at the start. Ask before installing each.
+ACF PRO, Contact Form 7 and Yoast SEO, installed by install-wp.py in P1 (the Plan OK covers them).
 
-- Contact Form 7: Plugins > Add New, or `wp plugin install contact-form-7 --activate`.
-- Yoast SEO: `wp plugin install wordpress-seo --activate`. Seeded in Sprint 6; its schema is replaced by the
-  static JSON-LD.
-- Secure Custom Fields (free, `secure-custom-fields`, the fork of ACF that WordPress.org maintains): the kit runs on
+- Contact Form 7 (`contact-form-7`) and Yoast SEO (`wordpress-seo`): from wordpress.org. Yoast is seeded in P4; its
+  schema is replaced by the static JSON-LD.
+- Secure Custom Fields (free, `secure-custom-fields`; only when the developer asks, `install-wp.py --fields scf`): runs
   it unchanged, with repeater, flexible content, gallery, clone, the options page, local JSON in `acf-json/`, the
   seeder and `get_field()` (tested: SCF 6.9 on WordPress 7.1). Its menu is SCF: read "ACF >" as "SCF >". No
   licence, so the `ACF_PRO_LICENSE` line stays commented. Never ACF PRO and SCF active together.
@@ -210,15 +227,15 @@ ACF PRO or Secure Custom Fields, Contact Form 7 and Yoast SEO at the start. Ask 
   skill, the profile or a chat.
 - The ACF menu always shows to administrators, on live too: the licence page and the field groups live there.
   includes/acf.php never hides it.
-- Later, each in the sprint that needs it and after asking:
+- Later, each in the phase that needs it:
 
 | Plugin | Slug | When |
 |---|---|---|
-| Redirection | `redirection` | Optional: only when the site has old URLs to redirect (Sprint 6) |
+| Redirection | `redirection` | Optional: only when the site has old URLs to redirect (P4) |
 | Duplicator | `duplicator` (free), or Pro from the developer's zip | The move to live (launch) |
-| Converter for Media | `webp-converter-for-media` | Must be on live: WebP for images uploaded later (launch; check images after) |
-| Contact Form CFDB7 | `contact-form-cfdb7` | Must be on live: every enquiry kept in the database (Sprint 5 or launch) |
-| The profile's `extra_plugins` | per entry | The developer's or agency's own plugins: `required` ones in S1-02 with the starters and active on live; the others when the entry says |
+| Converter for Media | `webp-converter-for-media` | Must be on live: WebP for images uploaded later (installed at launch, live only; check images after) |
+| Contact Form CFDB7 | `contact-form-cfdb7` | Must be on live: every enquiry kept in the database (installed at launch, live only) |
+| The profile's `extra_plugins` | per entry | The developer's or agency's own plugins: `required` ones in P1 with the starters and active on live; the others when the entry says |
 
 - After every plugin install: read `wp-content/debug.log`. A second copy of a plugin gives "Cannot redeclare"
   fatals.

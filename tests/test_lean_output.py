@@ -47,7 +47,7 @@ class LeanOutput(unittest.TestCase):
         self.assertEqual(run('scripts/new-site.py', sj, '--plan-only').returncode, 0)
         r = run('scripts/build-map/gate.py', os.path.join(root, 'BUILD-MAP.md'))
         lines = r.stdout.strip().splitlines()
-        self.assertTrue(lines[0].startswith('WARN gate: S0'), lines[0])
+        self.assertTrue(lines[0].startswith('WARN gate: P0'), lines[0])
         self.assertLessEqual(len(lines), 20)
 
 

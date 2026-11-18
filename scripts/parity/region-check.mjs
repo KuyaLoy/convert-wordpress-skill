@@ -1,4 +1,4 @@
-// Pixel diff of single regions (header, footer...) between the golden master and WordPress: the S1-07 check,
+// Pixel diff of single regions (header, footer...) between the golden master and WordPress: the P1-06 check,
 // before the pages under them exist.
 //   node region-check.mjs <ref> <wp> [route] [selectors] [widths] [hide]
 //   node region-check.mjs http://site-ref.test http://site.test / header,footer 390,768,1440 main,#consent

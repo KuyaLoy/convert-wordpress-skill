@@ -1,6 +1,6 @@
 # {{SITE_NAME}}: content model
 
-Status: **Sprint 0 draft**. Written {{DATE}}. What gets built and where every piece of content lives.
+Status: **P0 draft**. Written {{DATE}}. What gets built and where every piece of content lives.
 Source: see `SOURCE-NOTES.md`. Design reference: the golden master (`ARCHITECTURE.md`).
 
 ## 1. Principles
@@ -30,9 +30,9 @@ Copy rules from the source (copy brief) go into the field instructions.
 
 Every route of the static sitemap, plus /thank-you/ and the 404. One row each.
 
-| # | URL | Title in wp-admin | Built with | H1 from | JSON-LD | Sprint |
+| # | URL | Title in wp-admin | Built with | H1 from | JSON-LD | Phase |
 |---|---|---|---|---|---|---|
-| 1 | `/` | Home | Front page, Page Sections | Hero | Org | S4 |
+| 1 | `/` | Home | Front page, Page Sections | Hero | Org | P2 |
 
 Pages the static site lacks (a blog index, archives): listed here as new, in the site's design, flagged to SEO.
 

@@ -29,7 +29,7 @@ body:
     attributes:
       label: How far did you get?
       options:
-        - The plan (Sprint 0)
+        - The plan (P0)
         - Part of the build
         - The whole build
         - Live

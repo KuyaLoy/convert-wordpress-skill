@@ -33,7 +33,7 @@ class ServeWP(unittest.TestCase):
             'index.php': '<?php echo "WP " . $_SERVER["REQUEST_URI"] . " " . $_SERVER["SCRIPT_NAME"];',
             'wp-admin/index.php': '<?php echo "ADMIN";',
             'wp-content/themes/t/style.css': 'body{color:red}',
-            '_plan/SPRINT-PLAN.md': 'private',
+            '_plan/BUILD-PLAN.md': 'private',
             '_setup/.keep': '',
             'handoff.md': 'private',
         }
@@ -58,7 +58,7 @@ class ServeWP(unittest.TestCase):
             self.assertEqual(get(base + '/'), (200, 'WP / /index.php'))
             self.assertEqual(get(base + '/wp-admin/'), (200, 'ADMIN'))
             self.assertEqual(get(base + '/wp-content/themes/t/style.css'), (200, 'body{color:red}'))
-            self.assertEqual(get(base + '/_plan/SPRINT-PLAN.md')[0], 403)
+            self.assertEqual(get(base + '/_plan/BUILD-PLAN.md')[0], 403)
             self.assertEqual(get(base + '/handoff.md')[0], 403)
             self.assertEqual(get(base + '/wp-config.php')[0], 403)
         finally:

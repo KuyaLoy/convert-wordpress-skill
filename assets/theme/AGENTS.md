@@ -6,9 +6,9 @@ convert-to-wordpress skill on the {{STARTER}} starter theme.
 ## Read first
 
 - `../../../ai-handoff-summary.md` (short), then only the section you need from `../../../handoff.md`.
-- Work follows `../../../BUILD-MAP.md` story by story, one sprint at a time: run
-  `python3 ../../../_plan/tools/build-map/gate.py ../../../BUILD-MAP.md` before you start and before a sprint closes.
-- The plan lives in `../../../_plan/`: SPRINT-PLAN (team gates, life cycle, workflow, Done), CONTENT-MODEL (fields),
+- Work follows `../../../BUILD-MAP.md` section by section, one phase at a time: run
+  `python3 ../../../_plan/tools/build-map/gate.py ../../../BUILD-MAP.md` before you start and before a phase closes.
+- The plan lives in `../../../_plan/`: BUILD-PLAN (goal, phases, per-section workflow, Done), CONTENT-MODEL (fields),
   ARCHITECTURE (how it is built), SOURCE-NOTES (what the static source says).
 
 ## The rule above all others: 1:1

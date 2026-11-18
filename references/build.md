@@ -1,6 +1,6 @@
 # Build: 1:1 theme, ACF, media, pages, seeder, parity
 
-Read this from Sprint 1 to Sprint 4. The kit files named here are in the theme's `includes/` after new-site.py.
+Read this in P1 and P2. The kit files named here are in the theme's `includes/` after new-site.py.
 
 ## Contents
 
@@ -16,7 +16,7 @@ Read this from Sprint 1 to Sprint 4. The kit files named here are in the theme's
 
 ## Static first, then dynamic
 
-Every section goes through the same steps (SPRINT-PLAN section 4): the Front-end developer copies the section's
+Every section goes through the same steps (BUILD-PLAN section 3): first copy the section's
 rendered HTML from the golden master into its partial (same tags, classes, attributes, order) with the copy
 hardcoded, and diffs it to zero. Only then does the WordPress developer add fields, sync, wire, seed and test
 again. Fields replace content, never structure, classes or order.
@@ -31,7 +31,7 @@ again. Fields replace content, never structure, classes or order.
   into theme URLs). Self-hosted fonts the static head preloads: `KITWP_PRELOAD_FONTS`. Either way the swap test
   must diff 0.000%: `tests/parity/swaptest.py` writes the golden master with the theme's CSS swapped in, served from
   one origin, and `parity.mjs` compares it with the golden master.
-- **Global layout check (S1-07):** before the pages exist, compare regions, not pages: `region-check.mjs` (pixels
+- **Global layout check (P1-06):** before the pages exist, compare regions, not pages: `region-check.mjs` (pixels
   of header, footer, pop-up, with `main` and fixed overlays hidden on both sides) and `domdiff.py` (structure).
 - **Nothing else styles the page** (`cleanup.php`): block library, classic and global styles (and the footer copy),
   block supports, the image auto-sizes CSS, CF7's CSS, emoji, and the head extras. The admin bar is hidden on the
@@ -54,7 +54,7 @@ again. Fields replace content, never structure, classes or order.
   works with JavaScript off where the static site does.
 - **Constants** (`config.php`): schema type, area served, country code, price range, brand colour, OG locale,
   thank-you path, form class, chat selector, reCAPTCHA mode, image widths, first device size, preload assets,
-  robots.txt, opening hours. Set them from the static site in Sprint 1.
+  robots.txt, opening hours. Set them from the static site in P1.
 
 ## Any country, any language
 
@@ -118,7 +118,7 @@ client's login). `client-admin.php` gives every user without `manage_options` a 
   address" and "See enquiries", and a "Need help?" line from `KITWP_CLIENT_HELP` (set at intake, for example the
   developer's email; empty hides it).
 - ACF's own menu (Field Groups, Tools) is hidden from the client. Editing pages and Theme Settings still works.
-- Check it in Sprint 5 or 6 with a local Editor login: the menu, the widget, a page save, a Theme Settings save,
+- Check it in P3 or P4 with a local Editor login: the menu, the widget, a page save, a Theme Settings save,
   and the enquiries list. A new plugin menu the client needs goes into the filter, not into the kit file.
 
 ## Media: sizes, WebP, srcset, priority
@@ -196,7 +196,7 @@ stay theme files.
 - Stable shots: motion off, scroll reveal forced, the clock frozen, maps and chat masked, fixed waits (map iframes
   never reach network idle), the viewport grown and images loaded first.
 - Self-test first: the golden master against itself must be 0.000%.
-- Quick widths (390, 768, 1440) per section; the full set (every breakpoint and 1 px above) per sprint.
+- Quick widths (390, 768, 1440) per section; the full set (every breakpoint and 1 px above) at each phase's QA run and in P5.
 - Reading results: 0.000% with equal heights is the goal. A 0.1 to 0.3% band is usually an image caught mid
   srcset swap. One wild shot with fallback fonts is a font that loaded late under load: re-run that shot first.
 - Where to run: wherever a browser reaches both sites. A cloud shell cannot reach `.test` sites: use snapshots, the

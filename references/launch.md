@@ -1,6 +1,6 @@
 # Launch: Duplicator on cPanel, and changes after go-live
 
-Read this after Sprint 7 closes. The project's own step list is `_setup/launch/RUNBOOK.md` (from
+Read this after P5 closes with the developer's Go-live. The project's own step list is `_setup/launch/RUNBOOK.md` (from
 `assets/launch/RUNBOOK.template.md`): go/no-go, backup, package, move, switch on, checks, rollback. The developer
 does every hosting step; the agent gives one step at a time, waits for "done", checks, then gives the next.
 
@@ -17,7 +17,7 @@ does every hosting step; the agent gives one step at a time, waits for "done", c
 
 ## Before the day
 
-- gate.py says every sprint is DONE; the final full parity run is clean; the seeder's second run says "same".
+- gate.py has closed P5 (QA found 0, the Go-live given); the final full parity run is clean; the seeder's second run says "same".
 - The client approved any new copy; new URLs are known to whoever owns SEO.
 - reCAPTCHA keys exist for the live domain and the local host; the badge position is decided.
 - Mail: SPF includes the server (and the host's outgoing filter, for example MailChannels) and a DMARC record

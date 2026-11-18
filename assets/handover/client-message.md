@@ -2,7 +2,7 @@
 - Fill every [[...]] and delete what does not apply. Done when grep -n "\[\[" client-message.md prints nothing
   (after this block is gone).
 - Plain English: short sentences, no jargon. No tool or add-on names, no "ACF", "CF7", "DNS", "cache" or "plugin",
-  no sprint or task numbers, no internal notes.
+  no phase or task numbers, no internal notes.
 - No internal file names or paths (no _setup, no .html, no handoff). Name the PDFs only by their file names below.
 - No passwords, ever. Write logins as "sent separately". The developer sends the login through a private channel.
 - No em dashes. Use a full stop or a colon instead.
