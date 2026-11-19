@@ -62,7 +62,9 @@ https://github.com/KuyaLoy/convert-wordpress-skill: ask the developer where thei
 5. **Never type a password, licence key or API key**, with one exception: the developer's default local admin
    password, which `install-wp.py` reads from `profile.local.json` (`local_admin`) for a local site only and never
    prints. Live admins get their own strong password, typed by the developer; reports say `[PASTE PASSWORD HERE]`.
-   ACF PRO's key: the developer pastes it into wp-config (`ACF_PRO_LICENSE`).
+   ACF PRO's key: the developer puts it once in `profile.local.json` (`acf_pro_license`), and make-wp-config.py
+   writes it into each local wp-config (never printed), or pastes it into wp-config (`ACF_PRO_LICENSE`). Not on live
+   unless the developer chooses.
 6. **One phase at a time; QA only logs.** After each phase QA writes its findings in one list on the board; nothing
    is fixed before the fix loop except a blocker (the site breaks, or the next phase cannot start). `gate.py`
    opens the next phase.
@@ -177,7 +179,8 @@ handoff files.
    `agency-dev`; local sites only), permalinks `/%postname%/`, "Discourage search engines", the fresh-install samples
    removed, Contact Form 7 and Yoast SEO (checksums) and ACF PRO from the profile's zip, all active. `--dry-run`
    shows the steps first. Exit 1 lists open items (no ACF PRO zip or local password yet: the developer adds them to
-   the profile, then run it again). The developer pastes the ACF PRO licence. The business's language and date
+   the profile, then run it again). ACF PRO activates itself when the profile has `acf_pro_license`; otherwise the
+   developer pastes the licence. The business's language and date
    formats in Settings. Profile `extra_plugins` marked `required` go in here too. **The ACF menu shows** to
    administrators, on live too. Converter for Media and Contact Form CFDB7 are not installed locally: they go on
    live at launch. The separate scripts (`references/setup.md`) stay for a step that needs repeating.

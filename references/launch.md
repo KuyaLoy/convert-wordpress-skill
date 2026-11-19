@@ -100,7 +100,8 @@ with `curl --resolve <host>:443:<server ip>` (GET only) before the A record chan
 - Nothing of the installer is left in `public_html` (anyone could download it): `installer.php` and
   `installer-backup.php` answer 404, and `dup-installer/`, `dup-installer-bootlog__*.txt` and the archive (`.zip` or
   `.daf`) are gone. The installer's last step offers to remove them; `htaccess-live.txt` blocks them as well.
-- wp-config: `WP_ENVIRONMENT_TYPE` production, debug off, `DISALLOW_FILE_EDIT` true. Left on `local`, the seeder
+- wp-config: `WP_ENVIRONMENT_TYPE` production, debug off, `DISALLOW_FILE_EDIT` true; the `ACF_PRO_LICENSE` line
+  from the local profile removed, unless the developer chooses to activate the live URL with it. Left on `local`, the seeder
   loads and every lead goes to the admin only.
 - `.htaccess` = `htaccess-live.txt`: http and www to https in one hop, the private-files block, the WordPress
   block, compression and caching.

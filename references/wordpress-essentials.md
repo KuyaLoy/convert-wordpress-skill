@@ -48,7 +48,8 @@ One command (doctor.py ran at intake): the local database if missing, WordPress 
 debug log, the `ACF_PRO_LICENSE` line), serve-wp.py when the local app has no site addresses, then install-wp.py: the default local admin from the profile's `local_admin` (username, e.g. `agency-dev`, email,
 password), local sites only; permalinks `/%postname%/`, search engines discouraged, the fresh-install samples,
 Hello Dolly and Akismet removed; Contact Form 7 and Yoast from wordpress.org with every file checked; ACF PRO from
-the developer's zip; all activated. The developer pastes the ACF PRO licence into `ACF_PRO_LICENSE` in wp-config.
+the developer's zip; all activated. ACF PRO activates itself when the profile has `acf_pro_license` (written into
+local wp-config files only, never printed); otherwise the developer pastes the key into `ACF_PRO_LICENSE`.
 Details: `references/setup.md` > WordPress.
 
 ## Theme
@@ -117,5 +118,6 @@ the report as one PDF, the client pack (website sheet, editing guide, message). 
 
 The agent never types a password, licence key or API key, with one exception: the developer's **default local
 admin password**, which install-wp.py reads from `profile.local.json` (never committed) for a local site only,
-passes to PHP through the environment, and never prints. Live admins get their own strong password, typed by the
+passes to PHP through the environment, and never prints. The ACF PRO key in the same profile (`acf_pro_license`)
+is the developer's own entry too: make-wp-config.py writes it into local wp-config files only. Live admins get their own strong password, typed by the
 developer; reports say `[PASTE PASSWORD HERE]`.

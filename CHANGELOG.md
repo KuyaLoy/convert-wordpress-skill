@@ -5,6 +5,22 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.9.2] - 2026-11-20
+
+### Added
+
+- **ACF PRO pre-activated from the profile:** an optional `acf_pro_license` in `profile.local.json` (typed by the
+  developer). With it, make-wp-config.py (`--profile`; setup.py passes it) writes `define( 'ACF_PRO_LICENSE', ... );`
+  active in LOCAL wp-config files only (`--env local`), so ACF PRO activates itself on that URL; the value is never
+  printed. Empty: today's commented line. setup.py adds the key to a kit block that only has the commented line.
+  Clones: `make-wp-config.py <copy> --existing --profile ...` on each copy. Live: not written by default; the launch
+  steps remove the line from the copied wp-config unless the developer chooses to keep it.
+
+### Fixed
+
+- `make-wp-config.py --existing` run again dropped a key the developer had pasted into the kit block: it is kept now
+  (a key written from the profile is refreshed from the profile instead).
+
 ## [0.9.1] - 2026-11-19
 
 The starter rule's middle case, and the code-quality lessons from a read-only audit of a large Figma build (no

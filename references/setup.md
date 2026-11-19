@@ -189,7 +189,8 @@ python3 _plan/tools/setup/install-wp.py <wp_root> --url http://<site>.test --tit
   developer asks), all activated; debug.log read. A plugin folder that exists is kept.
 - Exit 0 all done; 1 open items listed (no ACF PRO zip yet: the developer downloads it from their ACF account and
   sets the path, then run it again); 2 refused.
-- Then: language and date formats as the business (Settings > General); the developer pastes the ACF PRO licence.
+- Then: language and date formats as the business (Settings > General); the ACF PRO licence is active when the
+  profile has `acf_pro_license` (below), otherwise the developer pastes it.
   Default themes are removed later, with the developer's OK. PHP 8.3 or 8.4 locally (on the reference build an old
   PHP 8.1 build could not reach wordpress.org over HTTPS).
 - **Live** never uses install-wp.py or the default password: the live admin gets its own strong password, typed by
@@ -249,9 +250,21 @@ ACF PRO, Contact Form 7 and Yoast SEO, installed by install-wp.py in P1 (the Pla
   seeder and `get_field()` (tested: SCF 6.9 on WordPress 7.1). Its menu is SCF: read "ACF >" as "SCF >". No
   licence, so the `ACF_PRO_LICENSE` line stays commented. Never ACF PRO and SCF active together.
 - ACF PRO: the developer's zip from their ACF account (the profile's `plugin_zips.acf_pro` path, if set). The
-  licence: the developer pastes the key into the commented `ACF_PRO_LICENSE` line that make-wp-config.py writes in
-  wp-config.php (or enters it in ACF > Updates). Never edit the plugin to hold a key, and never put a key in the
-  skill, the profile or a chat.
+  licence, either way typed by the developer, never by the agent:
+  - **Pre-activated:** the developer puts the key once in `profile.local.json` as `acf_pro_license` (git-ignored, in
+    the skill folder, which is never served). setup.py and make-wp-config.py (`--profile <kit>/profile.local.json`)
+    then write `define( 'ACF_PRO_LICENSE', '...' );` active in every LOCAL wp-config (`--env local` only), so ACF PRO
+    activates itself on that URL. The value is never printed, logged, or written to notes, reports, handoff files,
+    git or the client pack. A rerun writes the profile's current key; a key the developer pasted by hand is kept.
+  - **By hand:** the developer pastes the key into the commented `ACF_PRO_LICENSE` line (or enters it in ACF >
+    Updates).
+  - **Clones** (one site copied to new URLs, several sites from one template): run
+    `make-wp-config.py <copy> --existing --profile <kit>/profile.local.json` on each copy, so each activates on its
+    own URL.
+  - **Live:** the key is not written there by default. Duplicator copies the local wp-config, so at launch the
+    `ACF_PRO_LICENSE` line is removed from the live wp-config unless the developer chooses to keep it (then ACF
+    activates the live URL too; one licence site each).
+  Never edit the plugin to hold a key, and never put a key in the skill's tracked files, a report or a chat.
 - The ACF menu always shows to administrators, on live too: the licence page and the field groups live there.
   includes/acf.php never hides it.
 - Later, each in the phase that needs it:

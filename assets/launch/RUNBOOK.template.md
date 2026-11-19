@@ -49,7 +49,8 @@ Plan about 2 hours on a quiet day (not Friday). The developer does the hosting s
    `.daf`) are gone. Duplicator keeps the original `.htaccess` in its `original_files_` folder.
 6. `wp-config.php` (Duplicator copied the local one): `WP_ENVIRONMENT_TYPE` `production` (on "local" the seeder
    loads and every lead goes to the admin only), `WP_DEBUG`, `WP_DEBUG_LOG`, `WP_DEBUG_DISPLAY` false,
-   `DISALLOW_FILE_EDIT` true.
+   `DISALLOW_FILE_EDIT` true. The `ACF_PRO_LICENSE` line from the local profile: removed, unless the developer
+   chooses to keep it (it activates this URL too).
 7. `.htaccess` = `_setup/launch/htaccess-live.txt` (paste the cPanel handler block back at the top if there was one).
 
 ## 4. Switch on (wp-admin, live)

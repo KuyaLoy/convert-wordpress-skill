@@ -5,6 +5,7 @@ local app already made (Local, DDEV, a host's installer). Salts are generated he
     python3 make-wp-config.py <site folder> --db db_example [--user root] [--host localhost] [--prefix wp_]
                               [--env local] [--no-cron] [--force]
     python3 make-wp-config.py <site folder> --existing [--env local] [--no-cron]
+    add --profile <kit>/profile.local.json (default: the kit's own, when this runs from the kit) for the ACF PRO key
 
 --existing keeps the database settings and the salts as they are, saves a copy in _setup/backups/, writes the kit
 block (between /* kit:settings start */ and /* kit:settings end */; running it again replaces the block) and turns
@@ -19,11 +20,15 @@ Adds before "That's all, stop editing!":
   WP_ENVIRONMENT_TYPE local (the theme's seeder, snapshots and local mail capture run only on "local"),
   WP_DEBUG and WP_DEBUG_LOG on with WP_DEBUG_DISPLAY off (errors go to wp-content/debug.log),
   DISALLOW_FILE_EDIT on,
-  and a commented ACF_PRO_LICENSE line for the developer to fill (the agent never types the key).
+  and the ACF PRO licence: with --env local and "acf_pro_license" set in the developer's profile, an active
+  define( 'ACF_PRO_LICENSE', ... ) (ACF PRO then activates itself on this URL; the value is never printed);
+  otherwise a commented line for the developer to fill (the agent never types the key). A define that is already
+  active in the file (the developer's own) is kept, also when --existing runs again.
 On live, Duplicator copies this file: switch WP_ENVIRONMENT_TYPE to production and WP_DEBUG off there.
 """
 import argparse
 import datetime
+import json
 import os
 import re
 import secrets
@@ -41,16 +46,36 @@ ap.add_argument('--host', default='localhost')
 ap.add_argument('--prefix', default='wp_')
 ap.add_argument('--env', default='local', choices=['local', 'development', 'staging', 'production'])
 ap.add_argument('--force', action='store_true')
+ap.add_argument('--profile', help="profile.local.json with acf_pro_license (default: the kit's, next to scripts/)")
 a = ap.parse_args()
 
 sample = os.path.join(a.site, 'wp-config-sample.php')
 target = os.path.join(a.site, 'wp-config.php')
 START, END = '/* kit:settings start */', '/* kit:settings end */'
+ACF_DEFINE = re.compile(r"^[ \t]*define\(\s*['\"]ACF_PRO_LICENSE['\"].*$", re.M)
+
+
+def profile_license():
+    """The developer's ACF PRO key from the profile, for a local site only ('' when none). Never printed."""
+    if a.env != 'local':
+        return ''
+    kit_profile = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+                               'profile.local.json')
+    path = a.profile or kit_profile
+    try:
+        with open(path, encoding='utf-8') as fh:
+            key = str(json.load(fh).get('acf_pro_license') or '').strip()
+    except (OSError, ValueError):
+        return ''
+    return key if re.fullmatch(r'[\x21-\x7e]{8,300}', key) else ''
+
+
+LICENSE = profile_license()
 OWN = ['WP_ENVIRONMENT_TYPE', 'WP_DEBUG', 'WP_DEBUG_LOG', 'WP_DEBUG_DISPLAY', 'DISALLOW_FILE_EDIT'] + (
     ['DISABLE_WP_CRON'] if a.no_cron else [])
 
 
-def kit_block(has_acf_key):
+def kit_block(has_acf_key, kept_acf=''):
     debug = 'true' if a.env != 'production' else 'false'
     lines = [START,
              f"define( 'WP_ENVIRONMENT_TYPE', '{a.env}' );",
@@ -60,7 +85,15 @@ def kit_block(has_acf_key):
              "define( 'DISALLOW_FILE_EDIT', true );"]
     if a.no_cron:
         lines.append("define( 'DISABLE_WP_CRON', true ); // serve-wp.py answers one request at a time")
-    if not has_acf_key:
+    if kept_acf:
+        lines.append(kept_acf.strip())  # the developer's own key, kept across reruns
+    elif has_acf_key:
+        pass
+    elif LICENSE:
+        value = LICENSE.replace('\\', '\\\\').replace("'", "\\'")
+        lines += ["// ACF PRO licence from the developer's profile (local only; live keeps it out unless the developer "
+                  'chooses).', f"define( 'ACF_PRO_LICENSE', '{value}' );"]
+    else:
         lines += ['// ACF PRO licence: the developer pastes the key and removes the two slashes (ACF then activates '
                   'this site).', "// define( 'ACF_PRO_LICENSE', '' );"]
     return '\n'.join(lines + [END]) + '\n\n'
@@ -68,6 +101,10 @@ def kit_block(has_acf_key):
 
 def place_block(text):
     """Put the kit block in (or replace it), and comment out the file's own lines for the same constants."""
+    old = re.search(re.escape(START) + r'.*?' + re.escape(END), text, flags=re.S)
+    # A key the developer pasted into the block stays; one this script wrote from the profile is written again from
+    # the profile as it is now (a new key, or none on a site that is not local).
+    kept = ACF_DEFINE.search(old.group(0)) if old and "from the developer's profile" not in old.group(0) else None
     text = re.sub(re.escape(START) + r'.*?' + re.escape(END) + r'\n*', '', text, flags=re.S)
     switched = []
     for key in OWN:
@@ -75,7 +112,8 @@ def place_block(text):
         if pat.search(text):
             switched.append(key)
             text = pat.sub(lambda m: m.group(1) + '// kit (was): ' + m.group(2), text)
-    block = kit_block(re.search(r"^\s*define\(\s*['\"]ACF_PRO_LICENSE", text, re.M) is not None)
+    block = kit_block(re.search(r"^\s*define\(\s*['\"]ACF_PRO_LICENSE", text, re.M) is not None,
+                      kept.group(0) if kept else '')
     marker = "/* That's all, stop editing!"
     if marker in text:
         text = text.replace(marker, block + marker, 1)
@@ -84,6 +122,13 @@ def place_block(text):
     else:
         text = text.replace("require_once ABSPATH . 'wp-settings.php';", block + "require_once ABSPATH . 'wp-settings.php';", 1)
     return text, switched
+
+
+def acf_note(text):
+    if re.search(r"^\s*define\(\s*['\"]ACF_PRO_LICENSE", text, re.M):
+        return 'ACF PRO licence active (' + ('from the profile, not shown' if LICENSE and 'from the developer' in text
+                                             else 'kept as it was') + ')'
+    return 'ACF_PRO_LICENSE line ready for the developer to fill'
 
 
 if a.existing:
@@ -102,7 +147,7 @@ if a.existing:
     print(f'OK make-wp-config: kit settings added to the existing wp-config.php (environment {a.env}, debug to '
           'wp-content/debug.log, file editing off' + (', WP-Cron off' if a.no_cron else '') + '); database settings '
           'and salts kept' + (f"; the file's own {', '.join(switched)} turned into comments" if switched else '')
-          + f'; backup in _setup/backups/wp-config.php.{stamp}')
+          + f'; {acf_note(text)}; backup in _setup/backups/wp-config.php.{stamp}')
     sys.exit(0)
 
 if not a.db:
@@ -139,4 +184,4 @@ os.chmod(target, 0o644)
 print(f'OK make-wp-config: wp-config.php written: DB {a.db} on {a.host} as {a.user} (password '
       f'{"from DB_PASSWORD" if password else "empty"}), prefix {a.prefix}, environment {a.env}, 8 fresh salts (not '
       'shown), debug to wp-content/debug.log, file editing off' + (', WP-Cron off' if a.no_cron else '')
-      + '; ACF_PRO_LICENSE line ready for the developer to fill')
+      + f'; {acf_note(s)}')

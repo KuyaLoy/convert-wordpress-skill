@@ -113,7 +113,18 @@ def main():
     port = a.port or (int(m.group(1)) if m else 8081)
     has_wp = os.path.isfile(os.path.join(root, 'wp-includes', 'version.php'))
     cfg = os.path.join(root, 'wp-config.php')
-    has_kit = os.path.isfile(cfg) and '/* kit:settings start */' in open(cfg, encoding='utf-8', errors='replace').read()
+    cfg_text = open(cfg, encoding='utf-8', errors='replace').read() if os.path.isfile(cfg) else ''
+    has_kit = '/* kit:settings start */' in cfg_text
+    # The profile's ACF PRO key (never read aloud) goes into a kit block that only has the commented line: run again.
+    key_in_profile = False
+    if a.profile:
+        try:
+            key_in_profile = bool(str(json.load(open(a.profile, encoding='utf-8')).get('acf_pro_license') or '').strip())
+        except (OSError, ValueError):
+            key_in_profile = False
+    add_key = has_kit and key_in_profile and not re.search(r"^\s*define\(\s*['\"]ACF_PRO_LICENSE", cfg_text, re.M)
+    if add_key:
+        has_kit = False
     # A new wp-config.php needs its database; an existing one (a local app's, or a rerun) already has one.
     need_db = not os.path.isfile(cfg)
     if need_db and not LOCAL_DB.match(db_host):
@@ -124,7 +135,8 @@ def main():
         steps.append(('database', f'{db} on {db_host}:{db_port} as {db_user} (created if missing)'))
     steps.append(('wordpress', 'verify the existing core' if has_wp else 'download with checksums into ' + root))
     steps.append(('wp-config', 'kit block already there (kept)' if has_kit else
-                  ('--existing' if os.path.isfile(cfg) else f'new, database {db}') + (', --no-cron' if serve == 'serve-wp' else '')))
+                  ('--existing' if os.path.isfile(cfg) else f'new, database {db}') + (', --no-cron' if serve == 'serve-wp' else '')
+                  + (', the ACF PRO licence from the profile' if key_in_profile and not has_kit else '')))
     if serve == 'serve-wp':
         steps.append(('server', f'serve-wp.py on port {port}' + (' (already answering)' if port_open(port) else '')))
     steps.append(('install', f'install-wp.py {url} ({a.fields})'))
@@ -165,6 +177,8 @@ def main():
         db_arg = ['--host', 'localhost' if db_port == 3306 else f'127.0.0.1:{db_port}', '--user', db_user]
         args = [os.path.join(HERE, 'make-wp-config.py'), root] + (
             ['--existing'] if os.path.isfile(cfg) else ['--db', db] + db_arg) + (['--no-cron'] if serve == 'serve-wp' else [])
+        if a.profile:
+            args += ['--profile', a.profile]
         rc, out = run(args, env=env)
         if rc:
             stop('make-wp-config', rc, out)

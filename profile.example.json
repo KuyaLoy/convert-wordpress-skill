@@ -57,9 +57,11 @@
     }
   ],
   "plugin_zips": {
-    "_about": "Paths on this machine to plugin zips you bought (never the licence keys: those go in each site's wp-config.php, pasted by you).",
+    "_about": "Paths on this machine to plugin zips you bought.",
     "acf_pro": ""
   },
+  "_acf_pro_license_about": "Optional: your ACF PRO licence key, typed by you. make-wp-config.py writes it into LOCAL wp-config files only (ACF PRO then activates itself); never printed, never on live unless you choose. Empty = you paste it per site.",
+  "acf_pro_license": "",
   "branding": {
     "_about": "Agency badge in the footer of the lead email AND the auto-reply (both use the same branded HTML template). A PNG at 2x size (email clients do not show SVG or WebP); a white badge sits on the brand-colour footer strip. Path relative to the skill folder or absolute; empty = no badge.",
     "email_badge_png": "",
