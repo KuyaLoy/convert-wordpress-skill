@@ -232,25 +232,36 @@ php long-content.php remove           # deletes exactly the IDs it made (marker 
 ## Code quality: tokens, only what is used, sizes, gates
 
 Copied markup and CSS stay exactly as the source has them (rule 1), arbitrary Tailwind values included. These rules
-are for everything the build writes itself: fields, partials, its own CSS and JS, pages the source lacks.
+are for everything the build writes itself: fields, partials, its own CSS and JS, pages the source lacks. The same
+five rules, in the same order, are in the figma-to-wordpress skill.
 
-- **Tokens, not one-offs.** A design value with no token gets a token (Tailwind `@theme`, or a CSS variable in
-  Barebones' `assets/css/tokens.css`); never `text-[19px]`, `bg-[#...]` or a hex in the build's CSS. A shared map
-  (colours by option, button variants) lives once, in one helper or one partial. Before each phase gate and DONE:
-  `grep -rnE "\-\[#|\-\[[0-9]" template-parts includes page-templates` and
-  `grep -rnE "#[0-9a-fA-F]{3,8}\b" <the build's own CSS>`: each hit is in the source's markup (kept) or gets a token.
-- **Ship only what is used.** In P5 the kit files and helpers the site does not use leave the theme (for example
-  `assets/chat-save.js` without a chat, the lead-form partial without a form, the map helpers without a map), with
-  their line in functions.php; no empty configs or seed files in the theme. Comments say why; never a task, ticket or
-  design-tool ID (history lives in git and the task tracker).
-- **Sizes.** A section past about 15 fields or 250 lines is split into smaller partials or a clone group; one job
-  per file (form logic, markup and JS apart); JS lives in a file and is enqueued, never printed inline (data for it
-  through `wp_add_inline_script()` or a data attribute).
-- **Gates, at every phase and before DONE:** PHPCS clean with the theme's escaping helpers registered in
-  `phpcs.xml.dist` (`customEscapingFunctions` and `customAutoEscapedFunctions`: `kitwp_inline`, `kitwp_img`,
-  `kitwp_inline_svg`, `kitwp_html`... add the build's own, drop the ones the theme drops); a blanket or unexplained `phpcs:ignore` is a finding, a specific one with its reason is fine. `npm run lint`
-  (ESLint and Prettier; _tw has it, new-site.py adds it to Barebones with the copied static CSS left out of
-  Prettier). The read-only code review (`references/phases-and-qa.md`) at every phase gate, not only the first.
+1. **Tokens not one-offs.** A design value with no token gets a token (Tailwind `@theme`, or a CSS variable in
+   Barebones' `assets/css/tokens.css`); never `text-[19px]`, `bg-[#...]` or a hex in the build's CSS. A shared map
+   (colours by option, button variants) lives once, in one helper or one partial.
+2. **Ship only what is used.** In P5 the kit files and helpers the site does not use leave the theme (for example
+   `assets/chat-save.js` without a chat, the lead-form partial without a form, the map helpers without a map), with
+   their line in functions.php and phpcs.xml.dist; no empty configs or seed files in the theme.
+3. **Comments say why.** Never a task, ticket or design-tool ID: history lives in git and the task tracker.
+4. **Size limits.** A section past about 15 fields or 250 lines is split into smaller partials or a clone group; one
+   job per file (form logic, markup and JS apart); JS lives in a file and is enqueued, never printed inline (data for
+   it through `wp_add_inline_script()` or a data attribute).
+5. **Gates, at every phase gate and before DONE:** PHPCS clean with the theme's escaping helpers registered in
+   `phpcs.xml.dist` (`customEscapingFunctions` and `customAutoEscapedFunctions`: `kitwp_inline`, `kitwp_img`,
+   `kitwp_inline_svg`, `kitwp_html`... add the build's own); no blanket ignores (a specific `phpcs:ignore` with its
+   reason is fine). `npm run lint` (ESLint and Prettier; _tw has it, new-site.py adds it to Barebones with the copied
+   static CSS left out of Prettier). The read-only code review (`references/phases-and-qa.md`) at every phase gate,
+   not only the first.
+
+**Self-check** in the theme folder before each phase gate and DONE; each hit is fixed, or given a one-line reason
+(in a 1:1 build most one-off hits are copied source markup, which stays):
+
+```
+X="--exclude-dir=node_modules --exclude-dir=vendor --exclude-dir=tests --exclude-dir=dist --exclude-dir=build"
+grep -rnE $X --include='*.php' --include='*.js' -e '[a-z]-\[(#|[0-9])' .            # one-off values
+grep -rnE $X --include='*.css' --include='*.scss' -e '#[0-9a-fA-F]{3,8}\b' . | grep -v tokens   # raw hex (build's own CSS)
+grep -rnE $X --include='*.php' --include='*.js' -e '[0-9]+:[0-9]+|\b[A-Z][A-Z0-9]+-T[0-9]+\b' .  # node IDs, ticket tags
+grep -rn $X --include='*.php' -e 'phpcs:ignore' -e 'phpcs:disable' .                  # every ignore has its reason
+```
 
 ## Kit functions at a glance
 

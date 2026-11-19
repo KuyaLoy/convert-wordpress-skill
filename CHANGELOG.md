@@ -20,6 +20,8 @@ PHPCS passing through ignore comments, code review only early).
   what the build writes itself uses tokens, never one-off values (a grep before each gate); only used kit files and
   helpers ship (P5 clean-up); comments say why, never a task, ticket or design-tool ID; a section past about 15
   fields or 250 lines is split; one job per file; JS enqueued, never inline. Copied markup and CSS stay 1:1.
+  The five rules (Tokens not one-offs, Ship only what is used, Comments say why, Size limits, Gates) and the
+  self-check greps carry the same names and order as in figma-to-wordpress.
 - **Gates at every phase:** PHPCS with the kit's helpers registered in `phpcs.xml.dist` (`customEscapingFunctions`:
   `kitwp_inline`, `kitwp_svg_clean`; `customAutoEscapedFunctions`: `kitwp_img`, `kitwp_html`, `kitwp_icon`,
   `kitwp_inline_svg`, `kitwp_map_iframe`...), so their output needs no ignore comment; `npm run lint` (ESLint and
