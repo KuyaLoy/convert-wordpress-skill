@@ -76,7 +76,8 @@ One PDF for the task tracker:
 1. Screenshots: `node shots.mjs https://<domain> /:1440:home-desktop /thank-you/:1440:thankyou-desktop
    /<page>/:390:page-mobile /<page2>/:1440:page2-desktop`, plus the email screenshots.
 2. Fill `report.html` with verified facts only: the summary, what was checked, the website task's requests one by
-   one, the tracking task's requests, the test leads, the screenshots, next steps. `grep -n "\[\[" report.html`
+   one, the tracking task's requests, the test leads, the screenshots, next steps (with every placeholder still on the
+   site as a client to-do: page, field, what to send; `references/build.md` > The seeder). `grep -n "\[\[" report.html`
    prints nothing when done.
 3. `node pdf.mjs report.html Final-Live-Check.pdf ../handover/How-to-Edit-Your-Website.pdf` (the editing guide
    from the client pack appended; make it first: "The client pack" below).

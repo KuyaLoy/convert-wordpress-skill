@@ -231,6 +231,11 @@ in the same state), `--motion` (transition and animation duration, delay, easing
   are seeded into the Media Library and set in ACF or Theme Settings, never hard-coded; maps are live Google
   iframes from one field that takes a Maps link, embed code or address (the default city until the address is
   confirmed).
+- **Missing content is a seeded placeholder** (by default): an image or field the source leaves empty, or a file
+  that is missing, gets a clearly marked placeholder in its ACF field (an image of the same size and ratio titled
+  `PLACEHOLDER`, or `[PLACEHOLDER: what goes here]` text), never hard-coded in a template, so every page renders 1:1
+  and stays editable. Each one (page, field) is on the board and in the report as a client to-do
+  (`references/build.md` > The seeder).
 - Raw titles, SVG copied by script. Details: `references/build.md`.
 - **Thank-you and 404 pages always exist.** If the source has none, design them from the site's own parts
   (header, footer, hero, buttons, type), never a new look: a plain message, the phone, a way home and to the

@@ -75,7 +75,7 @@ Every QA run checks the items that apply to what the phase built (P5: all of the
 | Motion (UI) | Transition and animation duration, delay and easing equal to the source (pass marks in design-check.config.json) | `design-check.mjs --motion` |
 | Long content (UX, P2 on) | Every field filled long: no page overflow and no clipped text from 320 to 1920 | `long-content.php make <route>`, `design-check.mjs --long` |
 | Behaviour (UX) | Menus, pop-ups, forms, keyboard, focus, reduced motion as the source | Real browser at 390 and 1440 |
-| Editing (UX) | Every text and image editable; fields in page order with instructions; Theme Settings for repeated items | wp-admin as the client's Editor |
+| Editing (UX) | Every text and image editable; fields in page order with instructions; Theme Settings for repeated items; missing content is a marked placeholder in its field (never in a template), each one a `decided` finding and a client to-do | wp-admin as the client's Editor; `grep -rn PLACEHOLDER _setup/seed` |
 | Code | `php -l`, PHPCS clean (escaping helpers registered, no blanket ignores), the duplicate function check, every output escaped, globals prefixed, no notices in debug.log, no console errors | `check-section.py`, the theme's composer scripts; debug.log |
 | Code quality | Tokens, not one-off values (the search finds 0 in what the build wrote); only used kit files and helpers ship; sections under about 15 fields and 250 lines; one job per file, JS enqueued; no task or ticket IDs in comments; `npm run lint` passes | `references/build.md` > Code quality; the read-only check reads the changed files |
 | Data | Seeder second run says "same" everywhere | Tools > Seeder |

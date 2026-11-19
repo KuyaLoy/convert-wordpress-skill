@@ -16,6 +16,12 @@ follows [Keep a Changelog](https://keepachangelog.com).
   Clones: `make-wp-config.py <copy> --existing --profile ...` on each copy. Live: not written by default; the launch
   steps remove the line from the copied wp-config unless the developer chooses to keep it.
 
+- **Missing content is a seeded placeholder** (the default): an image or field the source leaves empty, or a missing
+  file, gets a clearly marked placeholder in its ACF field (an image of the same size and ratio titled
+  `PLACEHOLDER: <page> <field>`, or `[PLACEHOLDER: ...]` text), never hard-coded in a template, so every page
+  renders 1:1 and stays editable. Each one is a `decided` finding on the board and a client to-do in the report's
+  next steps (SKILL.md P2, `references/build.md` > The seeder, the QA checklist, `report.html`).
+
 ### Fixed
 
 - `make-wp-config.py --existing` run again dropped a key the developer had pasted into the kit block: it is kept now

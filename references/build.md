@@ -185,6 +185,17 @@ stay theme files.
   `export-pages.py` turns the built HTML into Page Sections rows. Work on a copy of the source. Forms, SEO, OG images
   and redirects are written by hand from the examples in `_setup/seed/`.
 - Placeholders in seed values: `media:/path/in/static.jpg` (an attachment), `page:/slug/` (a page link).
+- **Missing content (the default):** an image or field the source leaves empty, marks as to-do, or whose file is
+  missing still gets a value, so every page renders 1:1 and stays editable:
+  - an image: a neutral placeholder of the slot's exact size and ratio (a flat tint with its size written on it,
+    WebP or PNG in `_setup/seed/placeholders/`), seeded into the Media Library with the title and alt text
+    `PLACEHOLDER: <page> <field>` and set in the field like any other image;
+  - text: `[PLACEHOLDER: <what goes here>]` in the field (a link: `#` with that label);
+  - never hard-coded in a template, never a stock photo or invented copy.
+  Where the golden master shows the gap itself, the diff for that box is a `decided` finding naming the placeholder.
+  Each placeholder goes on the board's QA findings as `decided` (page, field, what the client sends) and into the
+  report's next steps as a client to-do; `grep -rn "PLACEHOLDER" _setup/seed` and a search for "PLACEHOLDER" in
+  wp-admin list them. Live QA lists any still there.
 - More steps: the `kitwp_seed_steps` filter. Extra page rows: `kitwp_seed_expand_row`.
 
 ## Snapshots and parity checks
