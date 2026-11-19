@@ -49,7 +49,7 @@ Written only after the developer says it in the chat: `ok <date>`.
 | # | Decision | Status | Recommendation / answer |
 |---|---|---|---|
 | D1 | Local folder, URL, database | DECISION | `{{SITE_DIR}}`, http://{{LOCAL_HOST}}, DB `db_{{THEME}}` |
-| D2 | Starter theme | DECISION | Tailwind source: _tw. Plain CSS: Barebones (from start.py) |
+| D2 | Starter theme | DECISION | Tailwind source, or clearly easier in Tailwind: _tw. A normal site: Barebones with CSS-variable tokens. One reason in PLAN.md |
 | D3 | Spam protection | DECISION | CF7 reCAPTCHA v3 + the static honeypot; badge position |
 | D4 | Editor for ACF pages | DECISION | Block editor unless the developer says classic |
 | D5 | Pages the static site lacks (blog, archives) | DECISION | In the site's design, new URLs flagged to SEO |

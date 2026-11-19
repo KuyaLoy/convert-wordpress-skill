@@ -16,6 +16,25 @@
     <rule ref="PHPCompatibilityWP"/>
 
     <rule ref="WordPress.Security"/>
+    <!-- The kit's helpers that escape or return safe HTML, so `echo kitwp_img( ... )` needs no ignore comment.
+         Add the build's own helpers here; a blanket phpcs:ignore is a QA finding. Remove helpers the theme drops. -->
+    <rule ref="WordPress.Security.EscapeOutput">
+        <properties>
+            <property name="customEscapingFunctions" type="array">
+                <element value="kitwp_inline"/>
+                <element value="kitwp_svg_clean"/>
+            </property>
+            <property name="customAutoEscapedFunctions" type="array">
+                <element value="kitwp_html"/>
+                <element value="kitwp_icon"/>
+                <element value="kitwp_img"/>
+                <element value="kitwp_asset_img"/>
+                <element value="kitwp_img_tag"/>
+                <element value="kitwp_inline_svg"/>
+                <element value="kitwp_map_iframe"/>
+            </property>
+        </properties>
+    </rule>
     <rule ref="WordPress.DB"/>
     <rule ref="WordPress.WP.GlobalVariablesOverride"/>
     <rule ref="WordPress.WP.I18n">

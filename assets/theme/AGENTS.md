@@ -87,5 +87,8 @@ done, not the eye.
    (`grep -h "^function" <!-- starter:tw -->theme/<!-- /starter:tw -->includes/*.php | sed 's/(.*//' | sort | uniq -d` prints nothing).
 3. One call per section: `python3 tests/parity/check-section.py <route> --section <selector>` (pixel, text, DOM,
    php -l, PHPCS, duplicates; one line back). Design checks (`design-check.mjs --states --motion`) at the end of a page.
-4. Update BUILD-MAP.md, handoff.md and ai-handoff-summary.md.
-5. Never type passwords, licence keys or API keys. Ask before installing any plugin.
+4. `npm run lint` (ESLint and Prettier) passes. What you wrote uses tokens, never one-off values
+   (`grep -rnE "\-\[#|\-\[[0-9]"` finds nothing that the source's markup lacks); only used kit files and helpers;
+   a section past about 15 fields or 250 lines is split; JS in a file, enqueued; comments say why, no ticket IDs.
+5. Update BUILD-MAP.md, handoff.md and ai-handoff-summary.md.
+6. Never type passwords, licence keys or API keys. Ask before installing any plugin.

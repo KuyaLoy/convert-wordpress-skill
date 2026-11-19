@@ -53,10 +53,13 @@ Details: `references/setup.md` > WordPress.
 
 ## Theme
 
-Classic PHP theme, GPL. **Tailwind in the source or the design: _tw** (generated with the slug and prefix).
-**Otherwise: Barebones.** `new-site.py` prepares it and copies the kit in (head, clean-up, ACF, media, forms, seeder,
+Classic PHP theme, GPL. **The source is Tailwind, or the site is clearly easier in Tailwind (repeating tokens,
+many reusable sections): _tw** (generated with the slug and prefix). **A normal site that doesn't really need
+Tailwind: Barebones with CSS-variable tokens.** The plan names the choice and one reason. `new-site.py` prepares it and copies the kit in (head, clean-up, ACF, media, forms, seeder,
 schema, client admin). Every global prefixed; PHP 8.1 to 8.4; escape at output; after every PHP save `php -l`,
-PHPCS and the duplicate function check. Details: `references/setup.md` > The starter theme, `references/build.md`.
+PHPCS and the duplicate function check. Tokens, not one-off values; ship only what is used; `npm run lint` and
+the read-only code review at every phase gate (`references/build.md` > Code quality). Details:
+`references/setup.md` > The starter theme, `references/build.md`.
 
 ## Fields: ACF PRO
 

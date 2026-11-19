@@ -329,6 +329,29 @@ else:
                     if new != old:
                         changed.append(rel(p))
                         write(p, new)
+            # Barebones' vite.config.js scans blocks/ for entries: keep the folder (empty) so `npm run build` works.
+            if gone and os.path.join(theme, 'blocks') in gone and not a.dry_run:
+                write(os.path.join(theme, 'blocks', '.gitkeep'), '')
+            # Barebones' sample menu script needs jQuery, which the kit drops from the front end (it would throw on every
+            # page): it goes aside and the Vite entry starts empty, for the static site's own vanilla JS.
+            sample_js = os.path.join(theme, 'assets', 'scripts', 'scripts.js')
+            if exists(sample_js) and 'jQuery' in read(sample_js):
+                move_aside(sample_js)
+                write(sample_js, "// The site's behaviour in vanilla JS, copied from the static site (same state classes).\n")
+            # Lint for the theme's own JS and SCSS (_tw ships its own): ESLint and Prettier, run with `npm run lint`.
+            pkg_path = os.path.join(theme, 'package.json')
+            if os.path.exists(pkg_path):
+                pkg = json.loads(read(pkg_path))
+                pkg.setdefault('scripts', {}).update({'lint': 'eslint . && prettier --check .',
+                                                      'lint-fix': 'eslint --fix . && prettier --write .'})
+                pkg.setdefault('devDependencies', {}).update({'eslint': '^10.0.0', 'prettier': '^3.6.0'})
+                write(pkg_path, json.dumps(pkg, indent=2) + '\n')
+                for src_name, dst_name in (('eslint.config.js', 'eslint.config.js'),
+                                           ('prettier.config.js', 'prettier.config.js'),
+                                           ('prettierignore.txt', '.prettierignore')):
+                    if not os.path.exists(os.path.join(theme, dst_name)):
+                        write(os.path.join(theme, dst_name), read(os.path.join(SKILL, 'assets', 'lint', src_name)))
+                changed.append(rel(pkg_path) + ' (lint scripts)')
             notes.append(f'Barebones prepared: {len(changed)} files renamed or updated; moved aside: '
                          + (', '.join(moved) if moved else 'nothing'))
             notes.append('By hand (P1 theme step): includes/admin.php TinyMCE text-size formats (classes the static CSS '
@@ -567,4 +590,5 @@ if a.plan_only:
     print('next: P0 planning in _plan/PLAN.md, CONTENT-MODEL.md, OLD-SITE-URLS.md and BUILD-MAP.md; after the Plan OK, '
           '_plan/tools/setup/setup.py, the starter theme, then this again without --plan-only.')
 else:
-    print(f'next: in {rel(theme_root)}: {build}; php -l and PHPCS on the theme; activate it; then the P1 steps.')
+    print(f'next: in {rel(theme_root)}: {build}; npm run lint-fix once, then npm run lint; php -l and PHPCS on the '
+          'theme; activate it; then the P1 steps.')

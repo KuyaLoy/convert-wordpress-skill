@@ -1,0 +1,12 @@
+# The copied static CSS stays byte for byte (1:1): every .css file is left out except the build's own token file.
+*.css
+!assets/css/tokens.css
+*.min.js
+*.md
+*.json
+*.php
+css/
+vendor/
+node_modules/
+acf-json/
+tests/

@@ -197,8 +197,18 @@ python3 _plan/tools/setup/install-wp.py <wp_root> --url http://<site>.test --tit
 
 ## The starter theme: Barebones or _tw
 
-The rule: **Tailwind in the source: _tw. Otherwise: Barebones.** analyze-source.py reports which; the developer
-confirms (decision D2 on the board). Both are classic PHP themes under GPL-2.0-or-later.
+The rule (the plan names the choice and one reason; the developer can override it, decision D2 on the board):
+
+- **The source is Tailwind: _tw.**
+- **Not Tailwind, but clearly easier in Tailwind** (a design system with repeating tokens, many reusable sections):
+  **_tw.** The static CSS still loads byte for byte for 1:1 (`KITWP_STYLESHEETS`); Tailwind, with `@theme` tokens
+  taken from the source's colours, fonts and spacing, styles only what the build writes itself.
+- **A normal site that doesn't really need Tailwind** (small, mostly one-off layouts, plain CSS expected):
+  **Barebones with CSS-variable tokens**: the source's colours, fonts and spacing as custom properties in one file
+  (`assets/css/tokens.css`), used by every style the build writes itself.
+
+start.py (analyze-source.py) reports whether the source is Tailwind; the middle case is the plan's call. Both are
+classic PHP themes under GPL-2.0-or-later.
 
 - **Barebones** (Benchmark Studios; Vite and Sass): ask, then `git clone --depth 1
   https://github.com/benchmarkstudios/barebones wp-content/themes/<theme>` (or Code > Download ZIP, unzip, rename).

@@ -13,6 +13,7 @@ Read this in P1 and P2. The kit files named here are in the theme's `includes/` 
 - The seeder
 - Snapshots and parity checks
 - Design checks: states, motion, long content
+- Code quality: tokens, only what is used, sizes, gates
 - Kit functions at a glance
 
 ## Static first, then dynamic
@@ -227,6 +228,29 @@ php long-content.php remove           # deletes exactly the IDs it made (marker 
 - JavaScript-driven motion (a slider's autoplay interval, a counter) is not a CSS value: compare the timing in the
   source code and note it in PLAN.md.
 - One long page per template is enough; remove the test pages before the launch package (P5).
+
+## Code quality: tokens, only what is used, sizes, gates
+
+Copied markup and CSS stay exactly as the source has them (rule 1), arbitrary Tailwind values included. These rules
+are for everything the build writes itself: fields, partials, its own CSS and JS, pages the source lacks.
+
+- **Tokens, not one-offs.** A design value with no token gets a token (Tailwind `@theme`, or a CSS variable in
+  Barebones' `assets/css/tokens.css`); never `text-[19px]`, `bg-[#...]` or a hex in the build's CSS. A shared map
+  (colours by option, button variants) lives once, in one helper or one partial. Before each phase gate and DONE:
+  `grep -rnE "\-\[#|\-\[[0-9]" template-parts includes page-templates` and
+  `grep -rnE "#[0-9a-fA-F]{3,8}\b" <the build's own CSS>`: each hit is in the source's markup (kept) or gets a token.
+- **Ship only what is used.** In P5 the kit files and helpers the site does not use leave the theme (for example
+  `assets/chat-save.js` without a chat, the lead-form partial without a form, the map helpers without a map), with
+  their line in functions.php; no empty configs or seed files in the theme. Comments say why; never a task, ticket or
+  design-tool ID (history lives in git and the task tracker).
+- **Sizes.** A section past about 15 fields or 250 lines is split into smaller partials or a clone group; one job
+  per file (form logic, markup and JS apart); JS lives in a file and is enqueued, never printed inline (data for it
+  through `wp_add_inline_script()` or a data attribute).
+- **Gates, at every phase and before DONE:** PHPCS clean with the theme's escaping helpers registered in
+  `phpcs.xml.dist` (`customEscapingFunctions` and `customAutoEscapedFunctions`: `kitwp_inline`, `kitwp_img`,
+  `kitwp_inline_svg`, `kitwp_html`... add the build's own, drop the ones the theme drops); a blanket or unexplained `phpcs:ignore` is a finding, a specific one with its reason is fine. `npm run lint`
+  (ESLint and Prettier; _tw has it, new-site.py adds it to Barebones with the copied static CSS left out of
+  Prettier). The read-only code review (`references/phases-and-qa.md`) at every phase gate, not only the first.
 
 ## Kit functions at a glance
 

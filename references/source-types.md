@@ -80,7 +80,8 @@ route goes into CONTENT-MODEL.md's page inventory, plus `/thank-you/` and the 40
 ## Tailwind sources (the _tw theme)
 
 Tailwind anywhere in the source (a dependency, a config, `@tailwind` or `@import "tailwindcss"` in the CSS): the
-theme starts from _tw. The CSS still has to be 1:1, proven by the swap test: the static build with the theme's
+theme starts from _tw. A plain-CSS source that is clearly easier in Tailwind can use _tw too
+(`references/setup.md` > The starter theme): its static CSS still loads verbatim. The CSS still has to be 1:1, proven by the swap test: the static build with the theme's
 compiled CSS in place of its own must diff 0.000%.
 
 - **A Tailwind source that ships its own compiled CSS** (committed `min/` files, several stylesheets, critical CSS
@@ -103,8 +104,10 @@ compiled CSS in place of its own must diff 0.000%.
 Copied CSS stays as the source has it (rule 1). Wherever the build writes its own styles on the _tw starter (a page
 or section the source lacks, such as the thank-you page, the 404 or a blog, or a source that is only a design):
 
-- **Sections are Tailwind utilities on the `@theme` tokens** (colours, fonts, type scale, spacing, radii). Custom
-  CSS only for the CF7 form styling and what utilities cannot express, in `tailwind/` files, never per page.
+- **Sections are Tailwind utilities on the `@theme` tokens** (colours, fonts, type scale, spacing, radii). A value
+  without a token gets one; never `text-[19px]`, `bg-[#...]` or a hex in CSS. Custom CSS only for the CF7 form
+  styling and what utilities cannot express, in `tailwind/` files, never per page. On Barebones the same rule holds
+  with the CSS variables in `assets/css/tokens.css`.
 - **No `text-wrap: balance` on headings** unless the golden master has it: it moves the breaks away from the design.
 - **Letter-spacing and wraps:** browsers add the letter-spacing after a line's last glyph too, so a line is wider
   or narrower than in the design and wraps elsewhere. Text tokens with letter-spacing get an end padding of

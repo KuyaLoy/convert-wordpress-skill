@@ -5,6 +5,36 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-11-19
+
+The starter rule's middle case, and the code-quality lessons from a read-only audit of a large Figma build (no
+bugs, but thousands of one-off values, copied maps, oversized sections, ticket tags in comments, unused kit files,
+PHPCS passing through ignore comments, code review only early).
+
+### Changed
+
+- **Starter theme:** the source is Tailwind: _tw; not Tailwind but clearly easier in Tailwind (repeating tokens, many
+  reusable sections): _tw, with the static CSS still loaded verbatim and Tailwind only for what the build writes; a
+  normal site: Barebones with CSS-variable tokens (`assets/css/tokens.css`). PLAN.md names the choice and one reason.
+- **Code quality** (`references/build.md` > Code quality, SKILL.md rule 11, the QA checklist, the theme's AGENTS.md):
+  what the build writes itself uses tokens, never one-off values (a grep before each gate); only used kit files and
+  helpers ship (P5 clean-up); comments say why, never a task, ticket or design-tool ID; a section past about 15
+  fields or 250 lines is split; one job per file; JS enqueued, never inline. Copied markup and CSS stay 1:1.
+- **Gates at every phase:** PHPCS with the kit's helpers registered in `phpcs.xml.dist` (`customEscapingFunctions`:
+  `kitwp_inline`, `kitwp_svg_clean`; `customAutoEscapedFunctions`: `kitwp_img`, `kitwp_html`, `kitwp_icon`,
+  `kitwp_inline_svg`, `kitwp_map_iframe`...), so their output needs no ignore comment; `npm run lint` (ESLint and
+  Prettier); the read-only code review at every phase gate.
+- **Barebones lint:** new-site.py adds `lint` and `lint-fix` scripts, ESLint 10 and Prettier 3, and three small
+  configs (`assets/lint/`); `.prettierignore` leaves every `.css` out except the token file, so copied static CSS
+  keeps its bytes.
+
+### Fixed
+
+- Barebones' sample `assets/scripts/scripts.js` used jQuery, which the kit removes from the front end, so it threw on
+  every page: new-site.py moves it aside and leaves an empty entry for the static site's vanilla JS.
+- Barebones' `vite.config.js` scans `blocks/`, which new-site.py moves aside, so `npm run build` failed: the folder
+  stays (with `.gitkeep`).
+
 ## [0.9.0] - 2026-11-18
 
 Fewer commands and files, the same checks; design checks beyond the still page; any agent that reads skills.

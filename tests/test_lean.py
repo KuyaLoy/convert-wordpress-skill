@@ -179,3 +179,33 @@ class SectionCheck(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class Quality091(unittest.TestCase):
+    """0.9.1: Barebones gets lint scripts and configs, its jQuery sample goes aside, the build keeps blocks/."""
+
+    def test_barebones_lint_and_escaping_helpers(self):
+        root = os.path.join(tempfile.mkdtemp(), 'shop')
+        theme = os.path.join(root, 'wp-content', 'themes', 'shop')
+        write(os.path.join(root, 'wp-includes', 'version.php'), "<?php $wp_version = '7.1';\n")
+        write(os.path.join(theme, 'style.css'), '/*\nTheme Name: Barebones\nText Domain: barebones\n*/\n')
+        write(os.path.join(theme, 'includes', 'shortcodes.php'), '<?php\n')
+        write(os.path.join(theme, 'blocks', 'demo', 'block.json'), '{}')
+        write(os.path.join(theme, 'assets', 'scripts', 'scripts.js'), '$ = jQuery;\n')
+        write(os.path.join(theme, 'package.json'), json.dumps({'type': 'module', 'scripts': {'build': 'vite build'}}))
+        site = json.loads(read(path('assets', 'site.example.json')))
+        site.update(site_name='Corner Shop', domain='cornershop.example.org', wp_root=root, local_host='shop.test',
+                    site_dir='shop', theme='shop', prefix='shop', key='cs', starter='barebones')
+        write(os.path.join(root, '_plan', 'site.json'), json.dumps(site))
+        r = run('scripts/new-site.py', os.path.join(root, '_plan', 'site.json'))
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        pkg = json.loads(read(os.path.join(theme, 'package.json')))
+        self.assertIn('lint', pkg['scripts'])
+        self.assertIn('eslint', pkg['devDependencies'])
+        for f in ('eslint.config.js', 'prettier.config.js', '.prettierignore', os.path.join('blocks', '.gitkeep')):
+            self.assertTrue(os.path.exists(os.path.join(theme, f)), f)
+        self.assertNotIn('jQuery', read(os.path.join(theme, 'assets', 'scripts', 'scripts.js')))
+        self.assertIn('*.css', read(os.path.join(theme, '.prettierignore')))  # copied static CSS stays byte for byte
+        pcs = read(os.path.join(theme, 'phpcs.xml.dist'))
+        self.assertIn('customAutoEscapedFunctions', pcs)
+        self.assertIn('<element value="shop_img"/>', pcs)

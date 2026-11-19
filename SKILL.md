@@ -73,7 +73,11 @@ https://github.com/KuyaLoy/convert-wordpress-skill: ask the developer where thei
    a stakeholder: plain language, verified facts only, no phase or step numbers, files as PDF.
 10. **Read only:** the source folder and the golden master. Build or `npm install` only in a copy.
 11. **Code:** every global prefixed (`<prefix>_`); PHP 8.1 to 8.4; escape at output, sanitise input, nonces and
-    capability checks. After every PHP save: `php -l`, PHPCS and the duplicate function check.
+    capability checks. After every PHP save: `php -l`, PHPCS and the duplicate function check. What the build writes
+    itself uses tokens, never one-off values; only what the site uses ships; a section past about 15 fields or 250
+    lines is split; JS is enqueued, never inline; comments say why, never a task or ticket ID. Every phase gate:
+    PHPCS with the kit's escaping helpers registered (no blanket ignores), `npm run lint` (ESLint and Prettier)
+    and the read-only code review (`references/build.md` > Code quality).
 12. **Live:** surgical changes only, a rollback copy of every replaced file, PHP files complete before upload,
     theme zips with 0644 files and 0755 folders.
 13. **Replies** follow the profile's `level`: `new` = plain words, each term explained once
@@ -157,7 +161,8 @@ handoff files.
   _plan/tools/build-map/render.py BUILD-MAP.md _plan/progress.html`, published privately and republished to the
   same link after each phase.
 - **P0-04 Decisions and the Plan OK** (defaults in brackets; the developer may just say OK): local folder, URL and
-  database; starter theme (the Tailwind rule); spam protection (CF7 reCAPTCHA v3 plus the static honeypot, badge
+  database; starter theme (_tw for a Tailwind source or a site clearly easier in Tailwind, else Barebones with
+  CSS-variable tokens; the choice and one reason); spam protection (CF7 reCAPTCHA v3 plus the static honeypot, badge
   position); editor (block editor unless classic); pages the static site lacks, like a blog (site design, new URLs
   flagged to SEO); old URLs to redirect (Redirection only if any); git; for a multilingual source, how languages are
   built. The OK message lists the downloads of P1 (WordPress, theme, ACF PRO zip, Contact Form 7, Yoast SEO).
@@ -263,8 +268,8 @@ Contact, enquiries) and one "Your website" dashboard box; administrators keep th
 Fix every finding on the board, then a **full** QA run on the whole site (every route, every CSS breakpoint and 1 px
 past it, the design checks, old URLs checked locally, real phones, the seeder twice, the read-only check;
 the long-content test pages removed before the package); repeat until a run finds 0 and
-no finding is `open`. Then launch prep: `RUNBOOK.md` and `htaccess-live.txt` in `_setup/launch/` completed,
-a short editing guide. Then the stop report asking for the **Go-live** (the go/no-go list is in the runbook).
+no finding is `open`. Then launch prep: the clean-up (unused kit files and helpers out of the theme, the one-off
+value search at 0), `RUNBOOK.md` and `htaccess-live.txt` in `_setup/launch/` completed, a short editing guide. Then the stop report asking for the **Go-live** (the go/no-go list is in the runbook).
 
 ## P6 Launch (the developer does each step; you give one at a time)
 

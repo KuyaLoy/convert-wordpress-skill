@@ -45,7 +45,7 @@ brief rules, accessibility promises; each open item with how the build handles i
 | Part | Choice |
 |---|---|
 | WordPress | Latest release (checksums verified); local {{SITE_DIR}} at http://{{LOCAL_HOST}}; PHP 8.4 locally, code for 8.1 to 8.4 |
-| Theme | `{{THEME}}` on {{STARTER}} (Barebones for plain CSS, _tw for Tailwind); every global prefixed `kitwp_` |
+| Theme | `{{THEME}}` on {{STARTER}}, because (one reason: the source is Tailwind / clearly easier in Tailwind / a normal site); every global prefixed `kitwp_` |
 | Fields | ACF PRO (licence by the developer), JSON in acf-json, built by `tools/acf/build_field_groups.py` (stable keys) |
 | Forms | Contact Form 7 in the static markup; native post, 303 to /thank-you/; branded HTML emails |
 | SEO | Yoast seeded; titles, descriptions, canonicals, robots and headings as static; JSON-LD from the static |
@@ -59,6 +59,8 @@ brief rules, accessibility promises; each open item with how the build handles i
   the clicks listed below), motion and long content, numbers first, images only for failures.
 - **States to check** (design-check.config.json "states"): (open menu, tabs, sliders, accordions, pop-up: the
   trigger, the region it changes, the widths)
+- **Code quality:** tokens (`@theme` or CSS variables), never one-off values, in what the build writes; only used
+  kit files ship; sections under about 15 fields and 250 lines; `npm run lint` and the read-only review per phase.
 - **Seeding:** exporters write `_setup/seed/`; Tools > Seeder (local only), idempotent (the second run: "same").
 - **Security and speed:** no secrets in files or chats; file editing off; private files 403 and out of the package;
   debug off on live; Core Web Vitals from the first section; caching rules in htaccess-live.txt; a speed plugin only
