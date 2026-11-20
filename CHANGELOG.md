@@ -5,6 +5,73 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.9.6] - 2026-11-20
+
+A real build's retro: faster, with the same checks. The kit now writes right the first time what QA kept finding,
+QA converges (one full run, then re-checks of what changed), every rule is decided at the plan, and the progress
+page is live.
+
+### Added
+
+- **Pre-QA self-check** (`scripts/report/self-check.py`), before every QA run: ACF instructions missing or in
+  developer words, `(array)` on a field read, the ABSPATH guard, `phpcs:ignore` without a reason, functions never
+  called, missing file paths, files over 300 lines, starter leftovers, unfilled or wrong launch files, acf-json and
+  the oEmbed author public. QA finds fewer; it does not check less.
+- **`seodiff.py`** (theme `tests/parity/`): head tags (title, description, robots, canonical, og, twitter,
+  theme-color, viewport, icons, their order) and every JSON-LD value per route, with the HTTP status, read with
+  html.parser; no browser. parity.mjs compared JSON-LD types only.
+- **`changed-routes.py`**: `save` after the full QA run, `diff` after a fix pass: the routes whose rendering
+  changed, the only ones pixel re-runs.
+- **The live progress page** (`scripts/build-map/live.py`): render.py also writes `progress-live.html` (published
+  once with the artifact database; it shows its embedded snapshot when the database cannot be reached) and
+  `progress-rows.json` (ArtifactData batch writes since the last push; `--pushed` records them). The open page
+  updates itself. Collections: `meta/now`, `phases`, `items`, `findings`, `log`.
+- site.json: `www`, `forms`, `chat`, `blog`, `redirects`, `palette`, `content_size`; `new-site.py --launch-files`
+  writes the launch files again; `<!-- if:NAME -->` / `<!-- unless:NAME -->` blocks in the launch templates.
+- Theme: `KITWP_KEEP_BLOG`, `KITWP_SITE_SEARCH` (archives, paged lists, feeds, attachment pages and search answer
+  404 unless the site has them), `KITWP_NOJS_LEADS` (off: reCAPTCHA stays strict), `kitwp_list()` for relationship
+  and gallery fields, `assets/recaptcha.js`.
+
+### Changed
+
+- **QA that converges** (references/phases-and-qa.md): one full run per site (and per template site before its
+  clones); then fix passes that re-check each fixed item, review the changed files and their callers in full and
+  re-run pixel only on changed routes; blockers and majors fixed at once; a new minor outside the changed code goes
+  to the next pass with no new full run; a new full run only when a change touched most of the theme. Clones of a
+  proven template: every route's markup and content, the forms, pixel at 360, 768 and 1440.
+- **All rules at the plan:** P0 decides the forms and where leads go, placeholders, the live plugin checklist and
+  the leads portal; a skill update during a task applies at the next site or phase boundary.
+- **Shorter resumes:** checkpoint at a page, site or phase end with the exact next step; a resume re-checks only
+  what can have changed.
+- The launch files per site: htaccess-live.txt's host rule built from the bare domain (www or not), readme.html,
+  license.txt, wp-config-sample.php, xmlrpc.php, acf-json and the theme's dev files denied, three security
+  headers; the RUNBOOK names only the site's forms, where live leads go, the client to-dos, local addresses
+  replaced, the tracking ID, Redirection only with old URLs.
+- Setup moves unused starter and kit files to `_setup/starter-removed/` (chat files without a chat, the blog
+  templates without a blog, readme stubs, the starter palette, the widget area, starter supports); style.css
+  Requires PHP 8.1.
+- build_field_groups.py refuses a field without instructions or with developer words; the kit's own texts fixed.
+- install-wp.py (fresh install): CF7's sample form and WordPress's draft privacy page removed; the seeder points
+  the privacy setting at the site's page.
+- The theme kit split by job: forms.php into forms, forms-controls, forms-spam, forms-mail, forms-local-mail,
+  forms-portal; seed.php into seed, seed-media, seed-settings, seed-menus, seed-forms, seed-seo; helpers-maps.php
+  and media-svg.php out of helpers.php and media.php. No behaviour change.
+- gate.py: an escaped pipe (`\|`) stays in its cell; a findings row split by a `|` is named plainly; a NOTE when
+  the board's Now line is not the current phase.
+
+### Fixed
+
+- A failed form post showed nothing (CF7's response box was dropped): it shows CF7's message as `role="alert"` with
+  the site's phone.
+- The leads portal trusted forwarded IP headers and forwarded every posted key: a valid public IP only, the form's
+  own fields only, capped.
+- The honeypot read `company[]` as a string (a notice); the email logo fallback pointed at a file the kit lacks;
+  the SVG cleaner let `onload`, `<set to="javascript:">` and iframes through; the map host check accepted
+  `google.evil.example`; oEmbed showed the author; no ABSPATH guard (a direct request printed the server path);
+  the reCAPTCHA token code was an inline script; theme assets kept a fixed `?ver`; `/favicon.ico` fell to
+  WordPress's logo; a blank line in `<head>`; long-content.php left an empty option behind.
+- Every `phpcs:ignore` in the kit names its reason.
+
 ## [0.9.5] - 2026-11-20
 
 The progress page says what the chat is doing now and stays current.

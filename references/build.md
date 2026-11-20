@@ -249,9 +249,13 @@ five rules, in the same order, are in the figma-to-wordpress skill.
 1. **Tokens not one-offs.** A design value with no token gets a token (Tailwind `@theme`, or a CSS variable in
    Barebones' `assets/css/tokens.css`); never `text-[19px]`, `bg-[#...]` or a hex in the build's CSS. A shared map
    (colours by option, button variants) lives once, in one helper or one partial.
-2. **Ship only what is used.** In P5 the kit files and helpers the site does not use leave the theme (for example
-   `assets/chat-save.js` without a chat, the lead-form partial without a form, the map helpers without a map), with
-   their line in functions.php and phpcs.xml.dist; no empty configs or seed files in the theme.
+2. **Ship only what is used.** new-site.py moves the starter's and the kit's unused files to
+   `_setup/starter-removed/` at setup (`assets/chat-save.js` without `"chat"`, the starter's blog templates and
+   feed support without `"blog"`, readme stubs, the starter palette, the widget area). The helpers the site does not
+   use leave in P5 (`self-check.py` lists them as unused), with their line in functions.php and phpcs.xml.dist; no
+   empty configs or seed files in the theme. build_field_groups.py refuses a field without instructions or with
+   developer words in them (a {token} only with plain words saying what it does). A fresh install deletes CF7's
+   sample form and WordPress's draft privacy page; the seeder points the privacy setting at the site's page.
 3. **Comments say why.** Never a task, ticket or design-tool ID: history lives in git and the task tracker.
 4. **Size limits.** A section past about 15 fields or 250 lines is split into smaller partials or a clone group; one
    job per file (form logic, markup and JS apart); JS lives in a file and is enqueued, never printed inline (data for

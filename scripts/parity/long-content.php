@@ -150,6 +150,21 @@ function kitwp_long_value( $field, $value, $factor, &$count ) {
 	return $value;
 }
 
+/**
+ * Store the test page IDs still left; none left: the option is deleted, so no empty test option stays behind.
+ *
+ * @param array<int, int> $ids Test page IDs.
+ * @return void
+ */
+function kitwp_long_keep_ids( $ids ) {
+	$ids = array_values( array_map( 'intval', (array) $ids ) );
+	if ( $ids ) {
+		update_option( 'kitwp_long_test_ids', $ids, false );
+	} else {
+		delete_option( 'kitwp_long_test_ids' );
+	}
+}
+
 $kitwp_ids = array_map( 'intval', (array) get_option( 'kitwp_long_test_ids', array() ) );
 
 if ( 'list' === $kitwp_cmd ) {
@@ -167,7 +182,7 @@ if ( 'remove' === $kitwp_cmd ) {
 			$kitwp_done[] = $kitwp_id;
 		}
 	}
-	update_option( 'kitwp_long_test_ids', array_values( array_diff( $kitwp_ids, $kitwp_done ) ), false );
+	kitwp_long_keep_ids( array_diff( $kitwp_ids, $kitwp_done ) );
 	echo 'OK long-content: removed ' . count( $kitwp_done ) . ' test page(s)' . ( $kitwp_done ? ' (IDs ' . implode( ', ', $kitwp_done ) . ')' : '' ) . "\n";
 	exit( 0 );
 }

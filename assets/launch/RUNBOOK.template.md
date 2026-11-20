@@ -1,6 +1,6 @@
 # {{SITE_NAME}}: WordPress launch runbook
 
-Private (the developer). Live domain https://{{DOMAIN}}, same host as the site it replaces, no DNS change.
+Private (the developer). Live address https://{{LIVE_HOST}}, same host as the site it replaces, no DNS change.
 Plan about 2 hours on a quiet day (not Friday). The developer does the hosting steps, one at a time, and says
 "done" after each; the agent checks and gives the next step. The agent never types a password or key.
 
@@ -10,16 +10,30 @@ Plan about 2 hours on a quiet day (not Friday). The developer does the hosting s
       local parity run clean; seeder second run "same" everywhere.
 - [ ] New copy the static site did not have (a blog page, say) approved by the client; new URLs told to whoever
       runs SEO.
-- [ ] reCAPTCHA v3 keys made for {{DOMAIN}}; badge position decided.
+- [ ] reCAPTCHA v3 keys made for {{LIVE_HOST}}; badge position decided.
 - [ ] Plugin zips are the newest: `python3 _plan/tools/launch/plugin-versions.py --profile <kit>/profile.local.json`
       lists each zip's plugin, version and file date; the developer confirms each or replaces it in their folder
       (the agent never updates a zip).
 - [ ] Mail: SPF includes the server (and the host's outgoing filter, if any); DMARC exists (cPanel > Email
       Deliverability shows both green).
-- [ ] Old URL list complete: `_setup/seed/redirects.json` covers every old page and archive URL.
-- [ ] Leads portal ready: the project exists in the portal admin (domain {{DOMAIN}}) and
+<!-- if:redirects -->
+- [ ] Old URL list complete: `_setup/seed/redirects.json` covers every old page and archive URL
+      (`_plan/OLD-SITE-URLS.md`); the Redirection plugin is on the live plugin checklist (section 4).
+<!-- /if:redirects -->
+<!-- unless:redirects -->
+- [ ] Old URLs: none to redirect (site.json "redirects" is false and `_plan/OLD-SITE-URLS.md` lists no 301), so no
+      Redirection plugin. If old URLs turn up before launch: plan them, set "redirects": true in site.json and run
+      `python3 <kit>/scripts/new-site.py _plan/site.json --launch-files` (this runbook again, with those steps).
+<!-- /unless:redirects -->
+- [ ] Where live leads go: {{LEADS_TO_ITEM}}
+- [ ] Client to-dos told to the client: every seeded placeholder (`grep -rn "PLACEHOLDER" _setup/seed`, and
+      "PLACEHOLDER" in the Media Library search) and every empty fact, each a `decided` finding on the board with
+      what the client sends. Launching with any left is the client's choice; they go in the report's next steps.
+<!-- if:portal -->
+- [ ] Leads portal ready: the project exists in the portal admin (domain {{LIVE_HOST}}) and
       `python3 _plan/tools/report/leads-check.py` with the live key answers OK (the developer runs it; a GET stores
       nothing).
+<!-- /if:portal -->
 - [ ] Rollback understood (section 6).
 
 ## 1. Back up the live site
@@ -48,8 +62,8 @@ Plan about 2 hours on a quiet day (not Friday). The developer does the hosting s
    "Class ZipArchive not found" in the installer = zip is off; an nd_mysqli "conflicting" warning is harmless.
 3. Move the old site out of `public_html` into a sibling folder `<old>-old` (rollback = move it back). Leave
    `.ftpquota`, `.well-known` and `cgi-bin`.
-4. Upload `installer.php` and the archive to `public_html`. Open `https://{{DOMAIN}}/installer.php`: database
-   details (the developer types them), URL `https://{{DOMAIN}}`. Run it.
+4. Upload `installer.php` and the archive to `public_html`. Open `https://{{LIVE_HOST}}/installer.php`: database
+   details (the developer types them), URL `https://{{LIVE_HOST}}`. Run it.
 5. After the installer: nothing of it is left in `public_html` (anyone could download it): `installer.php` and
    `installer-backup.php` answer 404; `dup-installer/`, `dup-installer-bootlog__*.txt` and the archive (`.zip` or
    `.daf`) are gone. Duplicator keeps the original `.htaccess` in its `original_files_` folder.
@@ -62,38 +76,74 @@ Plan about 2 hours on a quiet day (not Friday). The developer does the hosting s
 ## 4. Switch on (wp-admin, live)
 
 1. Settings > Reading: untick "Discourage search engines". Settings > Permalinks: Save.
-2. **The live plugin checklist** (the one list; live only, staging gets none of it). Each installed and active:
+2. Local addresses: the installer replaced the local address, but other local hosts (a sister site's `.test` link,
+   a setting saved with `localhost`) stay in the content and settings. Replace them, dry run first, then check:
+   - [ ] `wp search-replace '//{{LOCAL_HOST}}' '//{{LIVE_HOST}}' --all-tables --dry-run`, then without `--dry-run`;
+         the same for each other local host the check below finds (its live address from the client or the plan).
+   - [ ] `wp search-replace 'http://{{LIVE_HOST}}' 'https://{{LIVE_HOST}}' --all-tables` (links saved over http).
+   - [ ] `wp db search '[a-z0-9-]+\.test|localhost' --all-tables --regex` finds nothing (no WP-CLI: the same search in
+         phpMyAdmin); live-qa.py's "local" check (section 5) finds no local host on any page.
+3. **The live plugin checklist** (the one list; live only, staging gets none of it). Each installed and active:
 {{LIVE_PLUGINS}}
    - [ ] Contact Form CFDB7 (every enquiry kept in wp-admin).
    - [ ] Converter for Media (WebP and AVIF): then regenerate the images and check a few pages.
-   - [ ] reCAPTCHA v3: Contact > Integration > reCAPTCHA, the keys for {{DOMAIN}} (the developer pastes them).
+<!-- if:redirects -->
+   - [ ] Redirection: Tools > Redirection, import `_setup/seed/redirects.json` (the real list, not the sample).
+<!-- /if:redirects -->
+   - [ ] reCAPTCHA v3: Contact > Integration > reCAPTCHA, the keys for {{LIVE_HOST}} (the developer pastes them).
    - [ ] {{LEADS_ITEM}}
    - [ ] {{CACHE_PLUGIN}} (the cache plugin): page cache and browser cache on; CSS and JS options one at a time, each
          followed by a parity spot check and `live-qa.py` (anything that changes a pixel or breaks a form goes off
          again); purge everything after "Discourage search engines" is unticked.
    Profile plugins come only from the developer's plugin folder (`plugin_zips`), never downloaded elsewhere. Tick
    each in Plugins (or `wp plugin list --status=active`); live-qa.py checks the reCAPTCHA script on the form pages.
-3. Tracking: the GTM container (or the tracking plugin) set for the live host only.
-4. ACF > Updates: the ACF PRO licence active (the developer). The ACF menu must show (never hide it on live).
-5. Read `wp-content/debug.log` once (a second copy of a plugin gives "Cannot redeclare" fatals); list the live
+<!-- if:tracking -->
+4. Tracking: the Google Tag Manager ID {{GTM_ID}} goes where this build loads it ({{TRACKING_WHERE}}), on live
+   only (local and staging stay empty). If a tracking plugin loads the same container, leave the theme's setting
+   empty so it loads once.
+<!-- /if:tracking -->
+<!-- unless:tracking -->
+4. Tracking: none in this build (site.json "gtm" is empty). If the tracking task brings an ID, add it here first.
+<!-- /unless:tracking -->
+5. ACF > Updates: the ACF PRO licence active (the developer). The ACF menu must show (never hide it on live).
+6. Read `wp-content/debug.log` once (a second copy of a plugin gives "Cannot redeclare" fatals); list the live
    plugins for the handoff.
-6. Users: the client's own login (Editor role) if they edit; never share the admin account.
+7. Users: the client's own login (Editor role) if they edit; never share the admin account.
 
 **Staging** (a public copy before live, when the build has one): none of the live plugin checklist and no reCAPTCHA
 keys; it stays noindex (`live-qa.py --hidden`).
 
 ## 5. Checks (references/qa-report.md has the full list)
 
-- [ ] `python3 _plan/tools/report/live-qa.py https://{{DOMAIN}} {{GTM_ID}} _setup/seed/redirects.json {{LOCAL_HOST}}` (use the canonical host: add www if the site uses www; export the real redirects first, the seed file is a sample)
+- [ ] `python3 _plan/tools/report/live-qa.py https://{{LIVE_HOST}}<!-- if:tracking --> --gtm {{GTM_ID}}<!-- /if:tracking --> --local {{LOCAL_HOST}} --theme wp-content/themes/{{THEME}}<!-- if:redirects --> --redirects _setup/seed/redirects.json<!-- /if:redirects -->`
+<!-- if:redirects -->
+      (export the real redirects first, the seed file is a sample)
+<!-- /if:redirects -->
       ALL PASS (bot filter: run `live-qa-console.js` in a real browser instead).
-- [ ] `node _plan/tools/report/track.mjs https://{{DOMAIN}} {{GTM_ID}} / /thank-you/`: GTM loaded; the conversion
+<!-- if:tracking -->
+- [ ] `node _plan/tools/report/track.mjs https://{{LIVE_HOST}} {{GTM_ID}} / /thank-you/`: GTM loaded; the conversion
       request only on /thank-you/.
-- [ ] One real test lead per form (inline, pop-up, chat) with the real submit button: lands on /thank-you/, email
+<!-- /if:tracking -->
+<!-- if:forms -->
+- [ ] One real test lead per form ({{FORMS_LIST}}) with the real submit button: lands on /thank-you/, the email
       arrives, every recipient "Accepted" in cPanel > Track Delivery.
-- [ ] Real phones (iOS Safari, Android Chrome): menu, pop-up, forms, call links.
+<!-- if:portal -->
+      Each test lead also shows in the leads portal's form counts.
+<!-- /if:portal -->
+<!-- /if:forms -->
+<!-- unless:forms -->
+- [ ] No lead forms on this site (site.json "forms" is empty): no test leads.
+<!-- /unless:forms -->
+- [ ] Real phones (iOS Safari, Android Chrome): menu, forms, call links.
 - [ ] PageSpeed Insights, mobile and desktop, on Home, one template page, Contact (numbers go in the report as they are).
 - [ ] Search Console: sitemap `sitemap_index.xml` submitted (whoever owns SEO).
+<!-- if:redirects -->
 - [ ] Next 30 days: Tools > Redirection > 404s weekly; add a redirect for anything real.
+<!-- /if:redirects -->
+<!-- unless:redirects -->
+- [ ] Next 30 days: Search Console > Pages > Not found weekly; an old URL that is really used gets planned as a
+      redirect (the Redirection plugin then joins the live plugins).
+<!-- /unless:redirects -->
 
 ## 6. Rollback (a check fails and cannot be fixed quickly)
 

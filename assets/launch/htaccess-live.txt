@@ -1,6 +1,12 @@
 # {{SITE_NAME}}, WordPress: the live .htaccess. Replaces the static site's .htaccess at launch.
+<!-- if:redirects -->
 # Old-URL redirects live in Tools > Redirection (editable); this file only keeps the host rules, caching and
 # compression from the static site, the private-files block and the WordPress block.
+<!-- /if:redirects -->
+<!-- unless:redirects -->
+# This build keeps every old URL, so it has no redirects; this file keeps the host rules, caching and compression
+# from the static site, the private-files block and the WordPress block.
+<!-- /unless:redirects -->
 #
 # If the old .htaccess had a "php -- BEGIN cPanel-generated handler" block, paste that block back in at the top.
 
@@ -9,15 +15,42 @@ Options -Indexes
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
-  # www to non-www, and http to https, in ONE hop (as the static site). For a www site, swap the host rules.
+  # The site's address: https://{{LIVE_HOST}}
+  # {{OTHER_HOST}} goes there, and http goes to https, in ONE hop. new-site.py wrote these rules from
+  # site.json "domain" and "www"; a copy of this file for another domain changes both hosts.
   RewriteCond %{REQUEST_URI} !^/\.well-known/
-  RewriteCond %{HTTP_HOST} ^www\.{{DOMAIN_REGEX}}$ [NC]
-  RewriteRule ^ https://{{DOMAIN}}%{REQUEST_URI} [R=301,L]
+  RewriteCond %{HTTP_HOST} ^{{OTHER_HOST_REGEX}}$ [NC]
+  RewriteRule ^ https://{{LIVE_HOST}}%{REQUEST_URI} [R=301,L]
   RewriteCond %{REQUEST_URI} !^/\.well-known/
-  RewriteCond %{HTTP_HOST} ^{{DOMAIN_REGEX}}$ [NC]
+  RewriteCond %{HTTP_HOST} ^{{LIVE_HOST_REGEX}}$ [NC]
   RewriteCond %{HTTPS} !=on
   RewriteCond %{HTTP:X-Forwarded-Proto} !https
-  RewriteRule ^ https://{{DOMAIN}}%{REQUEST_URI} [R=301,L]
+  RewriteRule ^ https://{{LIVE_HOST}}%{REQUEST_URI} [R=301,L]
+</IfModule>
+
+# WordPress's readme, licence and sample config show its version, and XML-RPC is a login door the site never uses:
+# none of them is public.
+<FilesMatch "^(readme\.html|license\.txt|wp-config-sample\.php|xmlrpc\.php)$">
+  Require all denied
+</FilesMatch>
+
+# The theme's developer files are not part of the site, and neither are its ACF field definitions (ACF reads
+# acf-json from disk; this rule closes it on live whether or not the folder's own .htaccess was packed).
+<IfModule mod_alias.c>
+<!-- starter:tw -->
+  # _tw: WordPress loads only the theme/ folder; the build folder around it (sources, tools) stays closed.
+  RedirectMatch 404 ^/wp-content/themes/{{THEME}}/(?!theme/)
+<!-- /starter:tw -->
+  RedirectMatch 404 ^/wp-content/themes/{{THEME}}/(.*/)?(acf-json|node_modules|vendor|tests|\.git[^/]*)(/|$)
+  RedirectMatch 404 ^/wp-content/themes/{{THEME}}/(.*/)?(composer\.(json|lock)|package(-lock)?\.json|phpcs\.xml\.dist)$
+  RedirectMatch 404 ^/wp-content/themes/{{THEME}}/.*\.(md|log)$
+</IfModule>
+
+# Basic security headers (they change nothing on the page).
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Frame-Options "SAMEORIGIN"
 </IfModule>
 
 # Planning files never go live, but block them in case they are uploaded by mistake.

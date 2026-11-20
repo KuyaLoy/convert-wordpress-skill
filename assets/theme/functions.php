@@ -3,13 +3,15 @@
  * {{SITE_NAME}} theme functions.
  *
  * Barebones' own files first (new-site.py moved its sample block, shortcodes, acf.php and functions.php to
- * _setup/starter-removed/), then the kit's files in this order: config first, seed.php before seed-pages.php. The
- * seed and snapshot files do nothing outside WP_ENVIRONMENT_TYPE "local". A _tw theme keeps its own functions.php:
- * new-site.py appends the kit's lines there instead.
+ * _setup/starter-removed/), then the kit's files in this order: config first, seed.php before its seed-*.php parts.
+ * The seed and snapshot files do nothing outside WP_ENVIRONMENT_TYPE "local". A _tw theme keeps its own
+ * functions.php: new-site.py appends the kit's lines there instead (the same list as below).
  * After every PHP save: php -l, PHPCS, and the duplicate function check below (it must print nothing).
  *
  * @package kitwp
  */
+
+defined( 'ABSPATH' ) || exit;
 
 // Duplicate function check (php -l cannot catch it; a duplicate took the reference build down twice):
 // grep -h "^function" includes/*.php | sed 's/(.*//' | sort | uniq -d
@@ -24,6 +26,33 @@ foreach ( [ 'setup', 'admin', 'menus', 'loaders', 'custom' ] as $kitwp_file ) {
 }
 
 // The kit.
-foreach ( [ 'config', 'cleanup', 'head', 'acf', 'helpers', 'media', 'forms', 'client-admin', 'schema', 'seo', 'seed', 'seed-pages', 'snapshot' ] as $kitwp_file ) {
+$kitwp_kit = [
+	'config',
+	'cleanup',
+	'head',
+	'acf',
+	'helpers',
+	'helpers-maps',
+	'media',
+	'media-svg',
+	'forms',
+	'forms-controls',
+	'forms-spam',
+	'forms-mail',
+	'forms-local-mail',
+	'forms-portal',
+	'client-admin',
+	'schema',
+	'seo',
+	'seed',
+	'seed-media',
+	'seed-settings',
+	'seed-pages',
+	'seed-menus',
+	'seed-forms',
+	'seed-seo',
+	'snapshot',
+];
+foreach ( $kitwp_kit as $kitwp_file ) {
 	require_once $kitwp_inc . $kitwp_file . '.php';
 }

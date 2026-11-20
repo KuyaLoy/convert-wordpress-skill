@@ -1,6 +1,8 @@
 # Forms and email: Contact Form 7, 1:1
 
-Read this in P3. The code is the theme's `includes/forms.php`; the seed files are `_setup/seed/forms.json`,
+Read this in P3. The code is the theme's `includes/forms.php` (CF7 setup, ids, redirect) with one file per job:
+`forms-controls.php` (tag markup), `forms-spam.php` (honeypot, reCAPTCHA), `forms-mail.php` (mail tags, branded
+mail), `forms-local-mail.php` (local capture) and `forms-portal.php` (the leads portal); the seed files are `_setup/seed/forms.json`,
 `quote-form.txt`, `chat-form.txt` and `lead-email.html`.
 
 ## Contents
@@ -92,7 +94,15 @@ seeder refuses an email file that is not a full HTML document and reports a form
   thank-you page with no email.
 - **reCAPTCHA v3** through CF7's own integration (Contact > Integration, the developer pastes the keys). CF7's
   script only fills forms with its `wpcf7-form` class, which the static markup does not have, so the theme asks
-  Google for a fresh token on submit and fills `_wpcf7_recaptcha_response` itself.
+  Google for a fresh token on submit (`assets/recaptcha.js`, the site key passed as data, no inline script) and
+  fills `_wpcf7_recaptcha_response` itself.
+- **A failed post is never silent:** CF7's response box stays, as `role="alert"`; after spam, an aborted post or a
+  failed send it adds the Theme Settings phone (or fills `{phone}` where the Messages tab has it), so the visitor
+  can still reach the business.
+- Without JavaScript there is no reCAPTCHA token, so CF7 marks the post spam. That stays the default (reCAPTCHA
+  strict). `KITWP_NOJS_LEADS` true keeps such a post when the honeypot is empty and a signed time stamp shows the
+  form was open 3 seconds to 7 days; turn it on only for a site whose visitors post without JavaScript, and watch
+  the spam.
 - `KITWP_RECAPTCHA_LAZY` false (the default, proven on a live site): Google's script loads on every page.
   true: it loads on the first touch of a form or the chat, with a 10 second fallback. Faster on phones; retest
   every form on live before shipping it.
@@ -123,6 +133,8 @@ status only. The code is in from P3; only the keys wait for live.
 - The endpoint and key live in wp-config only (`<PREFIX>_ENDPOINT`, `<PREFIX>_KEY`): the developer pastes them.
 - Off while `WP_ENVIRONMENT_TYPE` is local, development or staging. A local copy with the live key would
   otherwise send its test leads to the real portal, where they often cannot be deleted one by one.
+- Only the form's own fields go, each capped in length (500 characters, 5000 for a message); the forwarded IP
+  only when it is a valid public address, else REMOTE_ADDR.
 - Files, consent and the honeypot never go; leave out health details, dates of birth and other sensitive fields
   with the `kitwp_leads_skip_fields` filter (per form).
 - Prove the key without storing anything: `python3 _plan/tools/report/leads-check.py` (the developer runs it; the
@@ -134,7 +146,7 @@ status only. The code is in from P3; only the keys wait for live.
   checklist (RUNBOOK section 4) has the item.
 - A WordPress site the kit did not build: the same sender goes in as a small must-use plugin
   (`wp-content/mu-plugins/leads-portal.php`) made from `kitwp_leads_send()`, `kitwp_leads_tracking()` and their two
-  hooks in the kit's `includes/forms.php`, with the site's prefix and the constant prefix defined.
+  hooks in the kit's `includes/forms-portal.php`, with the site's prefix and the constant prefix defined.
 
 ## Local mail capture
 

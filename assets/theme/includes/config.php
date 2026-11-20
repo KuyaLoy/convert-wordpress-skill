@@ -6,6 +6,8 @@
  * @package kitwp
  */
 
+defined( 'ABSPATH' ) || exit;
+
 /** The schema.org type of the static site's JSON-LD org block (Organization, LocalBusiness, or a more specific type such as Dentist, LegalService, Restaurant, Store). */
 const KITWP_SCHEMA_TYPE = '{{SCHEMA_TYPE}}';
 
@@ -54,6 +56,16 @@ const KITWP_SITE_BADGE_HEIGHT = 40;
  */
 const KITWP_LEADS_PREFIX = '{{LEADS_PREFIX}}';
 
+/**
+ * The static site has a blog (a news or articles listing; site.json "blog"): true keeps WordPress's category,
+ * tag, date and author archives, paged listings (/page/2/) and feeds. False (most conversions): they answer 404 as
+ * on the static site (cleanup.php kitwp_static_routes()).
+ */
+const KITWP_KEEP_BLOG = 'true' === '{{KEEP_BLOG}}';
+
+/** The static site has a search page: true keeps WordPress search. False: /?s= is ignored and /search/... is a 404. */
+const KITWP_SITE_SEARCH = 'true' === '{{SITE_SEARCH}}';
+
 /** Client wp-admin (client-admin.php): hide Posts and Comments from the client. Set false when the site uses them. */
 const KITWP_CLIENT_HIDE_POSTS = true;
 
@@ -87,6 +99,13 @@ const KITWP_CHAT_SELECTOR = '{{CHAT_SELECTOR}}';
  * fallback (faster on phones; tested locally only, so retest every form on live before relying on it).
  */
 const KITWP_RECAPTCHA_LAZY = false;
+
+/**
+ * reCAPTCHA on: keep a lead posted without JavaScript (no token) when its signed time stamp shows the form was open
+ * 3 seconds or more. Off by default because a bot that loads the form and waits passes it (the honeypot is then the
+ * only check); off, such a post stays spam and the visitor sees the failure note with the phone number.
+ */
+const KITWP_NOJS_LEADS = false;
 
 /**
  * The static build's image widths (the next/image sizes it serves) and its first deviceSize, which decides the

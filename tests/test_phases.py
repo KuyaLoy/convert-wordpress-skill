@@ -244,3 +244,50 @@ class InstallWp(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class Retro096(unittest.TestCase):
+    """0.9.6: the live page rows, escaped pipes on the board, a split row named plainly, a stale Now line."""
+
+    def test_live_rows_diff_and_pushed(self):
+        tmp = tempfile.mkdtemp()
+        p = board(tmp, lambda t: finding(t, '| F-001 | P2 | Home / Hero | a \| b, then </script> | major | open |'))
+        out = os.path.join(tmp, 'progress.html')
+        self.assertEqual(run('scripts/build-map/render.py', p, out).returncode, 0)
+        with open(os.path.join(tmp, 'progress-rows.json'), encoding='utf-8') as fh:
+            rows = json.load(fh)
+        writes = [w for b in rows['batches'] for w in b]
+        self.assertEqual(rows['existing'], [])  # an empty database: every write creates
+        self.assertEqual(writes[-1]['collection'] + '/' + writes[-1]['doc_id'], 'meta/now')  # meta last
+        for w in writes:
+            self.assertEqual(sorted(w), ['collection', 'data', 'doc_id', 'op'])  # ArtifactData batch shape
+        f = next(w['data'] for w in writes if w['collection'] == 'findings')
+        self.assertEqual((f['text'], f['where'], f['run'], f['status']), ('a | b, then </script>', 'home/hero', 'P2', 'open'))
+        self.assertEqual(sorted({w['collection'] for w in writes}), ['findings', 'items', 'log', 'meta', 'phases'])
+        with open(os.path.join(tmp, 'progress-live.html'), encoding='utf-8') as fh:
+            page = fh.read()
+        snap = page.split('id="snapshot">', 1)[1].split('</script>', 1)[0]
+        self.assertNotIn('</', snap)  # a </script> in a finding cannot close the data block
+        self.assertIn("claude.use('db')", page)
+        self.assertIn('snapshot (no live data in this view)', page)
+        # Pushed: nothing to write until the board changes; then only the changed rows, marked existing.
+        self.assertIn('marked as pushed', run('scripts/build-map/render.py', p, out, '--pushed').stdout)
+        rewrite(p, lambda t: t.replace('| major | open |', '| major | fixed |'))
+        run('scripts/build-map/render.py', p, out)
+        with open(os.path.join(tmp, 'progress-rows.json'), encoding='utf-8') as fh:
+            rows = json.load(fh)
+        paths = sorted(w['collection'] + '/' + w['doc_id'] for b in rows['batches'] for w in b)
+        self.assertEqual([x for x in paths if x != 'meta/now'], ['findings/F-001'])  # meta/now: when the minute moved
+        self.assertEqual(sorted(rows['existing']), paths)
+
+    def test_split_row_is_named_and_now_note(self):
+        tmp = tempfile.mkdtemp()
+        p = board(tmp, lambda t: finding(close_p0(t), '| F-001 | P1 | a || b | x | minor | open |'))
+        r = run('scripts/build-map/gate.py', p)
+        self.assertEqual(r.returncode, 2, r.stdout)
+        self.assertIn('finding row F-001 has 8 cells, not 6', r.stdout)
+        rewrite(p, lambda t: t.replace('| a || b |', r'| a \|\| b |'))
+        self.assertEqual(run('scripts/build-map/gate.py', p, '--close').returncode, 0)
+        r = run('scripts/build-map/gate.py', p)
+        self.assertNotEqual(r.returncode, 2, r.stdout)
+        self.assertIn('NOTE gate: the board\'s Now line says "P0 planning." but the current phase is P1', r.stdout)

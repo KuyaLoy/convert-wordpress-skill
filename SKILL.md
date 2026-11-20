@@ -107,22 +107,30 @@ One agent builds the whole site. No role-play team in the chat: the old roles ar
 | P2 Pages | Every page, section by section | QA logs |
 | P3 Forms and email | CF7 forms, branded emails, thank-you, spam protection | QA logs |
 | P4 SEO, security, speed | SEO plugin, schema, old URLs, ARIA, hardening, Core Web Vitals | QA logs |
-| P5 Fix and QA loop | Fix the whole findings list; full QA again; repeat until QA finds 0; launch prep | The developer's **Go-live** |
+| P5 Fix and QA loop | One full QA run; fix passes, each re-checking what changed, until a re-check finds 0; launch prep | The developer's **Go-live** |
 | P6 Launch and live QA | Live, live QA, the report and the client pack | Done |
 
-**QA per phase** = gate.py + the parity and design checks + one fresh read-only check against the QA checklist (a
-subagent, or a new chat in tools without subagents; a faster model where the tool lets you pick). Findings go in BUILD-MAP.md "QA findings" (`open` > `fixed` after a re-check, or `decided`).
+**QA per phase** = the self-check first (`self-check.py`: the build fixes what it finds before QA starts) + gate.py
++ the parity, SEO and design checks + one fresh read-only check against the QA checklist (a subagent, or a new chat
+in tools without subagents; a faster model where the tool lets you pick). Findings go in BUILD-MAP.md "QA findings"
+(`open` > `fixed` after a re-check, or `decided`).
+**All rules at the plan:** P0 decides the forms and where leads go, placeholders, the live plugin checklist and the
+leads portal; a skill update during a task applies at the next site or phase boundary, never inside a QA run.
 
 ```
 python3 _plan/tools/build-map/gate.py BUILD-MAP.md           # 0 may close, 1 open items listed, 2 a rule broken
 python3 _plan/tools/build-map/gate.py BUILD-MAP.md --close   # opens the next phase
 python3 _plan/tools/build-map/render.py BUILD-MAP.md _plan/progress.html   # progress page + progress.json
+python3 _plan/tools/report/self-check.py <wp_root> --url <local url>      # before every QA run
 ```
 
 Run gate.py at the start of every session. Write `ok <date>` in "Developer gates" only after the developer says it
 in the chat. After `--close`: update both handoff files. The progress page: update the board's "## Now" lines,
-render and republish to the same private link at every unit end (a page built, a QA run collected, a fix batch, a
-site done) and every stop; before a long step (a QA run, a full pixel run) write Now and republish first.
+render and push at every unit end (a page built, a QA run collected, a fix batch, a site done) and every stop;
+before a long step (a QA run, a full pixel run) write Now and push first. In Claude the page is live (the artifact
+database: render.py writes the rows, ArtifactData sends them, the open page updates itself); elsewhere republish
+the static page (references/phases-and-qa.md > The progress page). Resume short: checkpoint at a page, site or
+phase end with the exact next step; a resume re-checks only what can have changed.
 
 ## Start: intake
 
@@ -161,14 +169,18 @@ site done) and every stop; before a long step (a QA run, a full pixel run) write
     archive and theme-part URLs, campaign URLs).
 - **P0-03 Board and handoff:** every page and its sections in BUILD-MAP.md "Pages" (keep its headings: render.py
   and gate.py read them); the private progress page (the same page and progress.json keys as figma-to-wordpress): `python3
-  _plan/tools/build-map/render.py BUILD-MAP.md _plan/progress.html`, published privately and republished to the
-  same link at every unit end and every stop (references/phases-and-qa.md > The progress page).
+  _plan/tools/build-map/render.py BUILD-MAP.md _plan/progress.html`; in Claude the live page
+  (`_plan/progress-live.html`, published once with the database) gets rows at every step start and stop, elsewhere
+  the static page is republished (references/phases-and-qa.md > The progress page).
 - **P0-04 Decisions and the Plan OK** (defaults in brackets; the developer may just say OK): local folder, URL and
   database; starter theme (_tw for a Tailwind source or a site clearly easier in Tailwind, else Barebones with
   CSS-variable tokens; the choice and one reason); spam protection (CF7 reCAPTCHA v3 plus the static honeypot, badge
   position); editor (block editor unless classic); pages the static site lacks, like a blog (site design, new URLs
   flagged to SEO); old URLs to redirect (Redirection only if any); git; for a multilingual source, how languages are
-  built. The OK message lists the downloads of P1 (WordPress, theme, ACF PRO zip, Contact Form 7, Yoast SEO).
+  built; every form and where its leads go (CF7 for each, the leads portal or "none: <reason>"), missing content as
+  marked placeholders, a chat or search if the source has one, the live plugin checklist. All of it now, so no rule
+  reopens finished work later. The OK message lists the downloads of P1 (WordPress, theme, ACF PRO zip, Contact Form
+  7, Yoast SEO).
 
 ## P1 Setup (in one go, after the Plan OK)
 
@@ -277,11 +289,16 @@ Contact, enquiries) and one "Your website" dashboard box; administrators keep th
 
 ## P5 Fix and QA loop
 
-Fix every finding on the board, then a **full** QA run on the whole site (every route, every CSS breakpoint and 1 px
-past it, the design checks, old URLs checked locally, real phones, the seeder twice, the read-only check;
-the long-content test pages removed before the package); repeat until a run finds 0 and
-no finding is `open`. Then launch prep: the clean-up (unused kit files and helpers out of the theme, the one-off
-value search at 0), `RUNBOOK.md` and `htaccess-live.txt` in `_setup/launch/` completed, a short editing guide. Then the stop report asking for the **Go-live** (the go/no-go list is in the runbook).
+One **full** QA run on the whole site (every route, every CSS breakpoint and 1 px past it, the design checks, old
+URLs checked locally, real phones, the seeder twice, the read-only review of all the theme code; the long-content
+test pages removed before the package), then `changed-routes.py save`. Then fix passes: fix every open finding,
+re-check each fixed item, a read-only review of the changed files and their callers, pixel only on the routes
+`changed-routes.py diff` names; repeat until a re-check finds 0 and no finding is `open`. A new full run only when a
+change touched most of the theme. Clones of a proven template: every route's markup and content, the forms, pixel at
+360, 768 and 1440 (references/phases-and-qa.md > The fix loop, Clones). Then launch prep: the clean-up (unused kit
+files and helpers out of the theme, the one-off value search at 0), `RUNBOOK.md` and `htaccess-live.txt` in
+`_setup/launch/` completed, a short editing guide. Then the stop report asking for the **Go-live** (the go/no-go
+list is in the runbook).
 
 ## P6 Launch (the developer does each step; you give one at a time)
 
@@ -325,8 +342,9 @@ developer fills; the agent never types a password). Details: `references/qa-repo
 | `scripts/launch/plugin-versions.py` | Go/no-go: each plugin zip in the profile's folder with its version and file date |
 | `scripts/acf/build_field_groups.py`, `sync.php` | ACF JSON, stable keys (`--check`); database sync |
 | `scripts/seed/export.mjs`, `export-pages.py` | Static content into `_setup/seed/` for Tools > Seeder |
-| `scripts/build-map/gate.py`, `render.py` | The phase gate; the private progress page |
-| `scripts/parity/` (the theme's `tests/parity/`) | `check-section.py` (one call per section), pixel, text, SEO and DOM diffs, `design-check.mjs` (states, motion, long content), `long-content.php`; mirror and server for cloud runs |
+| `scripts/build-map/gate.py`, `render.py`, `live.py` | The phase gate; the private progress page, static and live (the database rows) |
+| `scripts/report/self-check.py` | Before every QA run: the classes a build catches itself (instructions, casts, guards, dead code, launch files) |
+| `scripts/parity/` (the theme's `tests/parity/`) | `check-section.py` (one call per section), pixel, text, SEO and DOM diffs, `seodiff.py` (head tags and JSON-LD values), `changed-routes.py` (what a fix pass changed), `design-check.mjs` (states, motion, long content), `long-content.php`; mirror and server for cloud runs |
 | `scripts/update.py` | Updates this skill from GitHub (`--check` only looks); `/update-convert-wordpress-skill` runs it |
 
 ## Done means

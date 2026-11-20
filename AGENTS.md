@@ -15,7 +15,8 @@ each agent.
   example.com. `profile.local.json` and the handoff files stay out of the repository (`.gitignore`).
 - Any stack, business, country and language: no defaults tied to one.
 - Tokens in templates: `kitwp` / `KITWP` / `Kitwp` (PHP prefix), `kitk` (ACF key prefix), `{{NAME}}` values,
-  `<!-- starter:barebones -->` and `<!-- starter:tw -->` blocks, `[[...]]` report facts.
+  `<!-- starter:barebones -->` and `<!-- starter:tw -->` blocks, `<!-- if:NAME -->` / `<!-- unless:NAME -->`
+  blocks in the launch templates (nestable), `[[...]]` report facts.
 - Before a change is done: `python3 -m unittest discover -s tests` (the kit's tests, left out of release archives);
   `php -l` on every PHP file in `assets/` and `scripts/`; PHPCS on a theme made by `scripts/new-site.py` (both
   starters); `python3 -m py_compile` on the scripts; `node --check` on the JavaScript; every JSON file parses; run

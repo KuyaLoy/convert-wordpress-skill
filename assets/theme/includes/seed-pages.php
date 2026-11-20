@@ -11,6 +11,8 @@
  * @package kitwp
  */
 
+defined( 'ABSPATH' ) || exit;
+
 if ( 'local' !== wp_get_environment_type() ) {
 	return;
 }
@@ -135,6 +137,9 @@ function kitwp_seed_template_pages() {
 			++$report['same'];
 		}
 	}
+	if ( kitwp_seed_privacy_page() ) {
+		$report['privacy page set'] = 1;
+	}
 	return $report;
 }
 
@@ -193,5 +198,30 @@ function kitwp_seed_flex_pages() {
 			update_option( 'page_for_posts', $id );
 		}
 	}
+	if ( kitwp_seed_privacy_page() ) {
+		$report['privacy page set'] = 1;
+	}
 	return $report;
+}
+
+/**
+ * Point Settings > Privacy at the seeded privacy page, so WordPress links it (login screen, comment and data tools)
+ * and does not offer its own draft: a fresh install has that draft removed, and the static site's page is the real
+ * one. Runs after either page step; does nothing until the page is published.
+ *
+ * @return bool Whether the setting changed.
+ */
+function kitwp_seed_privacy_page() {
+	$kitwp_privacy = get_page_by_path( 'privacy-policy' );
+	if ( ! $kitwp_privacy ) {
+		$kitwp_privacy = get_page_by_path( 'privacy' );
+	}
+	if ( ! $kitwp_privacy || 'publish' !== $kitwp_privacy->post_status ) {
+		return false;
+	}
+	if ( (int) get_option( 'wp_page_for_privacy_policy' ) === (int) $kitwp_privacy->ID ) {
+		return false;
+	}
+	update_option( 'wp_page_for_privacy_policy', (int) $kitwp_privacy->ID );
+	return true;
 }

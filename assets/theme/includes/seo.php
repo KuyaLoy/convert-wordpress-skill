@@ -9,6 +9,8 @@
  * @package kitwp
  */
 
+defined( 'ABSPATH' ) || exit;
+
 add_filter(
 	'wpseo_opengraph_type',
 	static function () {

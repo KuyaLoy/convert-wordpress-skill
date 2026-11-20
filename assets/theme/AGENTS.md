@@ -37,8 +37,9 @@ done, not the eye.
 - `assets/styles/` Sass sources: the static site's BUILT CSS goes in verbatim (no second minifier).
 - `assets/scripts/` theme JavaScript source: vanilla, no jQuery.
 - `includes/` WordPress setup and hooks. Starter: setup, loaders (enqueue), menus, admin, custom. Kit: config
-  (site constants), cleanup, head, acf, helpers, media, forms, client-admin, schema, seo, seed and seed-pages
-  (local only), snapshot (local only).
+  (site constants), cleanup, head, acf, helpers (and -maps), media (and -svg), forms (forms-controls, -spam,
+  -mail, -local-mail, -portal), client-admin, schema, seo, seed and its seed-* steps (local only), snapshot (local
+  only).
 - `page-templates/` page templates; `template-parts/sections/` one partial per section layout.
 - `acf-json/` ACF local JSON for every field group.
 - `style.css`, `css/` and `js/` are build output: edit the sources, then `npm run build`.
@@ -50,7 +51,8 @@ done, not the eye.
   CSS go here, so the compiled `theme/style.css` gives the same result as the static CSS (swap test 0.000%).
 - `javascript/` theme JavaScript source (esbuild to `theme/js/`): vanilla.
 - `theme/inc/` the starter's helpers; `theme/includes/` the kit: config (site constants), cleanup, head, acf,
-  helpers, media, forms, client-admin, schema, seo, seed and seed-pages (local only), snapshot (local only).
+  helpers (and -maps), media (and -svg), forms (forms-controls, -spam, -mail, -local-mail, -portal), client-admin,
+  schema, seo, seed and its seed-* steps (local only), snapshot (local only).
 - `theme/page-templates/` page templates; `theme/template-parts/sections/` one partial per section layout.
 - `theme/acf-json/` ACF local JSON for every field group.
 - `theme/style.css` and `theme/js/` are build output: `npm run dev` (or `npm run watch`), `npm run prod` for the
@@ -67,6 +69,13 @@ done, not the eye.
 - Escape everything at output (`esc_html`, `esc_attr`, `esc_url`, `wp_kses_post` or `kitwp_inline()`); sanitise all
   input; nonces and capability checks on anything custom. Read ACF values with `get_field()` and escape them
   yourself.
+- Every ACF repeater or flexible field read goes through `kitwp_rows()`, every relationship, gallery, checkbox or
+  multi-select through `kitwp_list()`, and a group is checked with `is_array()`. Never `(array)` on a field: an empty
+  field is `false` or `null`, and `(array) false` is `[false]` (one empty row and a PHP warning).
+- Every PHP file starts with its header comment, then `defined( 'ABSPATH' ) || exit;` (a direct request prints
+  nothing instead of an error with the server path).
+- Theme JavaScript is a file, enqueued with its file date as the version (`filemtime()`); values PHP knows go in as
+  data (`wp_localize_script()` or a data attribute), not as code in an inline script.
 - Match the indentation of the file you edit.
 
 ## ACF JSON

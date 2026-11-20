@@ -39,7 +39,9 @@ SEVERITIES = ('blocker', 'major', 'minor')
 
 
 def cells(line):
-    return [p.strip() for p in line.strip().strip('|').split('|')]
+    """A table row's cells; an escaped pipe (backslash, pipe) stays inside its cell as |."""
+    parts = re.split(r'(?<!\\)\|', line.strip().strip('|'))
+    return [p.replace('\\|', '|').strip() for p in parts]
 
 
 def first_table(lines):
@@ -128,7 +130,11 @@ if f_lines is None:
     broken.append('the "QA findings" section is missing')
 else:
     for r in first_table(f_lines)[1]:
-        if len(r) >= 6 and any(r):
+        if any(r) and len(r) != 6:  # a | inside a cell splits the row: say so, not "severity ..."
+            broken.append(f"finding row {r[0] or '?'} has {len(r)} cells, not 6: a | inside a cell? write it as \\| "
+                          f"or reword it")
+            continue
+        if any(r):
             f = {'id': r[0], 'phase': r[1], 'where': r[2], 'text': r[3], 'sev': word(r[4]).lower(),
                  'status': word(r[5]).lower()}
             findings.append(f)
@@ -158,6 +164,13 @@ for p in phases:
                 broken.append(f"{sid} ({p['code']}) is {st} while {current['code']} is open: no work ahead")
 if current and current['status'] not in ('IN PROGRESS', 'BLOCKED'):
     broken.append(f"{current['code']} is the current phase: set it IN PROGRESS")
+
+doing = next((re.sub(r'[`*]', '', ln.split(':**', 1)[1]).strip() for ln in (section('Now') or [])
+              if ln.strip().startswith('- **Doing:**')), '')
+if current and doing and not re.search(rf"\b{current['code']}\b|\b{re.escape(current['name'])}\b", doing, re.I):
+    # Not a rule break: the progress page reads this line, so a stale one misleads whoever watches it.
+    print(f"NOTE gate: the board's Now line says \"{doing[:60]}\" but the current phase is {current['code']}: "
+          'update it, then render and push the progress page.')
 
 if broken:
     print('BOARD BREAKS THE PHASE RULES (fix these first):')
@@ -191,7 +204,8 @@ if num == 5:
     for f in open_f:
         open_items.append(f"finding {f['id']} is open: {f['text'][:70]}")
     if not re.search(r'(^|\D)0 found', qa):
-        open_items.append('the last full QA run must find 0: record it as "<date>: 0 found"')
+        open_items.append('the last QA run (the full run, then each re-check) must find 0: record it as '
+                          '"<date>: 0 found"')
     if not gate_ok('go-live'):
         open_items.append('the developer\'s "Go-live" (write "ok <date>" only when they say it in the chat)')
 

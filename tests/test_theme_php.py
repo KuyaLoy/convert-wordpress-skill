@@ -43,8 +43,8 @@ def run_php(functions, body):
     return json.loads(out.stdout)
 
 
-HELPERS = 'assets/theme/includes/helpers.php'
-MEDIA = 'assets/theme/includes/media.php'
+HELPERS = 'assets/theme/includes/helpers-maps.php'
+MEDIA = 'assets/theme/includes/media-svg.php'
 
 
 @unittest.skipUnless(shutil.which('php'), 'needs PHP')
@@ -121,7 +121,7 @@ class Forms(unittest.TestCase):
                 '  kitwp_seed_form_problem( "quote", $d( "[text name]", $h, true, "Thanks [name]" ) ),\n'
                 '  kitwp_seed_form_problem( "quote", $d( "", $h, true, $h ) ),\n'
                 '] );')
-        got = run_php([('assets/theme/includes/seed.php', 'kitwp_seed_form_problem')], body)
+        got = run_php([('assets/theme/includes/seed-forms.php', 'kitwp_seed_form_problem')], body)
         self.assertEqual(got[0], '')
         self.assertEqual(got[1], '')
         self.assertIn('body_file of "quote" is not the branded HTML email', got[2])
@@ -162,10 +162,17 @@ function wp_get_referer() { return ''; }
 function is_wp_error( $v ) { return false; }
 function wp_remote_retrieve_response_code( $r ) { return $r['response']['code']; }
 function wp_remote_post( $url, $args ) { $GLOBALS['posts'][] = [ $url, $args ]; return [ 'response' => [ 'code' => 202 ] ]; }
-class Kit_Form { public function title() { return 'Quote'; } }
+class Kit_Tag { public $name; public $basetype; public function __construct( $n, $b ) { $this->name = $n; $this->basetype = $b; } }
+class Kit_Form {
+	public function title() { return 'Quote'; }
+	public function scan_form_tags() { return [ new Kit_Tag( 'your-name', 'text' ), new Kit_Tag( 'phone', 'tel' ), new Kit_Tag( 'consent', 'acceptance' ), new Kit_Tag( '', 'submit' ) ]; }
+}
 class WPCF7_Submission {
 	public static function get_instance() { return new self(); }
-	public function get_posted_data() { return [ 'your-name' => 'Sam Test', 'phone' => '0400 000 000', '_wpcf7' => '5', 'consent' => '1' ]; }
+	public function get_posted_data( $name = '' ) {
+		$data = [ 'your-name' => 'Sam Test', 'phone' => '0400 000 000', '_wpcf7' => '5', 'consent' => '1' ];
+		return '' === $name ? $data : ( $data[ $name ] ?? null );
+	}
 	public function uploaded_files() { return []; }
 	public function get_meta( $k ) { return 'https://example.org/contact/'; }
 }
@@ -177,12 +184,14 @@ class LeadsPortal(unittest.TestCase):
     """0.9.4: the portal gets the lead when the email fails too, once per submission, never off live."""
 
     def run_leads(self, env, events):
-        forms = 'assets/theme/includes/forms.php'
+        forms = 'assets/theme/includes/forms-portal.php'
         with open(path(forms), encoding='utf-8') as fh:
             hooks = re.findall(r"^add_action\( 'wpcf7_mail_(?:sent|failed)', 'kitwp_leads_send' \);", fh.read(), re.M)
         self.assertEqual(len(hooks), 2, 'kitwp_leads_send must hook wpcf7_mail_sent and wpcf7_mail_failed')
         code = '<?php\n' + LEADS_STUBS + f"$GLOBALS['env'] = '{env}';\n"
         code += php_function(forms, 'kitwp_leads_tracking') + php_function(forms, 'kitwp_leads_send')
+        code += php_function(forms, 'kitwp_leads_allowed_fields')
+        code += php_function('assets/theme/includes/forms.php', 'kitwp_lead_fields')
         code += '\n'.join(hooks) + '\n'
         code += ''.join(f"do_action( '{e}', new Kit_Form() );\n" for e in events)
         code += "echo json_encode( array_map( fn( $p ) => [ $p[0], $p[1]['headers']['Authorization'], json_decode( $p[1]['body'], true ) ], $GLOBALS['posts'] ) );"

@@ -15,6 +15,8 @@ sitemap, `/thank-you/`, and a missing URL for the 404).
 | `design-check.mjs` | States (hover, focus, configured clicks), motion (durations, easing) and long content; settings in `design-check.config.json` |
 | `long-content.php` | CLI, local only: a copy of a page with every text field long, for `design-check.mjs --long`; `remove` deletes it |
 | `domdiff.py` | DOM diff of regions (header, main, footer, pop-up) between a static page and a WordPress snapshot |
+| `seodiff.py` | Head tags (title, description, robots, canonical, og, twitter, theme-color, viewport, icons, their order) and every JSON-LD value per route, with the HTTP status; no browser |
+| `changed-routes.py` | `save` after a full QA run, `diff` after a fix pass: the routes whose rendering changed, the only ones pixel re-runs |
 | `domdiff.config.json` | Optional: the site's regions and local hosts (see the defaults at the top of domdiff.py) |
 | `mkmirror.py` | Builds a static mirror of the WordPress pages from `_setup/snapshots/` for cloud runs |
 | `serve.py` | Serves the static build or the mirror on 127.0.0.1 with a real 404 |

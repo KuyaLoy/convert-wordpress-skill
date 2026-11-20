@@ -53,11 +53,16 @@ project's handoff.md (Failed Attempts) as they happen.
 - `new-site.py --force` used to replace `build_field_groups.py`, which by then holds the site's content model: it
   is kept now, like the parity routes and settings.
 - ACF returns false (not []) for a repeater, flexible field or multi-select with nothing in it, and `(array) false`
-  is `[false]`: one blank row (and "array offset on bool" warnings). Loop over `bah_rows()`-style guards
-  (`is_array() ? ... : []`); test every template with its lists emptied.
+  is `[false]`: one blank row (and "array offset on bool" warnings). Never `(array)` on a field read: repeaters and
+  flexible fields through `kitwp_rows()`, relationship and gallery fields through `kitwp_list()` (kitwp_rows would
+  drop their ids); test every template with its lists emptied. `self-check.py` flags the casts.
 - JSON-LD printed with `wp_json_encode()` needs "<" escaped (`\u003c`, as React's JsonLd does, or JSON_HEX_TAG):
   a `</script>` typed into a field otherwise ends the script. Check the escape really changes something.
-- With no Site Icon set, WordPress answers /favicon.ico with its own "W" logo: hook `do_favicon` to the brand icon.
+- With no Site Icon set, WordPress answers /favicon.ico with its own "W" logo: the kit's `do_favicon` hook sends the
+  first brand icon that exists (name the files as the static site does).
+- WordPress answers routes a static site never had (category, tag, date and author archives, /page/2, feeds,
+  attachment pages, search): the kit answers 404 for them. A site with a blog or a search sets `KITWP_KEEP_BLOG` or
+  `KITWP_SITE_SEARCH` in config.php, or those routes 404 too.
 
 ## Parity and screenshots
 

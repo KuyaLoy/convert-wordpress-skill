@@ -18,13 +18,16 @@ ACF > Options Pages, where the client's developer can find and change it, instea
 
 Fields are for a client who is not technical: follow the source's content model (one field per real piece of
 content: a heading, a paragraph with Bold and Link, an image, a button), lists as repeaters, tabs per section,
-plain labels with short instructions. Never one field per rendered text node (sentence pieces, separators,
-breadcrumbs, the same words twice): a real build did that and the developer rejected it (gotchas.md, ACF).
+plain labels with short instructions on every field (the build refuses a field without them, or with developer
+words such as slug, key or a snake_case name: instruction_problems()). Never one field per rendered text node
+(sentence pieces, separators, breadcrumbs, the same words twice): a real build did that and the developer rejected
+it (gotchas.md, ACF).
 
 The library is at the top; replace the EXAMPLE SPEC with the site's content model (CONTENT-MODEL.md).
 """
 import json
 import os
+import re
 import sys
 import time
 
@@ -167,52 +170,73 @@ pages[f'ui_options_page_{KEY}_theme_settings'] = options_page(f'{KEY}-theme-sett
 g = G('ts')
 groups[f'group_{KEY}_theme_settings'] = field_group(f'group_{KEY}_theme_settings', 'Theme Settings', [
     g.tab('Business'),
-    g.text('business_name', 'Business name', '{{SITE_NAME}}', width=50),
-    g.text('legal_name', 'Legal name', '{{LEGAL_NAME}}', width=50),
+    g.text('business_name', 'Business name', '{{SITE_NAME}}', width=50,
+           instructions='The name visitors see across the site and in Google results.'),
+    g.text('legal_name', 'Legal name', '{{LEGAL_NAME}}', width=50, instructions='The registered name, in the footer.'),
     g.text('phone_display', 'Phone, as shown', '{{PHONE_DISPLAY}}', width=50, instructions='Used everywhere a phone number is shown.'),
-    g.text('phone_tel', 'Phone, to dial', '{{PHONE_TEL}}', width=50, instructions='Digits only, used in tel: links.'),
-    g.any('email', 'email', 'Email', default='{{EMAIL}}', width=50),
-    g.text('company_number', 'Company number', '', width=25, instructions='As the static site shows it (ABN, EIN, company registration). Token {company_number}.'),
-    g.text('registration', 'Licence or registration', '', width=25, instructions='Optional, as the static site shows it. Token {registration}.'),
+    g.text('phone_tel', 'Phone, to dial', '{{PHONE_TEL}}', width=50,
+           instructions='Digits only (with + and the country code): what phones dial when the number is tapped.'),
+    g.any('email', 'email', 'Email', default='{{EMAIL}}', width=50,
+          instructions='The email address shown on the site.'),
+    g.text('company_number', 'Company number', '', width=25,
+           instructions='As the site shows it (ABN, EIN, company registration). '
+                        'Write {company_number} in any text to show it there.'),
+    g.text('registration', 'Licence or registration', '', width=25,
+           instructions='Optional, as the site shows it. Write {registration} in any text to show it there.'),
     g.group('address', 'Address', [
-        g.text('locality', 'Locality', '', 'address', width=25), g.text('region', 'Region', '', 'address', width=25),
-        g.text('postcode', 'Postcode', '', 'address', width=25), g.text('country', 'Country', 'AU', 'address', width=25)]),
-    g.any('image', 'schema_image', 'Business image (structured data)', width=35),
+        g.text('locality', 'Locality', '', 'address', width=25, instructions='The town or suburb.'),
+        g.text('region', 'Region', '', 'address', width=25, instructions='The state, county or region.'),
+        g.text('postcode', 'Postcode', '', 'address', width=25, instructions='The postcode or ZIP code.'),
+        g.text('country', 'Country', 'AU', 'address', width=25, instructions='Two letters, for example AU or US.')],
+        instructions='The business address Google reads (search results and maps).'),
+    g.any('image', 'schema_image', 'Business image (structured data)', width=35,
+          instructions='A photo of the business that Google may show next to it in search results.'),
     g.area('map', 'Map', '', rows=2,
            instructions='Paste the Google Maps link from the address bar, the embed code (Share > Embed a map) or just '
                         'the address. Empty: the default city until the address is confirmed.'),
     g.tab('Quote form'),
-    g.rep('qf_service_options', 'General service options', [g.text('label', 'Option', '', 'qf_service_options')], button='Add option',
+    g.rep('qf_service_options', 'General service options',
+          [g.text('label', 'Option', '', 'qf_service_options', instructions='One service, as the list shows it.')],
+          button='Add option',
           instructions='The service list on pages without their own list, and in the pop-up.'),
     g.tab('Branding'),
     g.any('image', 'logo', 'Logo', width=35, instructions='The header logo (SVG or PNG).'),
     g.any('image', 'email_logo', 'Email logo', width=35, instructions='The logo at the top of the emails: a PNG (emails do not show SVG).'),
     g.any('image', 'email_badge', 'Email badge', width=30, instructions='The agency badge in the email footers: a PNG at 2x. Empty: the theme default.'),
-    g.any('image', 'agency_badge', 'Agency badge', width=35, instructions='The footer badge. Empty: the theme default (config.php KITWP_SITE_BADGE).'),
+    g.any('image', 'agency_badge', 'Agency badge', width=35,
+          instructions='The badge at the bottom of the footer. Empty: the theme default.'),
     g.any('url', 'agency_link', 'Agency badge link', width=40, instructions='Empty: the theme default.'),
-    g.any('true_false', 'agency_badge_hide', 'Hide agency badge', width=25),
+    g.any('true_false', 'agency_badge_hide', 'Hide agency badge', width=25,
+          instructions='On: the footer shows no agency badge.'),
     g.tab('404'),
-    g.text('e404_heading', 'Heading (H1)', '', width=75),
-    g.area('e404_text', 'Text', '', rows=2),
+    g.text('e404_heading', 'Heading (H1)', '', width=75,
+           instructions='The heading on the page visitors see when an address does not exist.'),
+    g.area('e404_text', 'Text', '', rows=2, instructions='The text under that heading.'),
 ], [[{'param': 'options_page', 'operator': '==', 'value': f'{KEY}-theme-settings'}]], style='seamless',
     description='Site-wide content (CONTENT-MODEL.md, Theme Settings).')
 
 # Component group, inactive, for cloning or copying into layouts.
 c = G('cmp')
 groups[f'group_{KEY}_cmp_heading'] = field_group(f'group_{KEY}_cmp_heading', 'Component: Heading', [
-    c.text('eyebrow', 'Eyebrow', '', 'heading', width=30), c.text('heading', 'Heading', '', 'heading', width=70),
-    c.area('sub', 'Sub', '', 'heading', rows=2)], INACTIVE_LOC, active=False, description='Cloned by layouts.')
+    c.text('eyebrow', 'Eyebrow', '', 'heading', width=30, instructions='The small line above the heading.'),
+    c.text('heading', 'Heading', '', 'heading', width=70, instructions='The section heading.'),
+    c.area('sub', 'Sub', '', 'heading', rows=2, instructions='The line under the heading.')],
+    INACTIVE_LOC, active=False, description='Cloned by layouts.')
 
 # A template group: fixed sections for pages that share a layout (here a Service page).
 sv = G('service')
 groups[f'group_{KEY}_tpl_service'] = field_group(f'group_{KEY}_tpl_service', 'Template: Service', [
     sv.tab('Hero'),
-    sv.text('hero_h1', 'H1', '', width=50, required=1), sv.text('hero_em', 'H1 emphasis', '', width=50),
-    sv.area('hero_sub', 'Sub', '', rows=2, instructions='Bold with <b>.'),
-    sv.any('image', 'hero_image', 'Hero image', width=35),
+    sv.text('hero_h1', 'H1', '', width=50, required=1, instructions='The main heading at the top of the page.'),
+    sv.text('hero_em', 'H1 emphasis', '', width=50, instructions='The highlighted words after the heading.'),
+    sv.area('hero_sub', 'Sub', '', rows=2,
+            instructions='The line under the heading. Put <b> and </b> around words to make them bold.'),
+    sv.any('image', 'hero_image', 'Hero image', width=35, instructions='The large picture at the top of the page.'),
     sv.tab('FAQs'),
-    sv.rep('faqs', 'FAQs', [sv.text('question', 'Question', '', 'faqs'), sv.area('answer', 'Answer', '', 'faqs', rows=3)],
-           layout='block', button='Add FAQ'),
+    sv.rep('faqs', 'FAQs', [
+        sv.text('question', 'Question', '', 'faqs', instructions='The question, as a visitor asks it.'),
+        sv.area('answer', 'Answer', '', 'faqs', rows=3, instructions='The answer shown when the question is opened.')],
+           layout='block', button='Add FAQ', instructions='The questions and answers, in the order they show.'),
 ], [[{'param': 'page_template', 'operator': '==', 'value': 'page-templates/service.php'}]],
     description='Service pages (CONTENT-MODEL.md).', hide=HIDE)
 
@@ -220,25 +244,35 @@ groups[f'group_{KEY}_tpl_service'] = field_group(f'group_{KEY}_tpl_service', 'Te
 ps = G('ps')
 PS = ('page_sections',)
 layouts = [
-    ps.layout('page_head', 'Page head', [ps.text('eyebrow', 'Eyebrow', '', *PS, 'page_head', width=30),
-                                        ps.text('h1', 'H1', '', *PS, 'page_head', width=35, required=1),
-                                        ps.text('em', 'H1 emphasis', '', *PS, 'page_head', width=35),
-                                        ps.area('sub', 'Sub', '', *PS, 'page_head', rows=2)]),
-    ps.layout('faq', 'FAQ block', [ps.text('heading', 'Heading', '', *PS, 'faq'),
-                                   ps.rep('faqs', 'FAQs', [ps.text('question', 'Question', '', *PS, 'faq', 'faqs'),
-                                                           ps.area('answer', 'Answer', '', *PS, 'faq', 'faqs', rows=3)],
-                                          *PS, 'faq', layout='block', button='Add FAQ')]),
-    ps.layout('final_cta', 'Final CTA', [ps.text('heading', 'Heading', '', *PS, 'final_cta', width=50),
+    ps.layout('page_head', 'Page head', [
+        ps.text('eyebrow', 'Eyebrow', '', *PS, 'page_head', width=30, instructions='The small line above the heading.'),
+        ps.text('h1', 'H1', '', *PS, 'page_head', width=35, required=1, instructions='The main heading of the page.'),
+        ps.text('em', 'H1 emphasis', '', *PS, 'page_head', width=35,
+                instructions='The highlighted words after the heading.'),
+        ps.area('sub', 'Sub', '', *PS, 'page_head', rows=2, instructions='The line under the heading.')]),
+    ps.layout('faq', 'FAQ block', [
+        ps.text('heading', 'Heading', '', *PS, 'faq', instructions='The heading above the questions.'),
+        ps.rep('faqs', 'FAQs', [
+            ps.text('question', 'Question', '', *PS, 'faq', 'faqs', instructions='The question, as a visitor asks it.'),
+            ps.area('answer', 'Answer', '', *PS, 'faq', 'faqs', rows=3,
+                    instructions='The answer shown when the question is opened.')],
+               *PS, 'faq', layout='block', button='Add FAQ', instructions='The questions and answers, in order.')]),
+    ps.layout('final_cta', 'Final CTA', [ps.text('heading', 'Heading', '', *PS, 'final_cta', width=50,
+                                                 instructions='The heading of the closing call to action.'),
                                          ps.area('text', 'Text', '', *PS, 'final_cta', rows=2, instructions='{phone} is the phone number.')]),
 ]
 groups[f'group_{KEY}_page_sections'] = field_group(f'group_{KEY}_page_sections', 'Page Sections', [
     ps.tab('Sections'),
     ps.flex('page_sections', 'Page sections', layouts, instructions='The page, section by section. The first row holds the H1.'),
     ps.tab('Breadcrumbs'),
-    ps.any('true_false', 'crumbs_hide', 'Hide breadcrumbs', default=0, width=25),
-    ps.text('crumbs_label', 'Label (empty: the page title)', '', width=25),
-    ps.text('crumbs_parent_label', 'Parent label (optional)', '', width=25),
-    ps.text('crumbs_parent_url', 'Parent link', '', width=25),
+    ps.any('true_false', 'crumbs_hide', 'Hide breadcrumbs', default=0, width=25,
+           instructions='On: no breadcrumb trail above this page.'),
+    ps.text('crumbs_label', 'Label (empty: the page title)', '', width=25,
+            instructions="This page's name in the breadcrumb trail."),
+    ps.text('crumbs_parent_label', 'Parent label (optional)', '', width=25,
+            instructions='A page shown before this one in the trail, for example Services.'),
+    ps.text('crumbs_parent_url', 'Parent link', '', width=25,
+            instructions='The address of that page, for example /services/.'),
 ], [[{'param': 'page_template', 'operator': '==', 'value': 'default'}, {'param': 'post_type', 'operator': '==', 'value': 'page'}],
     [{'param': 'post_type', 'operator': '==', 'value': 'post'}]], description='Flexible pages and posts.', hide=HIDE)
 
@@ -250,6 +284,46 @@ groups[f'group_{KEY}_menu_item'] = field_group(f'group_{KEY}_menu_item', 'Menu i
 
 
 # ---------------------------------------------------------------- checks and write
+# Fields that only arrange the screen need no instructions; every other field tells the editor what it is for.
+LAYOUT_ONLY = ('tab', 'message', 'accordion')
+# Words a client does not know (a real build's QA found them in the field instructions). Say what the editor sees
+# instead: "the last part of the page address (team for /team/)", not "slug".
+DEV_WORDS = ('slug', 'slugs', 'token', 'tokens', 'key', 'keys', 'array', 'arrays', 'repeater', 'repeaters',
+             'post type', 'post types', 'taxonomy', 'taxonomies', 'hook', 'hooks', 'constant', 'constants')
+# Real values an editor types that look like code names (an icon name, for example): allowed in instructions.
+PLAIN_OK = {'verified_user'}
+# A {placeholder} is fine once the instruction says what to do with it or what it becomes.
+EXPLAINED = r'(?:\b(?:write|type|put|add|use)\s+\{%s\}|\{%s\}\s+(?:is|shows|becomes|prints|stands))'
+
+
+def instruction_problems(groups):
+    """One line per field without instructions or with developer words in them (group > label: what is wrong)."""
+    problems = []
+
+    def walk(fields, where):
+        for x in fields:
+            label = f"{where} > {x.get('label') or x.get('name')}"
+            text = str(x.get('instructions') or '').strip()
+            if x.get('type') not in LAYOUT_ONLY:
+                if not text:
+                    problems.append(f'{label}: no instructions')
+                else:
+                    bad = [w for w in DEV_WORDS if re.search(r'\b' + w + r'\b', text, re.I)]
+                    bare = re.sub(r'\{\w+\}', '', text)  # {placeholders} are checked on their own below
+                    bad += [w for w in re.findall(r'\b[A-Za-z][A-Za-z0-9]*_[A-Za-z0-9_]+\b', bare) if w not in PLAIN_OK]
+                    bad += [f'{{{p}}} not explained' for p in re.findall(r'\{(\w+)\}', text)
+                            if not re.search(EXPLAINED % (p, p), text, re.I)]
+                    if bad:
+                        problems.append(f"{label}: developer words ({'; '.join(dict.fromkeys(bad))})")
+            walk(x.get('sub_fields', []), label)
+            for lay in (x.get('layouts') or {}).values():
+                walk(lay['sub_fields'], f"{label} > {lay['label']}")
+
+    for grp in groups.values():
+        walk(grp['fields'], grp['title'])
+    return problems
+
+
 def check(groups):
     """Every key unique, every key on the naming rule, field names unique within their parent."""
     seen = set()
@@ -295,6 +369,17 @@ def write(groups, only_check=False):
 
 if __name__ == '__main__':
     n = check(groups)
+    plain = instruction_problems(groups)
+    if plain:
+        # Nothing is written: the editor reads these instructions, so each field says in plain words what it does.
+        print(f'FAIL build_field_groups: {len(plain)} fields need plain instructions (nothing written):')
+        for line in plain[:20]:
+            print('- ' + line)
+        if len(plain) > 20:
+            print(f'- and {len(plain) - 20} more')
+        print('Fix: instructions=\'...\' on each field: what it shows and where, in the words the editor sees. Layout '
+              'fields (tab, message, accordion) need none.')
+        sys.exit(1)
     for key, page in pages.items():
         assert key == page['key'] and key.startswith('ui_options_page_'), 'options page key ' + key
     changed = write({**groups, **pages}, '--check' in sys.argv)

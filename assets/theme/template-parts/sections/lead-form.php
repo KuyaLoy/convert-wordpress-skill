@@ -9,6 +9,8 @@
  * @var array{options: array<int, string>, source: string, prefix?: string, compact?: bool} $args
  */
 
+defined( 'ABSPATH' ) || exit;
+
 $kitwp_cf7 = kitwp_quote_form_html( $args );
 if ( '' !== $kitwp_cf7 ) {
 	echo $kitwp_cf7; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built by CF7 and kitwp_cf7_control().

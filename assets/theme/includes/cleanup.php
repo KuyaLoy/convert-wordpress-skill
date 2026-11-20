@@ -6,6 +6,8 @@
  * @package kitwp
  */
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Dequeue WordPress front-end styles that the static site does not have.
  *
@@ -73,3 +75,96 @@ function kitwp_rest_hide_users( $endpoints ) {
 	return $endpoints;
 }
 add_filter( 'rest_endpoints', 'kitwp_rest_hide_users' );
+
+/**
+ * oEmbed answers (/wp-json/oembed/1.0/embed) without the author: WordPress puts the page author's display name and
+ * author URL in them, which names a login account.
+ *
+ * @param array<string, mixed> $data oEmbed response data.
+ * @return array<string, mixed>
+ */
+function kitwp_oembed_hide_author( $data ) {
+	unset( $data['author_name'], $data['author_url'] );
+	return $data;
+}
+add_filter( 'oembed_response_data', 'kitwp_oembed_hide_author' );
+
+/**
+ * A site without search (KITWP_SITE_SEARCH false): "?s=" in the query string is ignored, as a static host ignores
+ * query strings, so /?s=x shows the home page. A search path (/search/x) stays a search and kitwp_static_routes()
+ * answers it with a 404.
+ *
+ * @param array<string, mixed> $vars Query vars.
+ * @return array<string, mixed>
+ */
+function kitwp_no_search( $vars ) {
+	if ( KITWP_SITE_SEARCH || is_admin() || ! isset( $vars['s'] ) ) {
+		return $vars;
+	}
+	parse_str( (string) ( $GLOBALS['wp']->matched_query ?? '' ), $matched );
+	if ( ! isset( $matched['s'] ) ) {
+		unset( $vars['s'] );
+	}
+	return $vars;
+}
+add_filter( 'request', 'kitwp_no_search' );
+
+/**
+ * Whether a route WordPress answers is one the static site does not have: category, tag, taxonomy, date and author
+ * archives, paged listings (/page/2/), feeds and search when the site has no blog (KITWP_KEEP_BLOG false);
+ * attachment pages, and a page asked for by another path than its own (/home for the front page, /About for
+ * /about/), always. Post type archives a build registers on purpose stay.
+ *
+ * @param string $path The requested path.
+ * @return bool
+ */
+function kitwp_is_starter_route( $path ) {
+	if ( is_attachment() || ( is_search() && ! KITWP_SITE_SEARCH ) ) {
+		return true;
+	}
+	if ( ! KITWP_KEEP_BLOG && ( is_category() || is_tag() || is_tax() || is_date() || is_author() || is_paged() || is_feed() ) ) {
+		return true;
+	}
+	if ( ! is_singular() || ( '' === (string) get_query_var( 'pagename' ) && '' === (string) get_query_var( 'name' ) ) ) {
+		return false;
+	}
+	$own = (string) wp_parse_url( (string) get_permalink(), PHP_URL_PATH );
+	return untrailingslashit( rawurldecode( $path ) ) !== untrailingslashit( rawurldecode( $own ) );
+}
+
+/**
+ * Starter routes answer a real 404, as the static site does (kitwp_is_starter_route()). The "kitwp_static_404"
+ * filter can keep one (return false). WordPress would otherwise answer some of them with a 301 (to the home page,
+ * the file or the right case), so the canonical redirect is off for them.
+ *
+ * @return void
+ */
+function kitwp_static_routes() {
+	if ( is_admin() || is_404() ) {
+		return;
+	}
+	$path = (string) wp_parse_url( esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ?? '/' ) ), PHP_URL_PATH ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- esc_url_raw() cleans it; only compared.
+	if ( ! apply_filters( 'kitwp_static_404', kitwp_is_starter_route( $path ), $path ) ) {
+		return;
+	}
+	global $wp_query;
+	$wp_query->set_404();
+	$wp_query->is_feed = false; // set_404() keeps it, and the feed (or Yoast's feed redirect) would still answer.
+	status_header( 404 );
+	nocache_headers();
+	remove_action( 'template_redirect', 'redirect_canonical' );
+}
+// On "wp", before Yoast SEO's feed redirect (priority -10000), which would send /feed/ to the home page with a 301.
+add_action( 'wp', 'kitwp_static_routes', -10001 );
+
+// No guessing on a 404 (WordPress sends /serv to /services/ with a 301; a static host answers 404).
+add_filter( 'do_redirect_guess_404_permalink', '__return_false' );
+
+// Without a blog the head has no feed links (the static head has none).
+if ( ! KITWP_KEEP_BLOG ) {
+	remove_action( 'wp_head', 'feed_links', 2 );
+	remove_action( 'wp_head', 'feed_links_extra', 3 );
+}
+
+// No "optimized with Yoast SEO" comments around the head: the static head has none.
+add_filter( 'wpseo_debug_markers', '__return_false' );

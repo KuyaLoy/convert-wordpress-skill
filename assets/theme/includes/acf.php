@@ -11,6 +11,8 @@
  * @package kitwp
  */
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Save field groups into the theme's acf-json folder.
  *

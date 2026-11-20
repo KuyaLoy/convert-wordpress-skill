@@ -16,3 +16,5 @@ Checked {{DATE}} on the old site (live, a local copy, or a backup).
 | | KEEP / 301 | |
 
 Every 301 goes into `_setup/seed/redirects.json`; check each one locally and again on live (live-qa.py).
+No 301 row here (and site.json "redirects" not true): the site has no redirects, so the runbook has no Redirection
+plugin or step. Rows added later: `new-site.py _plan/site.json --launch-files` writes the runbook again with them.

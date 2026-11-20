@@ -1,20 +1,27 @@
 <?php
 /**
- * Lead forms run by Contact Form 7, kept 1:1 with the static form and editable in CF7.
+ * Lead forms run by Contact Form 7, kept 1:1 with the static form and editable in CF7: the seeded form ids, the Quote
+ * Form as the static markup, the posted values, the thank-you redirect and the chat widget's config.
  *
  * Contact > Contact Forms holds the forms (seeded from _setup/seed/forms.json). Quote Form: the Form tab is the
  * form people see (labels, placeholders, options, button) and the Mail tab is the email (To, From, Subject, Bcc,
  * Reply-To and the HTML body with mail-tags). The theme prints CF7's text, email, tel, url, select, textarea and
- * hidden tags in the static markup and drops CF7's wrapper (kitwp_cf7_control, kitwp_cf7_clean). Per page it adds
- * the service options, the source, the pop-up's "qm-" id prefix and the compact form without email. As on the
- * static site the form posts normally (JavaScript on or off) and lands on KITWP_THANK_YOU with a 303. Chat Lead: the
- * chat widget posts FormData to CF7's REST endpoint; its Form tab is the field list and its Mail tab the email.
+ * hidden tags in the static markup and drops CF7's wrapper (forms-controls.php). Per page it adds the service
+ * options, the source, the pop-up's "qm-" id prefix and the compact form without email. As on the static site the
+ * form posts normally (JavaScript on or off) and lands on KITWP_THANK_YOU with a 303. Chat Lead: the chat widget
+ * posts FormData to CF7's REST endpoint; its Form tab is the field list and its Mail tab the email.
+ *
+ * One job per file: forms-controls.php (CF7's field tags in the static markup), forms-spam.php (honeypot and
+ * reCAPTCHA), forms-mail.php (the branded lead email), forms-local-mail.php (mail on a local copy) and
+ * forms-portal.php (the leads portal).
  *
  * Field names are the static form's: name, phone, email, postcode, service, when, whenDT, msg, source, and the
- * honeypot "company". Change kitwp_lead_data() and the mail-tags if the site's form differs.
+ * honeypot "company". Change kitwp_lead_fields(), kitwp_lead_data() and the mail-tags if the site's form differs.
  *
  * @package kitwp
  */
+
+defined( 'ABSPATH' ) || exit;
 
 /**
  * The seeded CF7 form ID for "quote" or "chat" (0 when not seeded or CF7 is off).
@@ -45,66 +52,6 @@ function kitwp_is_lead_form( $form ) {
 }
 
 /**
- * The reCAPTCHA (v3) site key when CF7's reCAPTCHA integration is active (Contact > Integration), else empty.
- *
- * @return string
- */
-function kitwp_recaptcha_sitekey() {
-	if ( ! class_exists( 'WPCF7_RECAPTCHA' ) ) {
-		return '';
-	}
-	$service = WPCF7_RECAPTCHA::get_instance();
-	return $service->is_active() ? (string) $service->get_sitekey() : '';
-}
-
-/**
- * reCAPTCHA v3 for the lead forms and the chat. CF7's own script only fills forms with its "wpcf7-form" class,
- * which the static markup does not have, so on submit the theme asks Google for a fresh token, puts it in CF7's
- * hidden _wpcf7_recaptcha_response field and then submits (tokens last two minutes). window.kitwpRecaptcha() gives
- * the chat a token the same way. No key in Contact > Integration: nothing changes.
- *
- * KITWP_RECAPTCHA_LAZY false (default, proven on a live site): CF7 loads Google's script on every page.
- * KITWP_RECAPTCHA_LAZY true: CF7's script is dropped and Google's (about 400 KB) loads the first time someone
- * touches a lead form or the chat; after 10 seconds without Google the form still submits. Faster on phones, but
- * tested locally only: retest every form on live (keys only work on their domains).
- *
- * @return void
- */
-function kitwp_recaptcha_submit_script() {
-	$key = kitwp_recaptcha_sitekey();
-	if ( '' === $key || ! wp_script_is( 'google-recaptcha', 'registered' ) ) {
-		return;
-	}
-	$submit = 'document.addEventListener("submit",function(e){var f=e.target,i=f.querySelector&&f.querySelector("input[name=\'_wpcf7_recaptcha_response\']");'
-		. 'if(!i||!f.classList.contains(C)||f.dataset.kitwpRc)return;e.preventDefault();var d=0,go=function(t){if(d++)return;if(t)i.value=t;f.dataset.kitwpRc="1";f.submit()};'
-		. 'setTimeout(function(){go("")},10000);window.kitwpRecaptcha().then(go,function(){go("")})},true);';
-	$head   = 'var K=' . wp_json_encode( $key ) . ',C=' . wp_json_encode( KITWP_FORM_CLASS ) . ';';
-	if ( ! KITWP_RECAPTCHA_LAZY ) {
-		wp_add_inline_script(
-			'wpcf7-recaptcha',
-			'(function(){' . $head
-			. 'window.kitwpRecaptcha=function(){return new Promise(function(ok,no){if(typeof grecaptcha==="undefined"){no();return}grecaptcha.ready(function(){grecaptcha.execute(K,{action:"contactform"}).then(ok,no)})})};'
-			. $submit . '})();'
-		);
-		return;
-	}
-	$api = wp_scripts()->registered['google-recaptcha']->src;
-	wp_dequeue_script( 'wpcf7-recaptcha' );
-	wp_register_script( 'kitwp-recaptcha', false, [], null, [ 'in_footer' => true ] ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion -- inline only.
-	wp_enqueue_script( 'kitwp-recaptcha' );
-	wp_add_inline_script(
-		'kitwp-recaptcha',
-		'(function(){' . $head . 'var U=' . wp_json_encode( $api, JSON_UNESCAPED_SLASHES ) . ',W=' . wp_json_encode( 'form.' . KITWP_FORM_CLASS . ( '' !== KITWP_CHAT_SELECTOR ? ',' . KITWP_CHAT_SELECTOR : '' ) ) . ',p=null;'
-		. 'function load(){if(!p){p=new Promise(function(ok,no){var s=document.createElement("script");s.src=U;s.async=true;s.onload=function(){grecaptcha.ready(ok)};s.onerror=function(){p=null;no()};document.head.appendChild(s)})}return p}'
-		. 'window.kitwpRecaptcha=function(){return load().then(function(){return grecaptcha.execute(K,{action:"contactform"})})};'
-		. 'var warm=function(e){var t=e.target;if(t&&t.closest&&t.closest(W))load()};'
-		. '["focusin","pointerdown","touchstart"].forEach(function(n){document.addEventListener(n,warm,{capture:true,passive:true})});'
-		. $submit . '})();'
-	);
-}
-add_action( 'wp_enqueue_scripts', 'kitwp_recaptcha_submit_script', 30 );
-
-/**
  * The Quote Form as Contact Form 7 prints it from its Form tab, in the static markup.
  *
  * @param array<string, mixed> $args options, source, prefix ("qm-" in the pop-up), compact (no email field).
@@ -124,136 +71,11 @@ function kitwp_quote_form_html( $args ) {
 	$html = (string) wpcf7_contact_form( $id )->form_html();
 	$ctx  = $GLOBALS['kitwp_form_ctx'];
 	unset( $GLOBALS['kitwp_form_ctx'] );
-	return kitwp_cf7_clean( $html, $ctx['prefix'] );
+	// The failed-post note needs to know whether CF7 stopped this form's post (spam, aborted).
+	$sub    = class_exists( 'WPCF7_Submission' ) ? WPCF7_Submission::get_instance() : null;
+	$status = $sub && (int) $sub->get_contact_form()->id() === $id ? (string) $sub->get_status() : '';
+	return kitwp_cf7_clean( $html, $ctx['prefix'], $status );
 }
-
-/**
- * Turn CF7's form output into the static form: the bare form element (class KITWP_FORM_CLASS, posts to the page), no CF7
- * wrapper, screen-reader box or fieldset; CF7's hidden fields stay. A field marked for removal (compact form) goes
- * with its wrapper. After a failed post, CF7's message shows as a form note. Ids and label "for" get the prefix.
- *
- * @param string $html   CF7 form HTML.
- * @param string $prefix Id prefix.
- * @return string
- */
-function kitwp_cf7_clean( $html, $prefix ) {
-	$html = (string) preg_replace( '#^.*?<form\b[^>]*>#s', '<form class="' . esc_attr( KITWP_FORM_CLASS ) . '" action="" method="post">', $html, 1 );
-	$html = (string) preg_replace( '#</form>.*$#s', '</form>', $html, 1 );
-	$html = str_replace( [ '<fieldset class="hidden-fields-container">', '</fieldset>' ], '', $html );
-	$html = (string) preg_replace( '/>\s+</', '><', $html );
-	$html = (string) preg_replace( '#<div class="field">(?:(?!</div>).)*<!--kitk-drop-->(?:(?!</div>).)*</div>#s', '', $html );
-	$html = (string) preg_replace_callback(
-		'#<div class="wpcf7-response-output"[^>]*>(.*?)</div>#s',
-		static function ( $m ) {
-			$text = trim( wp_strip_all_tags( $m[1] ) );
-			return '' === $text ? '' : '<p class="form-note" role="alert">' . esc_html( $text ) . '</p>';
-		},
-		$html
-	);
-	if ( '' !== $prefix ) {
-		$html = (string) preg_replace( '/ (id|for)="(?!wpcf7)([A-Za-z][-A-Za-z0-9_]*)"/', ' $1="' . esc_attr( $prefix ) . '$2"', $html );
-	}
-	return $html;
-}
-
-/**
- * CF7 form-tag handler for text, email, tel, url, textarea, select and hidden. While the theme prints a lead form
- * the tag comes out in the static markup (attribute order as the static site, browser "required" kept, values
- * refilled after a failed post, CF7's error message under the field); any other CF7 form gets CF7's own markup.
- *
- * @param WPCF7_FormTag $tag Form tag.
- * @return string
- */
-function kitwp_cf7_control( $tag ) {
-	$ctx = $GLOBALS['kitwp_form_ctx'] ?? null;
-	if ( null === $ctx ) {
-		$cf7 = [
-			'select'   => 'wpcf7_select_form_tag_handler',
-			'textarea' => 'wpcf7_textarea_form_tag_handler',
-			'hidden'   => 'wpcf7_hidden_form_tag_handler',
-		];
-		$fn  = $cf7[ $tag->basetype ] ?? 'wpcf7_text_form_tag_handler';
-		return function_exists( $fn ) ? (string) call_user_func( $fn, $tag ) : '';
-	}
-	if ( empty( $tag->name ) ) {
-		return '';
-	}
-	$base = $tag->basetype;
-	if ( 'email' === $base && $ctx['compact'] ) {
-		return '<!--kitk-drop-->';
-	}
-	$name     = $tag->name;
-	$id       = (string) $tag->get_option( 'id', 'id', true );
-	$id_attr  = '' !== $id ? ' id="' . esc_attr( $id ) . '"' : '';
-	$hangover = wpcf7_get_hangover( $name );
-	$value    = is_scalar( $hangover ) ? (string) $hangover : '';
-	$error    = trim( wp_strip_all_tags( (string) wpcf7_get_validation_error( $name ) ) );
-	$tip      = '' !== $error ? '<span class="form-note" role="alert">' . esc_html( $error ) . '</span>' : '';
-	$holder   = $tag->has_option( 'placeholder' ) && isset( $tag->values[0] ) ? (string) $tag->values[0] : '';
-	$required = $tag->is_required() ? ' required' : '';
-
-	if ( 'hidden' === $base ) {
-		$hidden = 'source' === $name ? $ctx['source'] : (string) ( $tag->values[0] ?? '' );
-		return '<input type="hidden" name="' . esc_attr( $name ) . '" value="' . esc_attr( $hidden ) . '">';
-	}
-	if ( 'select' === $base ) {
-		$items = array_map( 'strval', (array) $tag->labels );
-		$first = $tag->has_option( 'first_as_label' ) ? (string) array_shift( $items ) : '';
-		if ( 'service' === $name ) {
-			$items = $ctx['options'];
-		}
-		$out = '<select' . $id_attr . ' name="' . esc_attr( $name ) . '"' . $required . '>';
-		if ( '' !== $first ) {
-			$out .= '<option value="" disabled' . ( '' === $value ? ' selected' : '' ) . '>' . esc_html( $first ) . '</option>';
-		}
-		foreach ( $items as $item ) {
-			$out .= '<option' . ( '' !== $value && $value === $item ? ' selected' : '' ) . '>' . esc_html( $item ) . '</option>';
-		}
-		return $out . '</select>' . $tip;
-	}
-	if ( 'textarea' === $base ) {
-		return '<textarea' . $id_attr . ' name="' . esc_attr( $name ) . '"' . ( '' !== $holder ? ' placeholder="' . esc_attr( $holder ) . '"' : '' ) . $required . '>' . esc_textarea( $value ) . '</textarea>' . $tip;
-	}
-	$tabindex = $tag->get_option( 'tabindex', 'signed_int', true );
-	$auto     = $tag->get_autocomplete_option();
-	return '<input' . $id_attr . ' type="' . esc_attr( 'text' === $base ? 'text' : $base ) . '"'
-		. ( false !== $tabindex && '' !== (string) $tabindex ? ' tabindex="' . esc_attr( (string) $tabindex ) . '"' : '' )
-		. ( '' !== $holder ? ' placeholder="' . esc_attr( $holder ) . '"' : '' )
-		. $required
-		. ( $auto ? ' autocomplete="' . esc_attr( $auto ) . '"' : '' )
-		. ' name="' . esc_attr( $name ) . '"'
-		. ( '' !== $value ? ' value="' . esc_attr( $value ) . '"' : '' )
-		. '>' . $tip;
-}
-
-/**
- * Use kitwp_cf7_control() for CF7's field tags: CF7's own are removed first (add() never replaces a type).
- *
- * @return void
- */
-function kitwp_cf7_register_controls() {
-	foreach ( [ 'text', 'text*', 'email', 'email*', 'url', 'url*', 'tel', 'tel*', 'textarea', 'textarea*', 'select', 'select*', 'hidden' ] as $type ) {
-		wpcf7_remove_form_tag( $type );
-	}
-	wpcf7_add_form_tag( [ 'text', 'text*', 'email', 'email*', 'url', 'url*', 'tel', 'tel*', 'textarea', 'textarea*' ], 'kitwp_cf7_control', [ 'name-attr' => true ] );
-	wpcf7_add_form_tag(
-		[ 'select', 'select*' ],
-		'kitwp_cf7_control',
-		[
-			'name-attr'         => true,
-			'selectable-values' => true,
-		]
-	);
-	wpcf7_add_form_tag(
-		'hidden',
-		'kitwp_cf7_control',
-		[
-			'name-attr'      => true,
-			'display-hidden' => true,
-		]
-	);
-}
-add_action( 'wpcf7_init', 'kitwp_cf7_register_controls', 20, 0 );
 
 /**
  * The service list differs per page (it is set by the page, not the Form tab), so when a post is checked the
@@ -266,7 +88,7 @@ function kitwp_cf7_service_values( $tag ) {
 	if ( 'service' !== ( $tag['name'] ?? '' ) || isset( $GLOBALS['kitwp_form_ctx'] ) || ! isset( $_POST['_wpcf7'], $_POST['service'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- CF7 checks the submission.
 		return $tag;
 	}
-	$posted              = sanitize_text_field( wp_unslash( $_POST['service'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+	$posted              = sanitize_text_field( wp_unslash( $_POST['service'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- CF7 checks the submission.
 	$tag['values'][]     = $posted;
 	$tag['raw_values'][] = $posted;
 	$tag['labels'][]     = $posted;
@@ -332,31 +154,14 @@ function kitwp_lead_query_vars( $query_vars ) {
 	parse_str( (string) ( $GLOBALS['wp']->matched_query ?? '' ), $matched );
 	if ( isset( $matched['name'] ) && '' !== $matched['name'] ) {
 		$query_vars['name'] = $matched['name'];
-	} elseif ( isset( $_GET['name'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$query_vars['name'] = sanitize_title( wp_unslash( $_GET['name'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	} elseif ( isset( $_GET['name'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read only to keep the page query right.
+		$query_vars['name'] = sanitize_title( wp_unslash( $_GET['name'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read only to keep the page query right.
 	} else {
 		unset( $query_vars['name'] );
 	}
 	return $query_vars;
 }
 add_filter( 'request', 'kitwp_lead_query_vars' );
-
-/**
- * Honeypot, as the static handler: a filled "company" field is a bot. Marked as spam, nothing is sent, and the
- * visitor still lands on /thank-you/.
- *
- * @param bool              $spam       Spam so far.
- * @param WPCF7_Submission  $submission Submission.
- * @return bool
- */
-function kitwp_lead_honeypot( $spam, $submission ) {
-	if ( kitwp_is_lead_form( $submission->get_contact_form() ) && '' !== trim( (string) $submission->get_posted_data( 'company' ) ) ) {
-		$GLOBALS['kitwp_lead_honeypot'] = true;
-		return true;
-	}
-	return $spam;
-}
-add_filter( 'wpcf7_spam', 'kitwp_lead_honeypot', 1, 2 );
 
 /**
  * After a normal (non-REST) post: sent, or caught by the honeypot, goes to /thank-you/ with a 303, as the static
@@ -389,7 +194,7 @@ function kitwp_lead_mail_failed( $form ) {
 	$submission = WPCF7_Submission::get_instance();
 	if ( $submission && kitwp_is_lead_form( $form ) ) {
 		// The form only: field values can hold personal or health details and never go into a log.
-		error_log( '[lead] mail failed: ' . $form->title() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		error_log( '[lead] mail failed: ' . $form->title() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- a lead whose email failed must leave a trace.
 	}
 }
 add_action( 'wpcf7_mail_failed', 'kitwp_lead_mail_failed' );
@@ -403,333 +208,6 @@ add_action( 'wpcf7_mail_failed', 'kitwp_lead_mail_failed' );
 function kitwp_lead_fields() {
 	return (array) apply_filters( 'kitwp_lead_fields', [ 'name', 'phone', 'email', 'postcode', 'service', 'when', 'whenDT', 'msg', 'source' ] );
 }
-
-/**
- * The lead, as the static handler reads it.
- *
- * @param WPCF7_Submission $submission Submission.
- * @return array<string, string>
- */
-function kitwp_lead_data( $submission ) {
-	$field = static function ( $key, $max = 500 ) use ( $submission ) {
-		$value = $submission->get_posted_data( $key );
-		$value = is_array( $value ) ? (string) wpcf7_flat_join( $value ) : ( is_scalar( $value ) ? (string) $value : '' );
-		$value = trim( $value );
-		return mb_substr( $value, 0, $max, 'UTF-8' );
-	};
-	$lead           = [];
-	foreach ( [ 'name', 'phone', 'email', 'postcode', 'service', 'when', 'whenDT', 'source' ] as $key ) {
-		$lead[ $key ] = $field( $key );
-	}
-	$lead['msg']    = $field( 'msg', 5000 );
-	$lead['source'] = '' !== $lead['source'] ? $lead['source'] : 'website';
-	$lead['page']   = mb_substr( (string) $submission->get_meta( 'url' ), 0, 500, 'UTF-8' );
-	return $lead;
-}
-
-/**
- * HTML-escape for the email, exactly as the static handler.
- *
- * @param string $text Text.
- * @return string
- */
-function kitwp_mail_h( $text ) {
-	return htmlspecialchars( (string) $text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' );
-}
-
-/**
- * The logo in the email header: Theme Settings > Branding "Email logo" (a PNG from the Media Library, seeded from
- * the static build), else the theme's assets/email/email-logo.png.
- *
- * @return string URL.
- */
-function kitwp_email_logo_url() {
-	$id  = (int) kitwp_setting( 'email_logo' );
-	$url = $id ? (string) wp_get_attachment_url( $id ) : '';
-	return '' !== $url ? $url : get_theme_file_uri( 'assets/email/email-logo.png' );
-}
-
-/**
- * The agency badge in the email footers: Theme Settings > Branding "Email badge" (a PNG at 2x from the Media
- * Library) and "Agency badge link", else the defaults in config.php (KITWP_EMAIL_BADGE*). "Hide agency badge"
- * hides it here too.
- *
- * @return array{src: string, link: string, alt: string} Empty src or link: no badge.
- */
-function kitwp_email_badge() {
-	if ( kitwp_setting( 'agency_badge_hide' ) ) {
-		return [
-			'src'  => '',
-			'link' => '',
-			'alt'  => '',
-		];
-	}
-	$id  = (int) kitwp_setting( 'email_badge' );
-	$src = $id ? (string) wp_get_attachment_url( $id ) : '';
-	$alt = $id ? trim( (string) get_post_meta( $id, '_wp_attachment_image_alt', true ) ) : '';
-	return [
-		'src'  => '' !== $src ? $src : ( '' !== KITWP_EMAIL_BADGE ? get_theme_file_uri( KITWP_EMAIL_BADGE ) : '' ),
-		'link' => (string) ( kitwp_setting( 'agency_link' ) ? kitwp_setting( 'agency_link' ) : KITWP_EMAIL_BADGE_LINK ),
-		'alt'  => '' !== $alt ? $alt : KITWP_EMAIL_BADGE_ALT,
-	];
-}
-
-/**
- * Values the lead email needs beyond the fields, worked out as the static handler did.
- *
- * @param array<string, string> $lead From kitwp_lead_data().
- * @return array<string, string> Plain text values.
- */
-function kitwp_lead_extras( $lead ) {
-	$oneline = static function ( $text ) {
-		return trim( (string) preg_replace( '/\s*[\r\n]+\s*/', ' ', $text ) );
-	};
-	$tz      = wp_timezone();
-	// Dates in the site's own format and language (Settings > General), so the email reads right in any country.
-	$format = (string) apply_filters( 'kitwp_lead_date_format', get_option( 'date_format' ) . ', ' . get_option( 'time_format' ) );
-	$labels = (array) apply_filters(
-		'kitwp_lead_via_labels',
-		[
-			'chat'  => 'Chat widget',
-			'popup' => 'Pop-up form',
-			'form'  => 'Website form',
-		]
-	);
-	$when   = $lead['when'];
-	if ( '' !== $lead['whenDT'] ) {
-		$dt     = DateTime::createFromFormat( 'Y-m-d\TH:i', $lead['whenDT'], $tz );
-		$picked = $dt ? wp_date( $format, $dt->getTimestamp(), $tz ) : $lead['whenDT'];
-		$when   = ( '' === $when || preg_match( '/pick a date/i', $when ) ) ? $picked : $when . ' (' . $picked . ')';
-	}
-	$src = $lead['source'];
-	return [
-		'when'      => $when,
-		'via'       => (string) ( str_starts_with( $src, 'chat:' ) ? $labels['chat'] : ( str_starts_with( $src, 'popup:' ) ? $labels['popup'] : $labels['form'] ) ),
-		'tel'       => (string) preg_replace( '/[^0-9+]/', '', $lead['phone'] ),
-		'received'  => wp_date( $format, null, $tz ),
-		'preheader' => $oneline( 'New enquiry from ' . $lead['name'] . ( '' !== $lead['service'] ? ', ' . $lead['service'] : '' ) . ( '' !== $lead['postcode'] ? ', ' . $lead['postcode'] : '' ) ),
-	];
-}
-
-/**
- * Mail-tags for the lead email (Mail tab), on top of the field tags:
- * [_kitk_subject] the Subject line, [_kitk_preheader], [_kitk_tel] phone digits, [_kitk_email] email link,
- * [_kitk_when] When Needed with the picked date, [_kitk_via] Submitted Via, [_kitk_page] page link,
- * [_kitk_received] site time, [_kitk_logo] logo URL, [_kitk_site] site URL, [_kitk_year], [_kitk_name] the
- * sender's name (auto-reply greeting), [_kitk_badge] the agency badge for the footer of the lead email and the
- * auto-reply (KITWP_EMAIL_BADGE; empty when not set).
- * With "Exclude lines with blank mail-tags" on, a row whose tags are all empty is left out, as the static email.
- *
- * @param string|null    $output   Replacement so far.
- * @param string         $name     Tag name.
- * @param bool           $html     HTML body.
- * @param WPCF7_MailTag  $mail_tag Mail tag.
- * @return string|null
- */
-function kitwp_lead_special_tags( $output, $name, $html, $mail_tag = null ) {
-	unset( $mail_tag );
-	$submission = class_exists( 'WPCF7_Submission' ) ? WPCF7_Submission::get_instance() : null;
-	// A lead field this form does not have (the quote form has no postcode): empty, so "Exclude lines with blank
-	// mail-tags" drops its row instead of printing "[postcode]".
-	if ( $submission && null === $output && in_array( (string) $name, kitwp_lead_fields(), true ) && null === $submission->get_posted_data( (string) $name ) ) {
-		return '';
-	}
-	if ( ! str_starts_with( (string) $name, '_kitk_' ) || ! $submission ) {
-		return $output;
-	}
-	$lead  = kitwp_lead_data( $submission );
-	$extra = kitwp_lead_extras( $lead );
-	$h     = $html ? 'kitwp_mail_h' : 'strval';
-	$link  = 'color:' . KITWP_BRAND_COLOUR . ';';
-	switch ( $name ) {
-		case '_kitk_subject':
-			$mail = WPCF7_Mail::get_current();
-			return $mail ? $h( $mail->get( 'subject', true ) ) : '';
-		case '_kitk_preheader':
-			return $h( $extra['preheader'] );
-		case '_kitk_tel':
-			return $h( $extra['tel'] );
-		case '_kitk_email':
-			if ( '' === $lead['email'] ) {
-				return '';
-			}
-			return $html && is_email( $lead['email'] ) ? '<a href="mailto:' . kitwp_mail_h( $lead['email'] ) . '" style="' . $link . '">' . kitwp_mail_h( $lead['email'] ) . '</a>' : $h( $lead['email'] );
-		case '_kitk_when':
-			return $h( $extra['when'] );
-		case '_kitk_via':
-			return $h( $extra['via'] );
-		case '_kitk_page':
-			if ( '' === $lead['page'] ) {
-				return '';
-			}
-			return $html && preg_match( '#^https?://#i', $lead['page'] ) ? '<a href="' . kitwp_mail_h( $lead['page'] ) . '" style="' . $link . '">' . kitwp_mail_h( $lead['page'] ) . '</a>' : $h( $lead['page'] );
-		case '_kitk_received':
-			return $h( $extra['received'] );
-		case '_kitk_logo':
-			return $h( kitwp_email_logo_url() );
-		case '_kitk_site':
-			return $h( untrailingslashit( home_url() ) );
-		case '_kitk_year':
-			return wp_date( 'Y' );
-		case '_kitk_name':
-			return $h( $lead['name'] );
-		case '_kitk_badge':
-			$badge = kitwp_email_badge();
-			if ( ! $html || '' === $badge['src'] || '' === $badge['link'] ) {
-				return '';
-			}
-			return '<a href="' . kitwp_mail_h( esc_url_raw( $badge['link'] ) ) . '" target="_blank" style="text-decoration:none;"><img src="' . kitwp_mail_h( $badge['src'] ) . '" width="' . (int) KITWP_EMAIL_BADGE_WIDTH . '" alt="' . kitwp_mail_h( $badge['alt'] ) . '" style="display:block;margin:0 auto;border:0;outline:none;width:' . (int) KITWP_EMAIL_BADGE_WIDTH . 'px;height:auto;color:#ffffff;font-size:12px;"></a>';
-	}
-	return $output;
-}
-add_filter( 'wpcf7_special_mail_tags', 'kitwp_lead_special_tags', 10, 4 );
-
-/**
- * Field mail-tags in the lead emails' HTML body are escaped as the static handler did (no curly quotes), and the
- * message keeps its line breaks.
- *
- * @param string|null   $replaced  Replacement so far.
- * @param mixed         $submitted Posted value.
- * @param bool          $html      HTML body.
- * @param WPCF7_MailTag $mail_tag  Mail tag.
- * @return string|null
- */
-function kitwp_lead_mail_tag( $replaced, $submitted, $html, $mail_tag ) {
-	if ( ! $html || null === $submitted || ! kitwp_is_lead_form( wpcf7_get_current_contact_form() ) ) {
-		return $replaced;
-	}
-	$text = kitwp_mail_h( trim( (string) wpcf7_flat_join( $submitted ) ) );
-	return 'msg' === $mail_tag->field_name() ? nl2br( $text ) : $text;
-}
-add_filter( 'wpcf7_mail_tag_replaced', 'kitwp_lead_mail_tag', 20, 4 );
-
-/**
- * Reply-To from the Mail tab is kept only when the visitor gave a valid email (the static handler's rule).
- *
- * @param array<string, mixed> $components Mail parts.
- * @param WPCF7_ContactForm    $form       Contact form.
- * @param WPCF7_Mail           $mail       Mail template.
- * @return array<string, mixed>
- */
-function kitwp_lead_mail( $components, $form, $mail ) {
-	$submission = class_exists( 'WPCF7_Submission' ) ? WPCF7_Submission::get_instance() : null;
-	if ( ! $submission || ! kitwp_is_lead_form( $form ) || 'mail' !== $mail->name() ) {
-		return $components;
-	}
-	$email   = trim( (string) $submission->get_posted_data( 'email' ) );
-	$headers = [];
-	foreach ( explode( "\n", str_replace( "\r\n", "\n", (string) $components['additional_headers'] ) ) as $line ) {
-		$line = trim( $line );
-		if ( '' === $line || ( 0 === stripos( $line, 'reply-to:' ) && ! is_email( $email ) ) ) {
-			continue;
-		}
-		$headers[] = $line;
-	}
-	$components['additional_headers'] = implode( "\n", $headers );
-	return $components;
-}
-add_filter( 'wpcf7_mail_components', 'kitwp_lead_mail', 10, 3 );
-
-/**
- * For emails from the site's own domain: envelope sender = From, a Message-ID on the domain and one HTML part
- * (CF7's msgHTML() adds a plain-text part; the static handler sent one part, which the host's MailChannels filter
- * accepts). Runs after CF7's own phpmailer_init (priority 10).
- *
- * @param PHPMailer\PHPMailer\PHPMailer $phpmailer Mailer.
- * @return void
- */
-function kitwp_mail_envelope( $phpmailer ) {
-	// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- PHPMailer properties.
-	if ( str_ends_with( strtolower( (string) $phpmailer->From ), '@' . kitwp_site_domain() ) ) {
-		if ( '' === (string) $phpmailer->Sender ) {
-			$phpmailer->Sender = $phpmailer->From;
-		}
-		$phpmailer->MessageID = '<' . bin2hex( random_bytes( 12 ) ) . '@' . kitwp_site_domain() . '>';
-		$phpmailer->AltBody   = '';
-	}
-	// phpcs:enable
-}
-add_action( 'phpmailer_init', 'kitwp_mail_envelope', 20 );
-
-/**
- * Local only (WP_ENVIRONMENT_TYPE "local"): every email goes to the site admin email only, never to the client or
- * the Bcc list, so a local mail catcher shows it (Laragon's Mail Catcher, Mailpit in Local or DDEV) and nothing
- * reaches the real recipients even if a mail sender is ever set up. The real To and Bcc are kept in an
- * X-Kitwp-Original-To header, and a copy with the real headers is saved to _setup/mail/ as an .html file.
- *
- * @param array<string, mixed> $atts wp_mail() arguments.
- * @return array<string, mixed>
- */
-function kitwp_local_mail_capture( $atts ) {
-	if ( 'local' !== wp_get_environment_type() ) {
-		return $atts;
-	}
-	$headers = is_array( $atts['headers'] ) ? $atts['headers'] : explode( "\n", str_replace( "\r\n", "\n", (string) $atts['headers'] ) );
-	$to      = is_array( $atts['to'] ) ? $atts['to'] : explode( ',', (string) $atts['to'] );
-	$meta    = 'To: ' . implode( ', ', $to ) . "\nSubject: " . $atts['subject'] . "\n" . implode( "\n", $headers );
-	$dir     = ABSPATH . '_setup/mail';
-	wp_mkdir_p( $dir );
-	file_put_contents( $dir . '/' . gmdate( 'Ymd-His' ) . '-' . substr( md5( (string) wp_rand() ), 0, 6 ) . '.html', '<!--' . "\n" . str_replace( '--', '- -', $meta ) . "\n-->\n" . $atts['message'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
-
-	$original = array_map( 'trim', $to );
-	$kept     = [];
-	foreach ( $headers as $line ) {
-		$line = trim( (string) $line );
-		if ( preg_match( '/^(bcc|cc):\s*(.+)$/i', $line, $match ) ) {
-			$original[] = strtolower( $match[1] ) . ' ' . $match[2];
-			continue;
-		}
-		if ( '' !== $line ) {
-			$kept[] = $line;
-		}
-	}
-	$kept[]          = 'X-Kitwp-Original-To: ' . implode( '; ', $original );
-	$atts['to']      = (string) get_option( 'admin_email' );
-	$atts['headers'] = $kept;
-	return $atts;
-}
-add_filter( 'wp_mail', 'kitwp_local_mail_capture', 999 );
-
-/**
- * Whether PHP's mail() can hand an email to anything on this machine: the program in sendmail_path (Laragon's Mail
- * Catcher, Mailpit) or, on Windows without one, an SMTP server at the php.ini address. XAMPP, MAMP, WampServer and
- * serve-wp.py usually have neither.
- *
- * @return bool
- */
-function kitwp_local_mailer_ready() {
-	$path = trim( (string) ini_get( 'sendmail_path' ) );
-	if ( '' !== $path ) {
-		$bin = '"' === $path[0] ? substr( $path, 1, max( 0, (int) strpos( $path, '"', 1 ) - 1 ) ) : (string) strtok( $path, ' ' );
-		return is_file( $bin );
-	}
-	if ( 'WIN' !== strtoupper( substr( PHP_OS, 0, 3 ) ) ) {
-		return false;
-	}
-	$smtp = @fsockopen( (string) ini_get( 'SMTP' ), (int) ini_get( 'smtp_port' ), $errno, $errstr, 1 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- a refused connection is the answer here.
-	if ( ! $smtp ) {
-		return false;
-	}
-	fclose( $smtp ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- a socket, not a file.
-	return true;
-}
-
-/**
- * Local only: when PHP cannot send mail on this machine, wp_mail() stops after the copy in _setup/mail/ and reports
- * success, so forms answer as they will on live (success message, thank-you redirect) instead of a send error. The
- * kitwp_mail_to_file filter forces it either way (true: file only; false: always try to send).
- *
- * @param null|bool            $result Short-circuit value from an earlier filter.
- * @param array<string, mixed> $atts   wp_mail() arguments.
- * @return null|bool
- */
-function kitwp_local_mail_to_file( $result, $atts ) {
-	if ( null !== $result || 'local' !== wp_get_environment_type() ) {
-		return $result;
-	}
-	return apply_filters( 'kitwp_mail_to_file', ! kitwp_local_mailer_ready(), $atts ) ? true : null;
-}
-add_filter( 'pre_wp_mail', 'kitwp_local_mail_to_file', 10, 2 );
 
 /**
  * The chat widget, when the static site has one (assets/chat-widget.js in the theme): its config, then the widget
@@ -773,99 +251,3 @@ function kitwp_chat_widget() {
 	);
 }
 add_action( 'wp_footer', 'kitwp_chat_widget', 20 );
-
-/**
- * Tracking fields a leads portal usually asks for: the form's page, the visitor's IP, Google Ads and Meta click IDs.
- *
- * @param WPCF7_Submission $sub Submission.
- * @return array<string, string>
- */
-function kitwp_leads_tracking( $sub ) {
-	$server = static fn( $k ) => isset( $_SERVER[ $k ] ) ? sanitize_text_field( wp_unslash( $_SERVER[ $k ] ) ) : '';
-	$cookie = static fn( $k ) => isset( $_COOKIE[ $k ] ) ? sanitize_text_field( wp_unslash( $_COOKIE[ $k ] ) ) : '';
-	$ip     = $server( 'HTTP_CF_CONNECTING_IP' );
-	if ( '' === $ip ) {
-		$ip = trim( (string) explode( ',', $server( 'HTTP_X_FORWARDED_FOR' ) )[0] );
-	}
-	if ( '' === $ip ) {
-		$ip = $server( 'REMOTE_ADDR' );
-	}
-	$url = (string) $sub->get_meta( 'url' );
-	if ( '' === $url ) {
-		$url = (string) wp_get_referer();
-	}
-	return [
-		'source_url' => $url,
-		'ip_address' => $ip,
-		'gclid'      => isset( $_REQUEST['gclid'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['gclid'] ) ) : $cookie( 'gclid' ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read only.
-		'fbp'        => $cookie( '_fbp' ),
-		'fbc'        => $cookie( '_fbc' ),
-	];
-}
-
-/**
- * Send each lead form to the leads portal (KITWP_LEADS_PREFIX; endpoint and key from wp-config), server to server,
- * whether the email went out or failed: the portal is what still catches the lead when the host's mail is down. CF7
- * fires wpcf7_mail_sent or wpcf7_mail_failed for a submission (spam fires neither), and a request sends once. Off on
- * local, development and staging, so test submissions on a copy never reach the portal. Files, consent, the honeypot and the fields in the
- * "kitwp_leads_skip_fields" filter (health details, dates of birth) stay out. A failure is logged with the status
- * only and never blocks the visitor.
- *
- * @param WPCF7_ContactForm $form Contact form.
- * @return void
- */
-function kitwp_leads_send( $form ) {
-	static $kitwp_sent = false;
-	if ( $kitwp_sent ) {
-		return;
-	}
-	$p = KITWP_LEADS_PREFIX;
-	if ( '' === $p || ! kitwp_is_lead_form( $form ) || ! defined( $p . '_ENDPOINT' ) || ! defined( $p . '_KEY' ) ) {
-		return;
-	}
-	$endpoint = (string) constant( $p . '_ENDPOINT' );
-	$key      = (string) constant( $p . '_KEY' );
-	if ( '' === $key || 0 !== strpos( $endpoint, 'https://' ) || in_array( wp_get_environment_type(), [ 'local', 'development', 'staging' ], true ) ) {
-		return;
-	}
-	$sub = WPCF7_Submission::get_instance();
-	if ( ! $sub ) {
-		return;
-	}
-	$skip   = (array) apply_filters( 'kitwp_leads_skip_fields', [ 'consent', 'company' ], $form );
-	$files  = array_keys( (array) $sub->uploaded_files() );
-	$fields = [];
-	foreach ( (array) $sub->get_posted_data() as $name => $value ) {
-		if ( in_array( $name, $skip, true ) || in_array( $name, $files, true ) || str_starts_with( (string) $name, '_' ) ) {
-			continue;
-		}
-		$value = is_array( $value ) ? implode( ', ', array_filter( $value, 'is_scalar' ) ) : ( is_scalar( $value ) ? (string) $value : '' );
-		if ( '' !== trim( $value ) ) {
-			$fields[ $name ] = trim( $value );
-		}
-	}
-	$lead = [
-		'form'            => $form->title(),
-		'idempotency_key' => wp_generate_uuid4(),
-	] + $fields + kitwp_leads_tracking( $sub );
-	$kitwp_sent = true;
-	$res        = wp_remote_post(
-		$endpoint,
-		[
-			'timeout'     => 5,
-			'redirection' => 0,
-			'headers'     => [
-				'Authorization' => 'Bearer ' . $key,
-				'Content-Type'  => 'application/json',
-			],
-			'body'        => wp_json_encode( $lead ),
-		]
-	);
-	$code = is_wp_error( $res ) ? 0 : (int) wp_remote_retrieve_response_code( $res );
-	if ( 200 !== $code && 202 !== $code ) {
-		// The status or transport error only: the response body may repeat what the visitor typed.
-		error_log( '[leads] not delivered (' . $form->title() . '): ' . ( is_wp_error( $res ) ? $res->get_error_code() : 'HTTP ' . $code ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-	}
-}
-add_action( 'wpcf7_mail_sent', 'kitwp_leads_send' );
-add_action( 'wpcf7_mail_failed', 'kitwp_leads_send' ); // the mail failed: the portal still gets the lead

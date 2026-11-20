@@ -18,6 +18,18 @@ does every hosting step; the agent gives one step at a time, waits for "done", c
 ## Before the day
 
 - gate.py has closed P5 (QA found 0, the Go-live given); the final full parity run is clean; the seeder's second run says "same".
+- The launch files are written for this site from site.json: `"www"` (true: the bare domain and http go to
+  https://www. in one hop; false: the reverse; without it, a domain written as www.… means www), `"forms"` (the
+  test-lead step names only these), `"chat"`, `"blog"` and `"search"` (else the theme answers 404 for archives, feeds and search), `"redirects"` (the Redirection steps only when true or
+  OLD-SITE-URLS.md has a 301 row), `"palette"` and `"content_size"` (theme.json). After a site.json change:
+  `python3 <kit>/scripts/new-site.py site.json --launch-files` writes RUNBOOK.md and htaccess-live.txt again and
+  keeps the old copies in `_setup/launch/before-<time>/`.
+- htaccess-live.txt denies readme.html, license.txt, wp-config-sample.php, xmlrpc.php, the theme's acf-json,
+  node_modules, vendor, tests, composer and package files, phpcs.xml.dist, *.md and *.log, and sends
+  X-Content-Type-Options, Referrer-Policy and X-Frame-Options. The RUNBOOK's switch-on steps replace the local
+  addresses in content and settings (then `wp db search` finds none) and fill the tracking ID when the site has one;
+  the go/no-go list names where live leads go (each form's To and the settings email: the client's live addresses)
+  and the client to-dos (the seeded placeholders).
 - The client approved any new copy; new URLs are known to whoever owns SEO.
 - reCAPTCHA keys exist for the live domain and the local host; the badge position is decided.
 - Mail: SPF includes the server (and the host's outgoing filter, for example MailChannels) and a DMARC record

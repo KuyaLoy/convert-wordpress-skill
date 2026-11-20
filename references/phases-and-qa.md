@@ -7,8 +7,11 @@ the rules is `_plan/PLAN.md` (made from `assets/plan/PLAN.template.md`); the sta
 ## Contents
 
 - The phases
+- All rules at the plan
 - QA after each phase: it only logs
-- The fix loop: until QA finds 0
+- The self-check before every QA run
+- The fix loop: one full run, then re-check what changed
+- Clones of a proven template
 - The QA checklist
 - The read-only QA check
 - The progress page
@@ -39,6 +42,15 @@ Rules, enforced by gate.py (exit 0 the phase may close, 1 open items listed, 2 t
   skips a phase or a QA run.
 - `gate.py BUILD-MAP.md --close` is the only way to open the next phase. Run gate.py at the start of every session.
 
+## All rules at the plan
+
+P0 decides everything that shapes the build, so no rule arrives mid-build and reopens finished work: every form
+and where its leads go (Contact Form 7 for each, the leads portal or `"leads_portal": "none: <reason>"`), how missing
+content is handled (seeded, marked placeholders), the live plugin checklist (RUNBOOK section 4), old URLs and
+redirects, whether the site has a blog, a chat or search. They go in PLAN.md and the Plan OK covers them.
+A skill update during a task applies at the next site or phase boundary (gate.py `--close`), never inside a QA run
+or a fix pass: finish the run, close it, then update and note the new version in the log.
+
 ## QA after each phase: it only logs
 
 At the end of P1 to P4, run the phase's QA (below) and write every finding as one row in BUILD-MAP.md
@@ -50,17 +62,46 @@ in one line, severity (`blocker`, `major` or `minor`), `open`. Record the run in
 or the next phase cannot start. A blocker is fixed at once, checked again at once, then marked `fixed`.
 Everything else waits, so the build keeps moving and every fix is made once, with the whole picture.
 
-## The fix loop: until QA finds 0
+## The self-check before every QA run
 
-P5, after the last build phase:
+`python3 _plan/tools/report/self-check.py <wp_root> --url <local url>` before every QA run (phase QA, the P5 full
+run, each re-check). It finds the classes a build can catch itself, the ones that cost a real build four full QA
+runs: field instructions missing or in developer words, `(array)` on a field read, a theme PHP file without the
+ABSPATH guard, a `phpcs:ignore` without its reason, functions never called, file paths that do not exist, files over
+300 lines, starter leftovers, unfilled or wrong launch files, acf-json or the oEmbed author public. Fix what it finds
+first (it is the build's own work, not a QA finding), then run QA. It checks less than QA, never instead of it.
 
-1. Fix every `open` finding, blockers and majors first. A finding that is right as it is (the source does it on
-   purpose, or the task says so) becomes `decided`, with the reason in the finding.
-2. Run the **full** QA on the whole site (every page and section, every check below). Each fix it confirms becomes
-   `fixed` (fixed means fixed and checked again), and its section `fixed`; anything new is a new `open` row.
-3. Record the run: `<date>: <n> found`. While n is above 0, repeat 1 and 2.
-4. When a full run finds 0 and no finding is `open`: launch prep (runbook, htaccess-live.txt, editing guide), then
-   the stop report asking for the go-live.
+## The fix loop: one full run, then re-check what changed
+
+P5, after the last build phase. Every line of code gets one full review, and a review again whenever it changes:
+that is what keeps the quality, not repeating full runs over code nobody touched (a real build ran four full runs;
+runs 3 and 4 found new minor items in code already reviewed, and a second full pixel run of 600 shots found nothing).
+
+1. **One full run** on the whole site (every page and section, every check below, a fresh read-only review of all
+   the theme code): its findings are the fix list. Right after it, save the rendering baseline:
+   `python3 tests/parity/changed-routes.py save <local url>`. One full run per site, and per template site
+   before its clones.
+2. **Fix pass:** fix every `open` finding, blockers and majors first. A finding that is right as it is (the source
+   does it on purpose, or the task says so) becomes `decided`, with the reason in the finding.
+3. **Re-check, scoped to the change:** re-check every fixed item (each confirmed one becomes `fixed`, its section
+   `fixed`); a fresh read-only review of the changed files and their callers, in full; then
+   `changed-routes.py diff <local url>`: pixel and text (`parity.mjs --routes=<the changed ones>`) only on the routes
+   whose rendering changed, at the full widths. A CSS or JS change changes every route that loads it, so it re-runs
+   them all. Save the baseline again once they pass.
+4. Record the re-check like a run: `<date>: re-check <n> found`. Blockers and majors found by a re-check are fixed
+   at once, in the next pass. A new minor found outside the changed code is logged and fixed in the next fix pass,
+   with no new full run for it. Repeat 2 and 3 until a re-check finds 0 and no finding is `open`.
+5. A new full run only when a change touched most of the theme (a refactor, a new starter, a CSS rebuild that moved
+   most rules): say why on the board.
+6. Then launch prep (runbook, htaccess-live.txt, editing guide) and the stop report asking for the go-live.
+
+## Clones of a proven template
+
+A site built from a template site that passed P5 (same theme, other content: a chain's other branches) does not
+repeat the template's full review. Its QA: every route's markup and content against its own source
+(`domdiff.py`, `seodiff.py`), every form posted (JavaScript on and off, the right recipients), pixel at 360, 768 and
+1440, the self-check, and its own launch files. A finding in shared theme code is fixed in the template and in every
+clone, then re-checked there as above.
 
 ## The QA checklist
 
@@ -80,7 +121,7 @@ Every QA run checks the items that apply to what the phase built (P5: all of the
 | Code quality | Tokens, not one-off values (the search finds 0 in what the build wrote); only used kit files and helpers ship; sections under about 15 fields and 250 lines; one job per file, JS enqueued; no task or ticket IDs in comments; `npm run lint` passes | `references/build.md` > Code quality; the read-only check reads the changed files |
 | Data | Seeder second run says "same" everywhere | Tools > Seeder |
 | Forms (P3 on) | Every form posts with JavaScript off, 303 to /thank-you/, branded HTML email and auto-reply, honeypot and reCAPTCHA; the leads portal sender in (on mail sent and mail failed) and the profile's portal prefix set, or site.json says "none" | Local mail in `_setup/mail/` |
-| SEO (P4 on) | Titles, descriptions, canonicals, robots, JSON-LD equal to the source; /thank-you/ noindex; old URLs 301 | `parity.mjs` SEO output, `curl -I` |
+| SEO (P4 on) | Titles, descriptions, canonicals, robots, theme-color, viewport, icons, og and twitter tags and every JSON-LD value equal to the source, with the same HTTP status; /thank-you/ noindex; old URLs 301 | `tests/parity/seodiff.py <source> <local url>`, `curl -I` |
 | Security (P4 on) | No secrets in files, private files 403, REST users hidden, file editing off, nonces and capability checks | `live-qa.py --hidden` style checks locally, a code read |
 | Speed (P4 on) | LCP preload and fetchpriority, sized srcset, nothing lazy above the fold, reserved media space, deferred JS; local Lighthouse not below the source | `references/seo-security.md` > Performance |
 
@@ -120,6 +161,19 @@ that can run long (a QA run, a full pixel run), write the Now line first, render
 so the page always says what the chat is doing. A phase that runs for hours (P5) is many units, not one: a page that
 still shows yesterday's open findings is wrong.
 
+**The live page (Claude, where the artifact database is there).** render.py also writes `_plan/progress-live.html`
+and `_plan/progress-rows.json`. Publish the live page once, privately, with
+`capabilities: {"db": {"rules": [{"path": "", "read": "view", "write": "admin"}]}}`, and save its link as
+`"live_url"` in progress.json. From then on the open page updates itself; at each step start and stop:
+
+1. Update the board (the Now lines, statuses, findings), then `render.py BUILD-MAP.md _plan/progress.html`.
+2. Send each batch in progress-rows.json with ArtifactData `batch` (url = live_url). A write to a document listed
+   in `"existing"` needs its version: one ArtifactData `list` of that collection gives every version; add it as
+   `if_version`. A refused batch (someone else wrote, or the versions moved) writes nothing: list again, retry once.
+3. Then `render.py BUILD-MAP.md _plan/progress.html --pushed`, so the next render sends only what changed.
+Most steps send two or three writes (meta/now, a section, a log line). The collections and fields are in
+`_plan/tools/build-map/live.py` (the same as figma-to-wordpress's live page). Republish the live page only when the
+kit's page changes. Other AI tools: the static page, republished as above.
 ## The developer's two gates
 
 - **Plan OK** at the end of P0: the plan documents, the board and the decisions. The OK covers the downloads and
@@ -149,6 +203,12 @@ chat; with no parent, to the developer, with the recommended step first ("Procee
 reply with the same `Next:` line.
 
 ## Context and new chats
+
+**Resume short.** Checkpoint at a page end, a site end or a phase end where the context thresholds allow, not in the
+middle of a section or a QA run. The checkpoint (handoff.md's Next action, or the task's checkpoint.md) names the
+exact next step: the command, the file and the route, not "continue P5". A resume re-checks only what can have
+changed since: the local site answers, the database is there, gate.py, and the files the checkpoint lists as
+touched since the last check (git status or their times). It does not re-read the whole plan or re-run QA.
 
 Check the chat's context use at each step (in Claude Code: the usage tool, or `/context`).
 

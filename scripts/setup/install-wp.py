@@ -13,7 +13,9 @@ Run it after get-wordpress.py and make-wp-config.py (the plan OK covers the down
      line, and never printed or written anywhere else. An existing install keeps its users and passwords untouched;
   3. sets permalinks /%postname%/, "Discourage search engines" on, the timezone (if given), the WordPress block
      in .htaccess;
-  4. on a fresh install only (made by this run): deletes the sample post, page and comment, Hello Dolly and Akismet;
+  4. on a fresh install only (made by this run): deletes the sample post, page and comment, the draft privacy page,
+     Contact Form 7's sample "Contact form 1" (made when it is first activated), Hello Dolly and Akismet; on every
+     run, Settings > Privacy names the site's published privacy-policy (or privacy) page once it exists;
   5. installs the starter plugins: Contact Form 7 and Yoast SEO from wordpress.org (every file checked against
      the official checksums), plus ACF PRO from the profile's plugin_zips.acf_pro (default) or Secure Custom Fields
      from wordpress.org (--fields scf, only when the developer asks for it); a plugin folder that exists is kept;
@@ -161,6 +163,46 @@ if ( 'status' === $kit_mode ) {
 			$kit_out['active'][ dirname( $kit_file ) ] = is_wp_error( $kit_res ) ? $kit_res->get_error_message() : $kit_data['Version'];
 		}
 	}
+	$kit_fresh = ( '1' === getenv( 'KITWP_FRESH' ) );
+	// kit:samples-start
+	// Fresh install only (made by this run): Contact Form 7 creates a sample "Contact form 1" when it is first
+	// activated (just above), and WordPress a draft privacy page the privacy setting points at. Neither is the
+	// site's: the seeder makes the real forms and pages. An existing install keeps everything.
+	if ( $kit_fresh ) {
+		$kit_forms = get_posts( array( 'post_type' => 'wpcf7_contact_form', 'post_status' => 'any', 'numberposts' => -1 ) );
+		if ( 1 === count( $kit_forms ) && 'Contact form 1' === $kit_forms[0]->post_title ) {
+			wp_delete_post( $kit_forms[0]->ID, true );
+			$kit_out['removed'][] = 'Contact Form 7 sample form';
+		}
+		$kit_draft = get_post( (int) get_option( 'wp_page_for_privacy_policy' ) );
+		if ( $kit_draft && 'page' === $kit_draft->post_type && 'draft' === $kit_draft->post_status ) {
+			wp_delete_post( $kit_draft->ID, true );
+			update_option( 'wp_page_for_privacy_policy', 0 );
+			$kit_out['removed'][] = 'sample privacy policy draft';
+		}
+	}
+	// The privacy setting names the site's own published privacy page once it exists (WordPress links it from the
+	// login screen and the personal data tools), never a draft.
+	$kit_privacy = get_post( (int) get_option( 'wp_page_for_privacy_policy' ) );
+	if ( ! $kit_privacy || 'publish' !== $kit_privacy->post_status ) {
+		foreach ( array( 'privacy-policy', 'privacy' ) as $kit_slug ) {
+			$kit_found = get_posts(
+				array(
+					'post_type'   => 'page',
+					'post_status' => 'publish',
+					'name'        => $kit_slug,
+					'numberposts' => 1,
+				)
+			);
+			if ( $kit_found ) {
+				update_option( 'wp_page_for_privacy_policy', $kit_found[0]->ID );
+				$kit_out['privacy'] = $kit_found[0]->ID;
+				break;
+			}
+		}
+	}
+	// kit:samples-end
+	$kit_out['privacy_set'] = (int) get_option( 'wp_page_for_privacy_policy' );
 	$kit_out['permalinks'] = get_option( 'permalink_structure' );
 	$kit_out['blog_public'] = get_option( 'blog_public' );
 	$kit_u = get_user_by( 'login', getenv( 'KITWP_USER' ) );
@@ -331,6 +373,10 @@ say(f"settings: permalinks {r.get('permalinks')}, search engines discouraged: {r
       f".htaccess WordPress block: {'ok' if r.get('htaccess') else 'not written'}")
 if r.get('removed'):
     say('removed (fresh install): ' + ', '.join(r['removed']) + ', Hello Dolly, Akismet')
+if r.get('privacy'):
+    say(f"privacy: Settings > Privacy now names the site's privacy page (ID {r['privacy']})")
+elif not r.get('privacy_set'):
+    say("privacy: no privacy page yet; the seeder's pages come later (Settings > Privacy names it then)")
 for slug, v in (r.get('active') or {}).items():
     say(f'active: {slug} {v}')
 for slug in want:

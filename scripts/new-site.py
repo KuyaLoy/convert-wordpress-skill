@@ -5,6 +5,7 @@ site's values. Safe to run again (it keeps what is there and reports it).
     python3 scripts/new-site.py --start <wp_root> [--name "Site"]   at intake: the folder and two short handoff files
     python3 scripts/new-site.py site.json --plan-only     P0: plan, board, handoff files, tools
     python3 scripts/new-site.py site.json                 P1: prepare the starter theme and copy the kit in
+    python3 scripts/new-site.py site.json --launch-files  the runbook and live .htaccess again (forms, redirects...)
     options: [--profile profile.local.json] [--dry-run] [--force]
 
 site.json: copy assets/site.example.json and fill it in (the intake answers). The profile holds the developer's or
@@ -22,13 +23,18 @@ content model in build_field_groups.py or the parity routes and settings):
   1. Prepares the starter. Barebones: global functions renamed to the prefix, text domain and theme header set,
      front-end jQuery dropped; the sample block, the shortcode file, its acf.php (it hides the ACF menu outside
      "development"), its functions.php and AGENTS.md moved to _setup/starter-removed/ (nothing is deleted). _tw: checked that
-     it was generated (the raw repo still says _tw); its PHPCS ruleset swapped for the kit's.
+     it was generated (the raw repo still says _tw); its PHPCS ruleset swapped for the kit's. Both: what this site
+     does not use moved aside too (no blog: _tw's post, archive, search and comment templates and inc/ helpers; no
+     chat: assets/chat-save.js; the readme stubs, the unused widget area and supports), the theme header and
+     theme.json set to the site (site.json "blog", "chat", "palette", "content_size", "wide_size").
   2. Theme: includes/, template-parts/, assets/, acf-json/ (empty), AGENTS.md, phpcs.xml.dist,
      composer.json, tests/parity/, and functions.php (Barebones: the kit's; _tw: the kit's lines appended).
   3. Project: _plan/ (plan templates, tools/), _setup/seed/, _setup/launch/ (RUNBOOK.md, htaccess-live.txt,
      report.html), BUILD-MAP.md, handoff.md, ai-handoff-summary.md, and the private-files block in .htaccess.
-Tokens: kitwp/KITWP/Kitwp (PHP prefix), kitk (ACF key prefix), every {{NAME}} from site.json, and
-<!-- starter:barebones --> / <!-- starter:tw --> blocks, on their own lines or inline (kept only for the chosen starter).
+Tokens: kitwp/KITWP/Kitwp (PHP prefix), kitk (ACF key prefix), every {{NAME}} from site.json,
+<!-- starter:barebones --> / <!-- starter:tw --> blocks, on their own lines or inline (kept only for the chosen
+starter), and <!-- if:NAME --> / <!-- unless:NAME --> blocks for this site's switches: redirects, tracking, forms,
+portal, chat, blog, www (the runbook and the live .htaccess hold only the steps this site needs).
 """
 import argparse
 import datetime
@@ -43,6 +49,16 @@ SKILL = os.path.dirname(HERE)
 TEXT = ('.php', '.js', '.mjs', '.py', '.json', '.md', '.txt', '.html', '.xml', '.dist', '.css', '.scss', '.htaccess')
 KIT_FILES = ['config', 'cleanup', 'head', 'acf', 'helpers', 'media', 'forms', 'client-admin', 'schema', 'seo', 'seed', 'seed-pages',
              'snapshot']
+# The kit's own functions.php is the one list of include files: _tw gets the same list appended, so a new include
+# never has to be added in two places.
+try:
+    with open(os.path.join(SKILL, 'assets', 'theme', 'functions.php'), encoding='utf-8') as _fh:
+        _m = re.search(r'\$kitwp_kit = \[(.*?)\];', _fh.read(), re.S)
+    if _m and re.findall(r"'([\w-]+)'", _m.group(1)):
+        KIT_FILES = re.findall(r"'([\w-]+)'", _m.group(1))
+except OSError:
+    pass
+PHP_MIN = '8.1'  # the kit's code runs on PHP 8.1 to 8.4 (phpcs.xml.dist testVersion)
 
 ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
 ap.add_argument('site_json', nargs='?')
@@ -53,6 +69,9 @@ ap.add_argument('--profile')
 ap.add_argument('--dry-run', action='store_true')
 ap.add_argument('--force', action='store_true')
 ap.add_argument('--plan-only', action='store_true', help='P0: only the plan, the board, the handoff files and the tools (no WordPress or theme yet)')
+ap.add_argument('--launch-files', action='store_true',
+                help='write _setup/launch/RUNBOOK.md and htaccess-live.txt again from site.json and the plan (the '
+                     'old ones are kept in _setup/launch/before-<time>/)')
 a = ap.parse_args()
 
 INTAKE = '<!-- kit:intake: written by new-site.py --start; --plan-only replaces it and keeps the notes below -->'
@@ -147,11 +166,48 @@ for k, v in site.get('lead', {}).items():
         lead[k] = v
 today = datetime.date.today()
 NO_PORTAL = str(site.get('leads_portal') or '').strip()
+# The live host: site.json "www" (true or false) says whether the address is www.<domain>; without it, the domain
+# as written decides. Both host rules are built from the bare domain, so a "www." domain can never give a rule for
+# www.www.<domain> (a real build shipped that: the bare domain never reached https).
+BARE = re.sub(r'^www\.', '', site['domain'].strip().lower().rstrip('/').split('://')[-1])
+WWW = site['www'] if isinstance(site.get('www'), bool) else site['domain'].strip().lower().startswith('www.')
+LIVE_HOST, OTHER_HOST = ('www.' + BARE, BARE) if WWW else (BARE, 'www.' + BARE)
+# The site's lead forms in plain words, for the runbook's test leads (site.json "forms"; [] = no forms). The chat
+# (site.json "chat", or a chat_selector) is one of them. Without a list: the contact form, and a note to fill it.
+CHAT = site['chat'] if isinstance(site.get('chat'), bool) else bool(str(site.get('chat_selector') or '').strip())
+BLOG = bool(site.get('blog'))
+FORMS = [str(x).strip() for x in (site['forms'] if isinstance(site.get('forms'), list) else ['the contact form'])
+         if str(x).strip()]
+if CHAT and not any('chat' in x.lower() for x in FORMS):
+    FORMS.append('the chat')
+GTM = str(site.get('gtm') or '').strip()
+TRACKING = bool(GTM) and not re.fullmatch(r'GTM-X+', GTM, re.I)  # GTM-XXXXXXX is the example's placeholder
+_tracking = profile.get('tracking') or {}
+TO = str(site.get('lead', {}).get('to') or profile.get('lead', {}).get('to') or '').strip()
+if not FORMS:
+    LEADS_TO_ITEM = ('no lead forms on this site; Settings > General > Administration email is still a monitored '
+                     'live address of the client, not a local, test or developer address.')
+elif TO:
+    LEADS_TO_ITEM = (f'each Contact Form 7 form\'s Mail tab "To" is the client\'s live address ({TO}, site.json '
+                     'lead.to), and so are the email settings leads may fall back to (Settings > General > '
+                     "Administration email, the theme's own email setting): never a local, test or admin address.")
+else:
+    LEADS_TO_ITEM = ('BLOCKER: site.json lead.to is empty. Ask the client which address gets the leads, then set it '
+                     'in each Contact Form 7 form\'s Mail tab "To" and in Settings > General > Administration email '
+                     '(never a local, test or admin address).')
 values = {
     'SITE_NAME': site['site_name'],
     'LEGAL_NAME': site.get('legal_name', site['site_name']),
     'DOMAIN': site['domain'],
     'DOMAIN_REGEX': site['domain'].replace('.', '\\.'),
+    'LIVE_HOST': LIVE_HOST,
+    'LIVE_HOST_REGEX': LIVE_HOST.replace('.', '\\.'),
+    'OTHER_HOST': OTHER_HOST,
+    'OTHER_HOST_REGEX': OTHER_HOST.replace('.', '\\.'),
+    'FORMS_LIST': ', '.join(FORMS),
+    'LEADS_TO_ITEM': LEADS_TO_ITEM,
+    'TRACKING_WHERE': (f"the {_tracking['plugin']} plugin" if _tracking.get('plugin') else
+                       str(_tracking.get('method') or "the theme's tracking setting")),
     'LOCAL_HOST': site['local_host'].replace('http://', '').replace('https://', '').rstrip('/'),
     'REF_URL': site.get('ref_url', ''),
     'SITE_DIR': site.get('site_dir', os.path.basename(os.path.normpath(site['wp_root']))),
@@ -171,7 +227,8 @@ values = {
     'CHAT_SELECTOR': site.get('chat_selector', ''),
     # Font links exactly as the static <head> prints them. PHPCS flags hand-printed stylesheets: each line gets an
     # ignore on the line before it (the closing ?> eats its newline, so the page shows only the link).
-    'FONT_LINKS': '\n'.join('<?php // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet ?>\n' + l
+    'FONT_LINKS': '\n'.join('<?php // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- the static head\'s own '
+                            'font link, 1:1 ?>\n' + l
                             for l in site.get('font_links', [])),
     'PRECONNECT_FONTS': 'true' if any('fonts.googleapis' in l for l in site.get('font_links', [])) else 'false',
     'PHONE_DISPLAY': site.get('phone_display', ''),
@@ -189,6 +246,10 @@ values = {
     'LEADS_PREFIX': re.sub(r'[^A-Z0-9_]', '', str(profile.get('leads_portal', {}).get('constant_prefix', '')).upper()),
     # The leads portal is mandatory for a site with a lead form; site.json "leads_portal": "none: <reason>" says why not.
     'LEADS_ITEM': '',
+    # The theme answers 404 for archives, feeds and search unless the site has them (config.php KITWP_KEEP_BLOG,
+    # KITWP_SITE_SEARCH): site.json "blog" and "search".
+    'KEEP_BLOG': 'true' if BLOG else 'false',
+    'SITE_SEARCH': 'true' if site.get('search') else 'false',
     'GTM_ID': site.get('gtm', ''),
     # The live cache plugin (RUNBOOK section 4): LiteSpeed Cache unless the profile or site.json names another.
     'CACHE_PLUGIN': str(site.get('cache_plugin') or profile.get('cache_plugin') or 'LiteSpeed Cache'),
@@ -225,13 +286,24 @@ else:
                             '"none: <reason>".')
 
 
+FLAGS = {}  # filled below, before the first fill(): redirects, tracking, forms, portal, chat, blog, www
+
+
 def fill(text):
-    """Prefix and key tokens, starter blocks, then {{NAME}} values (unknown names stay, and are reported)."""
+    """Prefix and key tokens, starter blocks, if/unless blocks, then {{NAME}} values (unknown names stay, and are
+    reported). <!-- if:NAME --> keeps its block when FLAGS[NAME] is on, <!-- unless:NAME --> when it is off."""
     text = text.replace('KITWP', prefix.upper()).replace('Kitwp', prefix.capitalize()).replace('kitwp', prefix)
     text = text.replace('kitk', key)
     keep = lambda m: m.group(2) if m.group(1) == starter else ''  # noqa: E731
     text = re.sub(r'[ \t]*<!-- starter:(\w+) -->\n(.*?)[ \t]*<!-- /starter:\1 -->\n', keep, text, flags=re.S)
     text = re.sub(r'<!-- starter:(\w+) -->(.*?)<!-- /starter:\1 -->', keep, text)  # inline, within one line
+    when = lambda m: m.group(3) if bool(FLAGS.get(m.group(2))) == (m.group(1) == 'if') else ''  # noqa: E731
+    while True:  # blocks can nest (an if:portal inside an if:forms): repeat until none is left
+        new = re.sub(r'[ \t]*<!-- (if|unless):(\w+) -->\n(.*?)[ \t]*<!-- /\1:\2 -->\n', when, text, flags=re.S)
+        new = re.sub(r'<!-- (if|unless):(\w+) -->(.*?)<!-- /\1:\2 -->', when, new)
+        if new == text:
+            break
+        text = new
     return re.sub(r'\{\{([A-Z_]+)\}\}', lambda m: values.get(m.group(1), m.group(0)), text)
 
 
@@ -278,8 +350,281 @@ def move_aside(p):
         shutil.move(p, dst)
 
 
-# 1. The starter theme (skipped with --plan-only: P0 has no WordPress yet).
-if a.plan_only:
+def old_urls_planned():
+    """True when the site has old URLs to redirect: site.json "redirects": true, or a 301 row in OLD-SITE-URLS.md."""
+    if site.get('redirects') is True:
+        return True
+    plan_doc = os.path.join(root, '_plan', 'OLD-SITE-URLS.md')
+    if os.path.exists(plan_doc):
+        # A filled row: | /old-path/ (or a full URL) | 301 ... | target |. The template's empty row does not count.
+        return bool(re.search(r'^\|\s*(?:/|https?://)[^|]*\|[^|]*\b301\b', read(plan_doc), re.M))
+    return False
+
+
+FLAGS.update(redirects=old_urls_planned(), tracking=TRACKING, forms=bool(FORMS), chat=CHAT, blog=BLOG, www=WWW,
+             portal=not NO_PORTAL.lower().startswith('none'))
+if site.get('redirects') is False and FLAGS['redirects']:
+    notes.append('site.json says "redirects": false, but _plan/OLD-SITE-URLS.md lists 301 rows: the launch files '
+                 'include the Redirection steps')
+if not isinstance(site.get('forms'), list):
+    notes.append('site.json has no "forms" list: the runbook tests "the contact form" only. List every lead form in '
+                 'plain words (for example ["the contact form", "the quote pop-up"]; [] for none), then run this '
+                 'again with --launch-files')
+
+
+def edit_php(p, edits):
+    """Apply (label, pattern, replacement) regex edits to one PHP file. Returns the labels that applied. With php on
+    the PATH, a result that fails php -l is not written (the starter's file stays as it was, and a note says so)."""
+    if not exists(p):
+        return []
+    old = read(p)
+    new, done = old, []
+    for label, pat, repl in edits:
+        new, n = re.subn(pat, repl, new, flags=re.S)
+        if n:
+            done.append(label)
+    if new == old:
+        return []
+    php = shutil.which('php')
+    if php and not a.dry_run:
+        tmp = p + '.kit-check.php'
+        with open(tmp, 'w', encoding='utf-8', newline='\n') as fh:
+            fh.write(new)
+        try:
+            import subprocess
+            ok = subprocess.run([php, '-l', tmp], capture_output=True, text=True).returncode == 0
+        finally:
+            os.remove(tmp)
+        if not ok:
+            notes.append(f'{rel(p)}: the starter clean-up would break the file (php -l): left as it was, check by hand')
+            return []
+    write(p, new)
+    return done
+
+
+def tidy_starter():
+    """Move the starter's files and supports this site does not use out of the theme (to _setup/starter-removed/,
+    never deleted), and set its theme header and theme.json to this site. Each piece is checked first: anything
+    still in use stays, with a note."""
+    done = []
+    # The theme header: the site's address, its author and the PHP the kit needs (not the starter's own).
+    author = (profile.get('agency') or values['DEVELOPER']).strip()
+    if author == 'the developer':
+        author = site['site_name']
+    for p in (os.path.join(theme, 'style.css'), os.path.join(theme, 'style-editor.css'),
+              os.path.join(theme_root, 'tailwind', 'custom', 'file-header.css'),
+              os.path.join(theme, 'assets', 'styles', 'style.scss')):
+        if not exists(p):
+            continue
+        old = read(p)
+        new = re.sub(r'^(Theme URI:[ \t]*).*(?:underscoretw\.com|benchmark)[^\n]*$', rf'\g<1>https://{LIVE_HOST}/',
+                     old, flags=re.M | re.I)
+        new = re.sub(r'^(Author:[ \t]*).*(?:underscoretw\.com|benchmark)[^\n]*$',
+                     lambda m: m.group(1) + author, new, flags=re.M | re.I)
+        new = re.sub(r'^Author URI:.*(?:underscoretw\.com|benchmark)[^\n]*\n', '', new, flags=re.M | re.I)
+        new = re.sub(r'^Description: A custom theme based on _tw[ \t]*$',
+                     f'Description: {site["site_name"]}, a 1:1 WordPress conversion of the static site. Built on _tw.',
+                     new, flags=re.M)
+        new = re.sub(r'^(Requires PHP:[ \t]*)(\d+)\.(\d+)[^\n]*$',
+                     lambda m: m.group(0) if (int(m.group(2)), int(m.group(3))) >= (8, 1) else m.group(1) + PHP_MIN,
+                     new, flags=re.M)
+        if new != old:
+            write(p, new)
+            done.append(rel(p) + ' (header)')
+    # theme.json: the site's palette and sizes when site.json gives them; otherwise only the starter's sample accent
+    # colours go (none of them is the site's). Background and foreground stay: the starter's own CSS reads them.
+    tj = os.path.join(theme, 'theme.json')
+    if exists(tj):
+        try:
+            data = json.loads(read(tj))
+        except ValueError:
+            data = None
+            notes.append(f'{rel(tj)} is not valid JSON: its palette was left as it was')
+        if isinstance(data, dict):
+            settings = data.setdefault('settings', {})
+            colour = settings.setdefault('color', {})
+            if isinstance(site.get('palette'), list):
+                colour['palette'] = site['palette']
+            elif isinstance(colour.get('palette'), list):
+                colour['palette'] = [c for c in colour['palette'] if str(c.get('color', '')).lower()
+                                     not in ('#b91c1c', '#15803d', '#0369a1')]
+            for k, src in (('contentSize', 'content_size'), ('wideSize', 'wide_size')):
+                if site.get(src):
+                    settings.setdefault('layout', {})[k] = site[src]
+            text = json.dumps(data, indent='\t', ensure_ascii=False) + '\n'
+            if text != read(tj):
+                write(tj, text)
+                done.append(rel(tj) + ' (palette' + (', sizes' if site.get('content_size') else '') + ')')
+    # Kit and tool files the site has no use for.
+    if not CHAT:
+        move_aside(os.path.join(theme, 'assets', 'chat-save.js'))
+    move_aside(os.path.join(theme_root, 'tests', 'parity', 'swap'))  # swaptest.py output, made again when needed
+    if starter != 'tw':
+        if not BLOG:  # Barebones' post template; the kit answers 404 for posts' archives without a blog
+            move_aside(os.path.join(theme, 'single.php'))
+        done += abspath_guards()
+        return done
+    # _tw: its readme stubs, the widget area it registers but never prints, the block editor's heading filter.
+    for d in ('js', 'languages'):
+        folder = os.path.join(theme, d)
+        stub = os.path.join(folder, 'readme.txt')
+        if exists(stub):
+            only = os.path.isdir(folder) and os.listdir(folder) == ['readme.txt']
+            move_aside(folder if only else stub)
+    fn_path = os.path.join(theme, 'functions.php')
+    edits = [
+        ('selective refresh', r"(?:[ \t]*//[^\n]*\n)?[ \t]*add_theme_support\(\s*'customize-selective-refresh-widgets'"
+                              r"\s*\);\n(?:[ \t]*\n)?", ''),
+        ('footer widget area', r"(?:/\*\*(?:(?!\*/).)*\*/\n)?function \w+_widgets_init\(\)\s*\{.*?\n\}\n"
+                               r"add_action\(\s*'widgets_init',\s*'\w+_widgets_init'\s*\);\n(?:\n)?", ''),
+        ('heading-level filter', r"(?:/\*\*(?:(?!\*/).)*\*/\n)?function \w+_modify_heading_levels\(.*?\n\}\n"
+                                 r"add_filter\(\s*'register_block_type_args',\s*'\w+_modify_heading_levels'[^;]*;\n"
+                                 r"(?:\n)?", ''),
+    ]
+    if not BLOG:
+        edits += [
+            ('feed links', r"(?:[ \t]*//[^\n]*\n)?[ \t]*add_theme_support\(\s*'automatic-feed-links'\s*\);\n"
+                           r"(?:[ \t]*\n)?", ''),
+            ('html5 search and comments', r"[ \t]*'(?:search-form|comment-form|comment-list)',\n", ''),
+            ('html5 comment', r'for search form, comment form, and comments\n(\s*\*) to output valid HTML5\.',
+             r'(the site has no search or comments)\n\1 to output valid HTML5.'),
+            ('comment-reply', r"\n\n[ \t]*if \( is_singular\(\) && comments_open\(\)[^\n]*\n[ \t]*wp_enqueue_script\("
+                              r"\s*'comment-reply'\s*\);\n[ \t]*\}\n", '\n'),
+            ('block editor script', r"(?:/\*\*(?:(?!\*/).)*\*/\n)?function \w+_enqueue_block_editor_script\(\)"
+                                    r".*?\n\}\nadd_action\(\s*'enqueue_block_assets',\s*'\w+'\s*\);\n(?:\n)?", ''),
+        ]
+    done += [f'functions.php: {x}' for x in edit_php(fn_path, edits)]
+    if not BLOG:
+        done += tidy_tw_blog()
+    done += abspath_guards()
+    return done
+
+
+GUARD = "defined( 'ABSPATH' ) || exit;"
+
+
+def abspath_guards():
+    """The starter's own PHP files get the kit's ABSPATH guard (the kit's files have it): a direct request to a
+    theme file then exits instead of printing a fatal error with the server path. After the file's docblock."""
+    done = []
+    for d, dirs, names in os.walk(theme):
+        dirs[:] = [x for x in dirs if x not in ('node_modules', 'vendor', 'tests')]
+        for n in names:
+            f = os.path.join(d, n)
+            if not n.endswith('.php') or f in gone or not exists(f):
+                continue
+            old = read(f)
+            if 'ABSPATH' in old:
+                continue
+            if not old.startswith('<?php'):  # a template that starts with HTML (header.php, footer.php)
+                write(f, '<?php ' + GUARD + ' ?>' + chr(10) + old)  # the ?> eats its newline: output unchanged
+                done.append(rel(f) + ' (ABSPATH guard)')
+                continue
+            m = re.match(r'<\?php[ \t]*\n(/\*\*.*?\*/\n)?', old, re.S)
+            if m:
+                new = old[:m.end()] + ('\n' if m.group(1) else '') + GUARD + '\n' + ('' if m.group(1) else '\n') + \
+                    old[m.end():]
+            else:  # "<?php get_header(); ?>" on the first line
+                new = '<?php\n' + GUARD + '\n' + old[len('<?php'):].lstrip(' \t')
+            write(f, new)
+            done.append(rel(f) + ' (ABSPATH guard)')
+    return done
+
+
+def tidy_tw_blog():
+    """_tw without a blog: its post, archive, search and comment templates go aside, index.php shows the 404 page,
+    and the template helpers in inc/ go too once nothing left in the theme calls them."""
+    done = []
+    for p in ('archive.php', 'search.php', 'single.php', 'comments.php', 'home.php',
+              'template-parts/content/content.php', 'template-parts/content/content-excerpt.php',
+              'template-parts/content/content-single.php', 'template-parts/content/content-none.php'):
+        move_aside(os.path.join(theme, *p.split('/')))
+    idx = os.path.join(theme, 'index.php')
+    if exists(idx) and 'kit: no blog' not in read(idx):
+        move_aside(idx)
+        write(idx, f"""<?php
+/**
+ * The template WordPress falls back to when nothing more specific matches (kit: no blog). The site has only its
+ * pages: a listing, a search result or a post answers 404 and shows the 404 page, as the static site does.
+ *
+ * @link https://developer.wordpress.org/themes/basics/template-hierarchy/
+ *
+ * @package {prefix}
+ */
+
+defined( 'ABSPATH' ) || exit;
+
+if ( ! is_front_page() ) {{
+	global $wp_query;
+	$wp_query->set_404();
+	status_header( 404 );
+	nocache_headers();
+}}
+
+get_template_part( '404' );
+""")
+        done.append(rel(idx) + ' (shows the 404 page)')
+    # The block editor script only adds the Typography classes to post content: no blog, no use.
+    move_aside(os.path.join(theme, 'js', 'block-editor.min.js'))
+    move_aside(os.path.join(theme_root, 'javascript', 'block-editor.js'))
+    pkg = os.path.join(theme_root, 'package.json')
+    if exists(pkg) and ' ./javascript/block-editor.js' in read(pkg):
+        write(pkg, read(pkg).replace(' ./javascript/block-editor.js', ''))
+        done.append(rel(pkg) + ' (block editor entry)')
+    # Templates kept for a plain page: the starter's helpers replaced by the plain markup they print.
+    helper_thumb = (f'<?php if ( has_post_thumbnail() && ! post_password_required() ) : ?>\n'
+                    f'\t\t<figure><?php the_post_thumbnail(); ?></figure>\n\t<?php endif; ?>')
+    page_edits = [
+        ('comments', r"\n[ \t]*(?://[^\n]*\n[ \t]*)?if \( comments_open\(\) \|\| get_comments_number\(\) \)\s*[:{]\s*\n"
+                     r"\s*comments_template\(\);\s*\n\s*(?:endif;|\})\n", '\n'),
+        ('post thumbnail', rf'<\?php {re.escape(prefix)}_post_thumbnail\(\);\s*\?>', lambda m: helper_thumb),
+        ('content class', rf"<\?php {re.escape(prefix)}_content_class\(\s*'([^']*)'\s*\);\s*\?>", r'class="\1"'),
+    ]
+    inc = [os.path.join(theme, 'inc', f) for f in ('template-tags.php', 'template-functions.php')]
+    helpers = set()
+    for p in inc:
+        if exists(p):
+            helpers.update(re.findall(r'^function\s+(\w+)\s*\(', read(p), re.M))
+    still = []
+    for d, dirs, files in os.walk(theme):
+        dirs[:] = [x for x in dirs if x not in ('node_modules', 'vendor', '.git')]
+        for f in files:
+            p = os.path.join(d, f)
+            if not f.endswith('.php') or p in inc or not exists(p):
+                continue
+            done += [f'{rel(p)}: {x}' for x in edit_php(p, page_edits)]
+            text = read(p)
+            for _, pat, repl in page_edits:  # as written above (a dry run writes nothing, so apply them here too)
+                text = re.sub(pat, repl, text, flags=re.S)
+            if os.path.basename(p) == 'functions.php':
+                text = re.sub(r"require[^\n]*'/inc/template-(?:tags|functions)\.php';", '', text)
+            used = sorted(h for h in helpers if re.search(r'\b' + h + r'\b', text))
+            if used:
+                still.append(f"{rel(p)} ({', '.join(used)})")
+    if still:
+        notes.append('_tw inc/template-tags.php and template-functions.php kept: still used by ' + '; '.join(still))
+    elif any(exists(p) for p in inc):
+        req = (r"(?:/\*\*(?:(?!\*/).)*\*/\n)?require(?:_once)? get_template_directory\(\) \. "
+               r"'/inc/template-{}\.php';\n(?:\n)?")
+        removed_req = edit_php(os.path.join(theme, 'functions.php'),
+                               [('template tags', req.format('tags'), ''),
+                                ('template functions', req.format('functions'), '')])
+        if len(removed_req) == 2 or a.dry_run:
+            for p in inc:
+                move_aside(p)
+            folder = os.path.join(theme, 'inc')
+            if os.path.isdir(folder) and not a.dry_run and not os.listdir(folder):
+                os.rmdir(folder)  # empty once its two starter files moved aside
+            done.append('functions.php: inc/ helpers no longer loaded')
+        else:
+            notes.append('_tw inc/ helpers kept: functions.php does not load them the usual way, check by hand')
+    return done
+
+
+# 1. The starter theme (skipped with --plan-only: P0 has no WordPress yet; and with --launch-files).
+if a.launch_files:
+    pass
+elif a.plan_only:
     if not os.path.isdir(root) and not a.dry_run:
         os.makedirs(root)
 else:
@@ -329,7 +674,8 @@ else:
                  f"<?php echo esc_html( human_time_diff( (int) get_post_time( 'U', true ) ) . ' ' . __( 'ago', '{prefix}' ) ); ?>"),
                 ('single.php', "comments_popup_link(__('No comments yet'), __('1 comment'), __('% comments'));",
                  f"comments_popup_link( __( 'No comments yet', '{prefix}' ), __( '1 comment', '{prefix}' ), "
-                 f"__( '% comments', '{prefix}' ) ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment"),
+                 f"__( '% comments', '{prefix}' ) ); // phpcs:ignore WordPress.WP.I18n.MissingTranslatorsComment -- "
+                 f"the starter's own strings; % is the count, as WordPress documents it"),
                 ('includes/admin.php', "$submenu['edit.php?post_type=page'][501] = array( \n",
                  "$submenu['edit.php?post_type=page'][501] = array( // phpcs:ignore WordPress.WP.GlobalVariablesOverride"
                  ".Prohibited -- the Front Page link in the Pages menu.\n"),
@@ -401,6 +747,13 @@ else:
             move_aside(pcs)
             notes.append("_tw's phpcs.xml.dist moved aside: the kit's ruleset (security, i18n, prefixes, PHP 8.1 to 8.4) "
                          'checks the whole theme')
+    _before = len(moved)
+    _tidied = tidy_starter()
+    if _tidied or len(moved) > _before:
+        # One line: the counts; the moved files are in _setup/starter-removed/ (the way back), the edits in git diff.
+        notes.append(f"starter tidied for this site ({'blog kept' if BLOG else 'no blog'}, "
+                     f"{'chat' if CHAT else 'no chat'}): {len(_tidied)} edits, {len(moved) - _before} files moved "
+                     'aside to _setup/starter-removed/')
 
 
 # 2 and 3. What to copy where: (source, destination).
@@ -444,6 +797,13 @@ plan += [
     (os.path.join(A, 'launch', 'maintenance', 'htaccess-maintenance.txt'), os.path.join(root, '_setup', 'launch', 'maintenance', 'htaccess-maintenance.txt')),
     (os.path.join(A, 'report', 'report-template.html'), os.path.join(root, '_setup', 'launch', 'report.html')),
 ]
+# The chat lead pattern ships only for a site with a chat (site.json "chat"); an unused kit file is lint noise.
+if not CHAT:
+    plan = [(s, d) for s, d in plan if not d.endswith(os.path.join('assets', 'chat-save.js'))]
+# --launch-files: only the runbook and the live .htaccess, written again (the old ones kept, see below).
+LAUNCH = tuple(os.path.join(root, '_setup', 'launch', f) for f in ('RUNBOOK.md', 'htaccess-live.txt'))
+if a.launch_files:
+    plan = [(s, d) for s, d in plan if d in LAUNCH]
 
 # The project's own documents and data are never overwritten, not even with --force: the plan, the board, the
 # handoff files, the seed data and the launch files belong to the project once written.
@@ -534,7 +894,14 @@ for src, dst in plan:
         written.append(r + ' (replaces the intake file)')
         write(dst, new)
         continue
-    if exists(dst):
+    if exists(dst) and a.launch_files:
+        # The launch files are the project's once written; asked for again, the old copy stays next to them.
+        backed.append(r)
+        if not a.dry_run:
+            bak = os.path.join(root, '_setup', 'launch', 'before-' + stamp, os.path.basename(dst))
+            os.makedirs(os.path.dirname(bak), exist_ok=True)
+            shutil.copy2(dst, bak)
+    elif exists(dst):
         project_doc = (r.startswith(PROTECTED) or r.endswith(PROJECT_DATA)
                        or (r.startswith('_plan/') and not r.startswith('_plan/tools/')))
         if not a.force or project_doc:
@@ -556,6 +923,14 @@ for src, dst in plan:
         os.makedirs(os.path.dirname(dst), exist_ok=True)
         shutil.copyfile(src, dst)
         os.chmod(dst, 0o644)
+if a.launch_files:
+    print(f"{'DRY RUN: ' if a.dry_run else ''}OK new-site: launch files written: {', '.join(written) or 'none'}"
+          + (f'; the old ones are in _setup/launch/before-{stamp}/' if backed else ''))
+    print(f"live https://{LIVE_HOST} ({'www' if WWW else 'no www'}); forms: {values['FORMS_LIST'] or 'none'}; "
+          + ', '.join(f"{k} {'yes' if FLAGS[k] else 'no'}" for k in ('redirects', 'tracking', 'chat', 'portal')))
+    for n in notes:
+        print('- ' + n)
+    sys.exit(0)
 if backed:
     notes.append(f'--force: {len(backed)} kit files replaced; the replaced versions are in _setup/kit-backup-{stamp}/')
 
@@ -563,6 +938,14 @@ if not a.plan_only and not os.path.isdir(os.path.join(theme, 'acf-json')):
     written.append(rel(os.path.join(theme, 'acf-json')) + '/')
     if not a.dry_run:
         os.makedirs(os.path.join(theme, 'acf-json'))
+# ACF reads the field definitions from disk; visitors never need them (a real build served them with 200). The
+# live .htaccess closes the folder too, in case a package leaves this dotfile out.
+acf_ht = os.path.join(theme, 'acf-json', '.htaccess')
+if not a.plan_only and not os.path.exists(acf_ht):
+    written.append(rel(acf_ht))
+    write(acf_ht, '# ACF reads these field definitions from disk; visitors never need them.\n'
+                  '<IfModule mod_authz_core.c>\n\tRequire all denied\n</IfModule>\n'
+                  '<IfModule !mod_authz_core.c>\n\tOrder deny,allow\n\tDeny from all\n</IfModule>\n')
 
 # functions.php: Barebones gets the kit's (the starter's own was moved aside); _tw keeps its own plus the kit lines.
 fn = os.path.join(theme, 'functions.php')

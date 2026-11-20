@@ -1,6 +1,10 @@
 """Render BUILD-MAP.md into the private progress page, the same page figma-to-wordpress shows.
 
     python3 render.py <BUILD-MAP.md> <out.html> [--json <progress.json>]
+    python3 render.py <BUILD-MAP.md> <out.html> --pushed     after the database writes went through
+
+It also writes the live page (progress-live.html) and the database writes since the last push (progress-rows.json):
+see live.py.
 
 BUILD-MAP.md is the source of truth (gate.py checks it). This script reads it, writes progress.json in the shared
 progress shape (the keys figma-to-wordpress's references/progress.md defines: site, target, figma, url, updated,
@@ -19,6 +23,9 @@ import json
 import os
 import re
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import live  # noqa: E402  (next to this file)
 
 if len(sys.argv) < 3:
     print(__doc__)
@@ -41,7 +48,9 @@ MONTHS = {m: i for i, m in enumerate(['jan', 'feb', 'mar', 'apr', 'may', 'jun', 
 
 
 def cells(line):
-    return [p.strip() for p in line.strip().strip('|').split('|')]
+    """A table row's cells; an escaped pipe (backslash, pipe) stays inside its cell as |."""
+    parts = re.split(r'(?<!\\)\|', line.strip().strip('|'))
+    return [p.replace('\\|', '|').strip() for p in parts]
 
 
 def rows_of(lines):
@@ -169,11 +178,16 @@ data = {'site': hm.group(1).strip() if hm else 'Site', 'target': 'wordpress', 'f
         'waiting': nl.get('waiting', ''), 'blocked': nl.get('blocked', ''),
         'phases': [{'id': pid, 'name': name, 'status': phase_status(ref, pid)} for pid, name, ref in PHASES],
         'pages': pages, 'findings': findings, 'log': log}
-if os.path.isfile(JSON_OUT):  # keep the published link saved earlier
+if os.path.isfile(JSON_OUT):  # keep the published links saved earlier (the static page and the live page)
     try:
-        data['url'] = json.load(open(JSON_OUT, encoding='utf-8')).get('url', '')
+        old = json.load(open(JSON_OUT, encoding='utf-8'))
+        data['url'], data['live_url'] = old.get('url', ''), old.get('live_url', '')
     except (OSError, ValueError):
         pass
+if '--pushed' in sys.argv:  # the chat wrote progress-rows.json to the database: remember what it holds now
+    n = live.mark_pushed(os.path.dirname(os.path.abspath(JSON_OUT)))
+    print(f'ok: {n} database writes marked as pushed')
+    sys.exit(0)
 with open(JSON_OUT, 'w', encoding='utf-8', newline='\n') as fh:
     json.dump(data, fh, indent=1, ensure_ascii=False)
 
@@ -330,5 +344,7 @@ page = f"""<!doctype html>
 """
 with open(OUT, 'w', encoding='utf-8', newline='\n') as fh:
     fh.write(page)
+n_rows = live.write(data, CSS, os.path.dirname(os.path.abspath(JSON_OUT)))
 print(f'ok: {len(data["phases"])} phases, {sum(c.values())} sections ({done} done), {len(data["findings"])} findings '
-      f'({len(of)} open), {len(log)} log lines; wrote {os.path.basename(OUT)} and {os.path.basename(JSON_OUT)}')
+      f'({len(of)} open), {len(log)} log lines; wrote {os.path.basename(OUT)} and {os.path.basename(JSON_OUT)}; '
+      f'{n_rows} database writes in progress-rows.json')

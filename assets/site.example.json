@@ -2,6 +2,7 @@
   "site_name": "Example Co",
   "legal_name": "Example Co Ltd",
   "domain": "example.com",
+  "www": false,
   "site_dir": "example",
   "wp_root": "",
   "local_host": "",
@@ -21,6 +22,13 @@
   "timezone": "UTC",
   "form_class": "contact-form",
   "chat_selector": "",
+  "chat": false,
+  "blog": false,
+  "search": false,
+  "forms": [
+    "the contact form"
+  ],
+  "redirects": false,
   "phone_display": "+1 555 0100",
   "phone_tel": "+15550100",
   "email": "hello@example.com",

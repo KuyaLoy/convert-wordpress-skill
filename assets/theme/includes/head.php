@@ -7,6 +7,8 @@
  * @package kitwp
  */
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Print the preconnects, theme colour, favicon and font links. The font links are copied from the static <head>
  * exactly (same order, same URLs, & written as &amp;). If a Site Icon is set in Settings > General, WordPress
@@ -33,9 +35,15 @@ function kitwp_head_tags() {
 			}
 		}
 	}
+	// The font links as the static head prints them; buffered, so a site without them gets no blank line in <head>.
+	ob_start();
 	?>
 {{FONT_LINKS}}
 <?php
+	$kitwp_fonts = trim( (string) ob_get_clean() );
+	if ( '' !== $kitwp_fonts ) {
+		echo $kitwp_fonts . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the static head's own links, copied as they are.
+	}
 }
 add_action( 'wp_head', 'kitwp_head_tags', 2 );
 
@@ -138,17 +146,47 @@ function kitwp_inline_styles() {
 add_action( 'wp_head', 'kitwp_inline_styles', 7 );
 
 /**
- * With no Site Icon set, WordPress answers /favicon.ico with its own "W" logo: send it to the brand icon instead.
- * Settings > General > Site Icon still wins (core handles it).
+ * With no Site Icon set, WordPress answers /favicon.ico with its own "W" logo: send it to the static site's own icon
+ * instead, the first of these in the theme's assets/brand/ (the static build's names differ from site to site; add
+ * one with the "kitwp_favicon_files" filter). Settings > General > Site Icon still wins (core handles it).
  *
  * @return void
  */
 function kitwp_favicon_ico() {
-	foreach ( [ 'assets/brand/favicon-32.png', 'assets/brand/apple-touch-icon.png' ] as $file ) {
-		if ( ! has_site_icon() && file_exists( get_stylesheet_directory() . '/' . $file ) ) {
+	if ( has_site_icon() ) {
+		return;
+	}
+	$files = (array) apply_filters( 'kitwp_favicon_files', [ 'favicon.ico', 'favicon-32.png', 'favicon-32x32.png', 'favicon.png', 'icon.png', 'favicon.svg', 'icon.svg', 'apple-touch-icon.png' ] );
+	foreach ( $files as $file ) {
+		$file = 'assets/brand/' . ltrim( (string) $file, '/' );
+		if ( file_exists( get_stylesheet_directory() . '/' . $file ) ) {
 			wp_safe_redirect( kitwp_asset( $file ) );
 			exit;
 		}
 	}
 }
 add_action( 'do_favicon', 'kitwp_favicon_ico', 1 );
+
+/**
+ * Theme files enqueued with a fixed ?ver= (a starter's script.min.js and style.css with the theme version) are
+ * versioned by their file date instead, so a changed file reaches visitors whose browser or CDN cached the old one.
+ *
+ * @param string $src    Script or stylesheet URL.
+ * @param string $handle Handle.
+ * @return string
+ */
+function kitwp_asset_version( $src, $handle ) {
+	unset( $handle );
+	$base = get_stylesheet_directory_uri() . '/';
+	$url  = explode( '?', (string) $src, 2 )[0];
+	if ( 0 !== strpos( $url, $base ) ) {
+		return $src;
+	}
+	$file = get_stylesheet_directory() . '/' . substr( $url, strlen( $base ) );
+	if ( ! is_file( $file ) ) {
+		return $src;
+	}
+	return add_query_arg( 'ver', (string) filemtime( $file ), $src );
+}
+add_filter( 'script_loader_src', 'kitwp_asset_version', 10, 2 );
+add_filter( 'style_loader_src', 'kitwp_asset_version', 10, 2 );

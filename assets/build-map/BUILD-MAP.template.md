@@ -114,8 +114,8 @@ starts, the rest at every stop, then render and republish.
 
 | ID | Step | Status | Notes |
 |---|---|---|---|
-| P5-01 | Fix every finding in "QA findings" | TODO | |
-| P5-02 | Full QA run on the whole site; repeat P5-01 and P5-02 until it finds 0 | TODO | |
+| P5-01 | One full QA run on the whole site (self-check first); changed-routes.py save | TODO | |
+| P5-02 | Fix passes: fix, re-check the fixed items and the changed files, pixel on the changed routes; until a re-check finds 0 | TODO | |
 | P5-03 | Launch prep: runbook, htaccess-live.txt, editing guide | TODO | |
 | P5-04 | The developer's go for live | TODO | |
 

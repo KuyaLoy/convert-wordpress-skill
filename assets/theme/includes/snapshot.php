@@ -8,6 +8,8 @@
  * @package kitwp
  */
 
+defined( 'ABSPATH' ) || exit;
+
 if ( 'local' !== wp_get_environment_type() ) {
 	return;
 }

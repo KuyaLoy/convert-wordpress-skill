@@ -17,6 +17,8 @@
  * @package kitwp
  */
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Whether the current user is the client (logged in, without manage_options).
  *
