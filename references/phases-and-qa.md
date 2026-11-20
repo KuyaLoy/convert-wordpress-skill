@@ -163,6 +163,11 @@ still shows yesterday's open findings is wrong. While a background step runs pas
 background command, a subagent, a check), the Now line reads `RUNNING, not stopped: <what>, started HH:MM; I
 continue by myself when it finishes.`, the same words as the first line of the last message and the recap; the next
 status replaces it. A real stop (waiting on the developer, blocked, a checkpoint, a usage pause) never says RUNNING.
+In the Claude desktop app the chat also keeps its state at the front of its own title (`set_session_title` with
+"self", one call per state change, the rest of the title unchanged; other tools skip it): `▶ RUNNING | <title>`
+while it or its own background work runs (a check, a build, a subagent), `⏸ WAITING on <who> | <title>` when it
+waits on the developer, Command Center or the client, `✋ BLOCKED | <title>`, `✓ DONE | <title>` at done (and in
+review). Never for anything else, never polling.
 
 **The live page (Claude, where the artifact database is there).** render.py also writes `_plan/progress-live.html`
 and `_plan/progress-rows.json`. Publish the live page once, privately, with
