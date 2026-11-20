@@ -252,8 +252,10 @@ Message-ID on the domain; local mail to the admin and `_setup/mail/`; a chat wid
 or `<br>`). Every notification and every auto-reply (Mail (2)) uses the branded HTML template, never CF7's plain
 text; both carry the profile's agency badge in the footer (`branding`); the email logo and badge come from Theme
 Settings.
-With a leads portal in the profile (`leads_portal`), every sent lead also goes there server to server (never from
-local, development or staging).
+Every lead also goes to the profile's leads portal (`leads_portal`), server to server, whether the email went out
+or failed: mandatory on live for a site with a lead form (no portal in the profile is a go-live blocker; a site
+without forms says so in site.json). The keys go only into the live wp-config; never from local, development or
+staging.
 Details: `references/forms-email.md`.
 
 ## P4 SEO, security, speed
@@ -318,6 +320,7 @@ developer fills; the agent never types a password). Details: `references/qa-repo
 | `scripts/snapshot-routes.mjs` | Rendered HTML of every route, for client-rendered or server sources |
 | `scripts/setup/setup.py` | P1-01 in one call: database, get-wordpress, make-wp-config, serve-wp (if needed), install-wp |
 | `scripts/setup/install-wp.py` and the others | Install, admin, settings, plugins; the steps one by one when one needs repeating |
+| `scripts/report/leads-check.py` | The leads portal endpoint and key with a GET (stores nothing; the key never printed) |
 | `scripts/launch/plugin-versions.py` | Go/no-go: each plugin zip in the profile's folder with its version and file date |
 | `scripts/acf/build_field_groups.py`, `sync.php` | ACF JSON, stable keys (`--check`); database sync |
 | `scripts/seed/export.mjs`, `export-pages.py` | Static content into `_setup/seed/` for Tools > Seeder |

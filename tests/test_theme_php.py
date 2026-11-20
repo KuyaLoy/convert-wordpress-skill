@@ -141,3 +141,72 @@ def php_array(value):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+LEADS_STUBS = r'''
+const KITWP_LEADS_PREFIX = 'TEST_LEADS';
+define( 'TEST_LEADS_ENDPOINT', 'https://portal.example.org/ingest/demo' );
+define( 'TEST_LEADS_KEY', 'lk_test_dummy_key' );
+$GLOBALS['hooks'] = [];
+$GLOBALS['posts'] = [];
+function add_action( $hook, $fn ) { $GLOBALS['hooks'][ $hook ][] = $fn; }
+function do_action( $hook, ...$args ) { foreach ( $GLOBALS['hooks'][ $hook ] ?? [] as $fn ) { $fn( ...$args ); } }
+function kitwp_is_lead_form( $form ) { return true; }
+function wp_get_environment_type() { return $GLOBALS['env']; }
+function apply_filters( $hook, $value ) { return $value; }
+function wp_generate_uuid4() { return 'uuid-1'; }
+function wp_json_encode( $v ) { return json_encode( $v ); }
+function sanitize_text_field( $v ) { return trim( (string) $v ); }
+function wp_unslash( $v ) { return $v; }
+function wp_get_referer() { return ''; }
+function is_wp_error( $v ) { return false; }
+function wp_remote_retrieve_response_code( $r ) { return $r['response']['code']; }
+function wp_remote_post( $url, $args ) { $GLOBALS['posts'][] = [ $url, $args ]; return [ 'response' => [ 'code' => 202 ] ]; }
+class Kit_Form { public function title() { return 'Quote'; } }
+class WPCF7_Submission {
+	public static function get_instance() { return new self(); }
+	public function get_posted_data() { return [ 'your-name' => 'Sam Test', 'phone' => '0400 000 000', '_wpcf7' => '5', 'consent' => '1' ]; }
+	public function uploaded_files() { return []; }
+	public function get_meta( $k ) { return 'https://example.org/contact/'; }
+}
+'''
+
+
+@unittest.skipUnless(shutil.which('php'), 'needs PHP')
+class LeadsPortal(unittest.TestCase):
+    """0.9.4: the portal gets the lead when the email fails too, once per submission, never off live."""
+
+    def run_leads(self, env, events):
+        forms = 'assets/theme/includes/forms.php'
+        with open(path(forms), encoding='utf-8') as fh:
+            hooks = re.findall(r"^add_action\( 'wpcf7_mail_(?:sent|failed)', 'kitwp_leads_send' \);", fh.read(), re.M)
+        self.assertEqual(len(hooks), 2, 'kitwp_leads_send must hook wpcf7_mail_sent and wpcf7_mail_failed')
+        code = '<?php\n' + LEADS_STUBS + f"$GLOBALS['env'] = '{env}';\n"
+        code += php_function(forms, 'kitwp_leads_tracking') + php_function(forms, 'kitwp_leads_send')
+        code += '\n'.join(hooks) + '\n'
+        code += ''.join(f"do_action( '{e}', new Kit_Form() );\n" for e in events)
+        code += "echo json_encode( array_map( fn( $p ) => [ $p[0], $p[1]['headers']['Authorization'], json_decode( $p[1]['body'], true ) ], $GLOBALS['posts'] ) );"
+        with tempfile.NamedTemporaryFile('w', suffix='.php', delete=False, encoding='utf-8') as fh:
+            fh.write(code)
+        try:
+            out = subprocess.run(['php', fh.name], capture_output=True, text=True, timeout=60)
+        finally:
+            os.unlink(fh.name)
+        self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
+        return json.loads(out.stdout)
+
+    def test_failed_mail_still_posts_the_lead_once(self):
+        posts = self.run_leads('production', ['wpcf7_mail_failed', 'wpcf7_mail_sent'])
+        self.assertEqual(len(posts), 1)
+        url, auth, body = posts[0]
+        self.assertEqual(url, 'https://portal.example.org/ingest/demo')
+        self.assertEqual(auth, 'Bearer lk_test_dummy_key')
+        self.assertEqual(body['form'], 'Quote')
+        self.assertEqual(body['your-name'], 'Sam Test')
+        self.assertNotIn('_wpcf7', body)
+        self.assertNotIn('consent', body)
+        self.assertEqual(body['source_url'], 'https://example.org/contact/')
+
+    def test_sent_mail_posts_and_staging_never_does(self):
+        self.assertEqual(len(self.run_leads('production', ['wpcf7_mail_sent'])), 1)
+        self.assertEqual(self.run_leads('staging', ['wpcf7_mail_failed']), [])

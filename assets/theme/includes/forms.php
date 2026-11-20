@@ -804,9 +804,10 @@ function kitwp_leads_tracking( $sub ) {
 }
 
 /**
- * Send each sent lead form to the leads portal (KITWP_LEADS_PREFIX; endpoint and key from wp-config), server to
- * server. Only after the email went out, never for spam. Off on local, development and staging, so test
- * submissions on a copy never reach the portal. Files, consent, the honeypot and the fields in the
+ * Send each lead form to the leads portal (KITWP_LEADS_PREFIX; endpoint and key from wp-config), server to server,
+ * whether the email went out or failed: the portal is what still catches the lead when the host's mail is down. CF7
+ * fires wpcf7_mail_sent or wpcf7_mail_failed for a submission (spam fires neither), and a request sends once. Off on
+ * local, development and staging, so test submissions on a copy never reach the portal. Files, consent, the honeypot and the fields in the
  * "kitwp_leads_skip_fields" filter (health details, dates of birth) stay out. A failure is logged with the status
  * only and never blocks the visitor.
  *
@@ -814,6 +815,10 @@ function kitwp_leads_tracking( $sub ) {
  * @return void
  */
 function kitwp_leads_send( $form ) {
+	static $kitwp_sent = false;
+	if ( $kitwp_sent ) {
+		return;
+	}
 	$p = KITWP_LEADS_PREFIX;
 	if ( '' === $p || ! kitwp_is_lead_form( $form ) || ! defined( $p . '_ENDPOINT' ) || ! defined( $p . '_KEY' ) ) {
 		return;
@@ -843,7 +848,8 @@ function kitwp_leads_send( $form ) {
 		'form'            => $form->title(),
 		'idempotency_key' => wp_generate_uuid4(),
 	] + $fields + kitwp_leads_tracking( $sub );
-	$res  = wp_remote_post(
+	$kitwp_sent = true;
+	$res        = wp_remote_post(
 		$endpoint,
 		[
 			'timeout'     => 5,
@@ -862,3 +868,4 @@ function kitwp_leads_send( $form ) {
 	}
 }
 add_action( 'wpcf7_mail_sent', 'kitwp_leads_send' );
+add_action( 'wpcf7_mail_failed', 'kitwp_leads_send' ); // the mail failed: the portal still gets the lead

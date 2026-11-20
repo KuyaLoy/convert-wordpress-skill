@@ -251,4 +251,33 @@ class LivePlugins093(unittest.TestCase):
         self.assertIn('**Staging**', rb)
         self.assertNotIn('{{LIVE_PLUGINS}}', rb)
         self.assertIn('   - [ ] LiteSpeed Cache (the cache plugin)', rb)
+        self.assertIn('BLOCKER: no leads portal in the profile', rb)  # this test profile has none
+        self.assertIn('leads portal: none in the profile', r.stdout)
         self.assertIn('on live the cache plugin\n  LiteSpeed Cache', read(os.path.join(root, '_plan', 'PLAN.md')))
+
+
+class LeadsPortal094(unittest.TestCase):
+    """0.9.4: the leads portal item in the RUNBOOK: the profile's prefix, or a site that says none."""
+
+    def render(self, profile, **site_values):
+        tmp = tempfile.mkdtemp()
+        root = os.path.join(tmp, 'shop')
+        prof = os.path.join(tmp, 'profile.local.json')
+        write(prof, json.dumps(profile))
+        site = json.loads(read(path('assets', 'site.example.json')))
+        site.update(site_name='Corner Shop', domain='cornershop.example.org', wp_root=root, local_host='shop.test',
+                    site_dir='shop', theme='shop', prefix='shop', key='cs', **site_values)
+        write(os.path.join(root, '_plan', 'site.json'), json.dumps(site))
+        r = run('scripts/new-site.py', os.path.join(root, '_plan', 'site.json'), '--plan-only', '--profile', prof)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        return r, read(os.path.join(root, '_setup', 'launch', 'RUNBOOK.md'))
+
+    def test_prefix_and_none(self):
+        r, rb = self.render({'leads_portal': {'constant_prefix': 'acme_leads'}})
+        self.assertIn('`ACME_LEADS_ENDPOINT` and `ACME_LEADS_KEY` pasted into the live wp-config', rb)
+        self.assertIn('leads-check.py', rb)
+        self.assertNotIn('BLOCKER', rb)
+        self.assertNotIn('leads portal: none', r.stdout)
+        r, rb = self.render({}, leads_portal='none: a landing page without forms')
+        self.assertIn('No leads portal for this site: "none: a landing page without forms"', rb)
+        self.assertNotIn('BLOCKER', rb)

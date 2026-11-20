@@ -146,6 +146,7 @@ for k, v in site.get('lead', {}).items():
     elif v not in (None, '', []):
         lead[k] = v
 today = datetime.date.today()
+NO_PORTAL = str(site.get('leads_portal') or '').strip()
 values = {
     'SITE_NAME': site['site_name'],
     'LEGAL_NAME': site.get('legal_name', site['site_name']),
@@ -186,6 +187,8 @@ values = {
     # The client's dashboard "Need help?" line (site.json or the profile; empty hides it).
     'CLIENT_HELP': str(site.get('client_help', profile.get('client_help', ''))).replace("'", "\\'"),
     'LEADS_PREFIX': re.sub(r'[^A-Z0-9_]', '', str(profile.get('leads_portal', {}).get('constant_prefix', '')).upper()),
+    # The leads portal is mandatory for a site with a lead form; site.json "leads_portal": "none: <reason>" says why not.
+    'LEADS_ITEM': '',
     'GTM_ID': site.get('gtm', ''),
     # The live cache plugin (RUNBOOK section 4): LiteSpeed Cache unless the profile or site.json names another.
     'CACHE_PLUGIN': str(site.get('cache_plugin') or profile.get('cache_plugin') or 'LiteSpeed Cache'),
@@ -206,6 +209,20 @@ values = {
     'NOW': (lambda t: t.strftime('%Y-%m-%d %H:%M ') + t.strftime('%z')[:3] + ':' + t.strftime('%z')[3:])(
         datetime.datetime.now().astimezone()),
 }
+
+
+_lp = values['LEADS_PREFIX']
+if NO_PORTAL.lower().startswith('none'):
+    values['LEADS_ITEM'] = f'No leads portal for this site: "{NO_PORTAL}" (site.json).'
+elif _lp:
+    values['LEADS_ITEM'] = (f'The leads portal: the project for {site["domain"]} exists in the portal admin; '
+                            f'`{_lp}_ENDPOINT` and `{_lp}_KEY` pasted into the live wp-config (the developer); '
+                            '`leads-check.py` answers OK (a GET, nothing stored); one TEST lead per form shows in the '
+                            "portal's form counts.")
+else:
+    values['LEADS_ITEM'] = ('BLOCKER: no leads portal in the profile (`leads_portal.constant_prefix`). Every live site '
+                            'with a lead form sends to it; a site without one says so in site.json: "leads_portal": '
+                            '"none: <reason>".')
 
 
 def fill(text):
@@ -589,6 +606,9 @@ if not a.dry_run:
 print(f"{'DRY RUN: ' if a.dry_run else ''}{len(written)} written, {len(kept)} kept (already there)")
 print(f'theme: {rel(theme)} (starter {values["STARTER"]}), functions prefix {prefix}_, ACF keys {key}'
       + (' (not written yet: --plan-only)' if a.plan_only else ''))
+if values['LEADS_ITEM'].startswith('BLOCKER'):
+    notes.append('leads portal: none in the profile (leads_portal.constant_prefix): a go-live blocker for a site with '
+                 'a lead form; a site without one: site.json "leads_portal": "none: <reason>"')
 for n in notes:
     print('- ' + n)
 if kept:

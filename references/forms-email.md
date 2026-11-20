@@ -111,17 +111,30 @@ seeder refuses an email file that is not a full HTML document and reports a form
 
 ## The leads portal
 
-When the profile names a leads portal (`leads_portal.constant_prefix`, for example `ACME_LEADS`),
-`kitwp_leads_send()` POSTs every sent lead form there after the email went out: JSON with `form`, an
+**Mandatory on live** for every site with a lead form: the host's mail sometimes fails, and the portal still
+catches the lead. The profile names it (`leads_portal.constant_prefix`, for example `ACME_LEADS`); an empty one is
+a go-live blocker. A site without a lead form says so in site.json: `"leads_portal": "none: <reason>"`.
+`kitwp_leads_send()` POSTs each lead form whether the email went out or failed (`wpcf7_mail_sent` and
+`wpcf7_mail_failed`; CF7 fires one of them, spam neither; one send per submission): JSON with `form`, an
 `idempotency_key`, the posted fields and `source_url`, `ip_address`, `gclid`, `fbp`, `fbc`; header
-`Authorization: Bearer <key>`; 5 second timeout; a failure is logged with the status only.
+`Authorization: Bearer <key>`; 5 second timeout; 200 and 202 count as delivered; a failure is logged with the
+status only. The code is in from P3; only the keys wait for live.
 
 - The endpoint and key live in wp-config only (`<PREFIX>_ENDPOINT`, `<PREFIX>_KEY`): the developer pastes them.
 - Off while `WP_ENVIRONMENT_TYPE` is local, development or staging. A local copy with the live key would
   otherwise send its test leads to the real portal, where they often cannot be deleted one by one.
 - Files, consent and the honeypot never go; leave out health details, dates of birth and other sensitive fields
   with the `kitwp_leads_skip_fields` filter (per form).
-- Prove it on live: one TEST lead per form reaches the portal (its admin shows the count per form).
+- Prove the key without storing anything: `python3 _plan/tools/report/leads-check.py` (the developer runs it; the
+  key from `KITWP_LEADS_KEY` or a hidden prompt, never printed) sends a GET, which the portal answers 200 for a good
+  endpoint and key and stores nothing. 401: wrong key or the project is off; 404: wrong project slug. Run it before
+  launch with the live key, and on the go/no-go list. Never prove it with a POST from a script: that stores a real
+  lead, and test leads often cannot be deleted one by one.
+- Prove it on live: one TEST lead per form reaches the portal (its admin shows the count per form). The live plugin
+  checklist (RUNBOOK section 4) has the item.
+- A WordPress site the kit did not build: the same sender goes in as a small must-use plugin
+  (`wp-content/mu-plugins/leads-portal.php`) made from `kitwp_leads_send()`, `kitwp_leads_tracking()` and their two
+  hooks in the kit's `includes/forms.php`, with the site's prefix and the constant prefix defined.
 
 ## Local mail capture
 

@@ -17,6 +17,9 @@ Plan about 2 hours on a quiet day (not Friday). The developer does the hosting s
 - [ ] Mail: SPF includes the server (and the host's outgoing filter, if any); DMARC exists (cPanel > Email
       Deliverability shows both green).
 - [ ] Old URL list complete: `_setup/seed/redirects.json` covers every old page and archive URL.
+- [ ] Leads portal ready: the project exists in the portal admin (domain {{DOMAIN}}) and
+      `python3 _plan/tools/report/leads-check.py` with the live key answers OK (the developer runs it; a GET stores
+      nothing).
 - [ ] Rollback understood (section 6).
 
 ## 1. Back up the live site
@@ -64,6 +67,7 @@ Plan about 2 hours on a quiet day (not Friday). The developer does the hosting s
    - [ ] Contact Form CFDB7 (every enquiry kept in wp-admin).
    - [ ] Converter for Media (WebP and AVIF): then regenerate the images and check a few pages.
    - [ ] reCAPTCHA v3: Contact > Integration > reCAPTCHA, the keys for {{DOMAIN}} (the developer pastes them).
+   - [ ] {{LEADS_ITEM}}
    - [ ] {{CACHE_PLUGIN}} (the cache plugin): page cache and browser cache on; CSS and JS options one at a time, each
          followed by a parity spot check and `live-qa.py` (anything that changes a pixel or breaks a form goes off
          again); purge everything after "Discourage search engines" is unticked.

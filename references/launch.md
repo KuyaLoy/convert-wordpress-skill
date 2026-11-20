@@ -108,15 +108,16 @@ with `curl --resolve <host>:443:<server ip>` (GET only) before the A record chan
 - **The live plugin checklist** is RUNBOOK section 4 (`_setup/launch/RUNBOOK.md`), the one list: the profile's
   live plugins from the developer's plugin folder (`plugin_zips`; `plugin-versions.py` in the go/no-go list shows each
   zip's version), Contact Form CFDB7, Converter for Media (then the images regenerated), the reCAPTCHA v3 keys and
-  the cache plugin (LiteSpeed Cache unless the profile's `cache_plugin` names another).
+  the cache plugin (LiteSpeed Cache unless the profile's `cache_plugin` names another), and the leads portal.
   **Staging** (a public copy before live) gets none of it and no reCAPTCHA keys, and stays noindex (`--hidden`).
 - wp-admin: untick "Discourage search engines"; save permalinks; the reCAPTCHA keys and the ACF licence (the developer
   types them); tracking set for the live host; Converter for Media and Contact Form CFDB7 installed and active (ask
   first), then the profile's `extra_plugins` (the `required` ones must be active; a plugin that registers itself with
   an outside service on activation is activated again once DNS points here); read `debug.log` once; list the live
   plugins.
-- Leads portal (when the profile has one): the endpoint and key go into the live wp-config (the developer pastes
-  them; the local copy may keep them, the theme never sends from local), then one TEST lead per form on live.
+- Leads portal (mandatory for a site with a lead form; on the live plugin checklist): the endpoint and key go into
+  the live wp-config (the developer pastes them; the theme never sends from local, development or staging),
+  `leads-check.py` answers OK, then one TEST lead per form shows in the portal's counts.
 - Caching plugins on live (LiteSpeed Cache): purge everything after "Discourage search engines" changes, or
   pages keep the old robots meta for a week.
 - After DNS moves: run AutoSSL again (cPanel > SSL/TLS Status) and check the new certificate covers the apex and

@@ -5,6 +5,29 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.9.4] - 2026-11-20
+
+The leads portal is mandatory on live and catches every lead, even when the email fails.
+
+### Fixed
+
+- `kitwp_leads_send()` ran on `wpcf7_mail_sent` only, so when the host's mail failed the lead never reached the
+  portal either: it now runs on `wpcf7_mail_failed` too (CF7 fires one of them; spam neither), once per submission.
+  A PHP test proves a failed mail still posts the lead and staging never does.
+
+### Added
+
+- **Mandatory portal:** every live site with a lead form sends to the profile's leads portal. No
+  `leads_portal.constant_prefix` in the profile is a go-live blocker (new-site.py says so and the RUNBOOK shows it);
+  a site without a lead form says so in site.json: `"leads_portal": "none: <reason>"`. The code is in from P3; the
+  endpoint and key go only into the live wp-config, pasted by the developer.
+- **The live plugin checklist** gets the leads portal item (the project for the live domain, the keys in the live
+  wp-config, the GET check, one TEST lead per form in the portal's counts); the go/no-go list checks the project and
+  the key.
+- **`scripts/report/leads-check.py`:** proves the endpoint and key with a GET, which stores nothing; the key comes from
+  `KITWP_LEADS_KEY` or a hidden prompt and is never printed; 401 and 404 named plainly. It never POSTs.
+- A WordPress site the kit did not build: the same sender as a small must-use plugin made from the kit's functions.
+
 ## [0.9.3] - 2026-11-20
 
 ### Added

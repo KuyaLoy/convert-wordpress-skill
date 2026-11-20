@@ -48,8 +48,9 @@ const KITWP_SITE_BADGE_ALT    = '{{EMAIL_BADGE_ALT}}';
 const KITWP_SITE_BADGE_HEIGHT = 40;
 
 /**
- * Leads portal: every sent lead form is also POSTed (JSON, Bearer key) to <PREFIX>_ENDPOINT with <PREFIX>_KEY from
- * wp-config (the keys never live in the theme). Empty prefix: off. Never on local, development or staging.
+ * Leads portal (mandatory on live for a site with a lead form): every lead form is also POSTed (JSON, Bearer key) to
+ * <PREFIX>_ENDPOINT with <PREFIX>_KEY from the live wp-config, also when the email fails (the keys never live in the
+ * theme). Empty prefix: off (a go-live blocker unless site.json says "none"). Never on local, development or staging.
  */
 const KITWP_LEADS_PREFIX = '{{LEADS_PREFIX}}';
 

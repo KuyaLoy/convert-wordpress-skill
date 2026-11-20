@@ -172,6 +172,9 @@ Each was found late on a design-sourced build and forced a rework (`references/s
   cache: chrome://net-internals/#dns, Clear host cache). Phones on mobile data see the new site first.
 - A local site with the live leads key sends its test submissions to the live leads portal: keep lead forwarding
   off while `WP_ENVIRONMENT_TYPE` is local.
+- A leads sender hooked only on `wpcf7_mail_sent` loses the lead exactly when the host's mail fails, which is why
+  the portal exists: hook `wpcf7_mail_failed` too (the kit does since 0.9.4; a portal's own WordPress example may
+  not).
 - Parity against a preview deployment (Vercel, Netlify) on live: the preview is noindex, so `seo:robots` differs
   by design; Yoast prints no canonical while the site discourages search engines.
 

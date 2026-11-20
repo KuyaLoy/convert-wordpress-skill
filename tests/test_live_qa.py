@@ -154,3 +154,61 @@ class LiveQa(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class LeadsCheck(unittest.TestCase):
+    """0.9.4: leads-check.py proves the endpoint and key with a GET and never prints the key."""
+
+    KEY = 'lk_live_DUMMY_never_printed_42'
+
+    @classmethod
+    def setUpClass(cls):
+        key = cls.KEY
+
+        class Portal(http.server.BaseHTTPRequestHandler):
+            def log_message(self, *args):
+                pass
+
+            def do_GET(self):
+                ok_path = self.path == '/ingest/demo'
+                code = 404 if not ok_path else (200 if self.headers.get('Authorization') == 'Bearer ' + key else 401)
+                self.send_response(code)
+                self.end_headers()
+
+            def do_POST(self):
+                self.server.posted = True
+                self.send_response(500)
+                self.end_headers()
+
+        cls.server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), Portal)
+        cls.server.posted = False
+        threading.Thread(target=cls.server.serve_forever, daemon=True).start()
+        cls.base = f'http://127.0.0.1:{cls.server.server_port}'
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.server.shutdown()
+        cls.server.server_close()
+
+    def check(self, path, key):
+        return run('scripts/report/leads-check.py', '--endpoint', self.base + path, env={'KITWP_LEADS_KEY': key})
+
+    def test_answers(self):
+        ok = self.check('/ingest/demo', self.KEY)
+        self.assertEqual(ok.returncode, 0, ok.stdout + ok.stderr)
+        self.assertTrue(ok.stdout.startswith('OK leads-check:'), ok.stdout)
+        wrong = self.check('/ingest/demo', 'lk_live_wrong_key')
+        self.assertEqual(wrong.returncode, 1)
+        self.assertIn('HTTP 401: the key is wrong', wrong.stdout)
+        missing = self.check('/ingest/nope', self.KEY)
+        self.assertIn('HTTP 404: no project at this endpoint', missing.stdout)
+        for r in (ok, wrong, missing):
+            self.assertNotIn('DUMMY_never_printed', r.stdout + r.stderr)
+            self.assertNotIn('lk_live_wrong_key', r.stdout + r.stderr)
+        self.assertFalse(self.server.posted, 'leads-check must never POST')
+
+    def test_needs_https(self):
+        r = run('scripts/report/leads-check.py', '--endpoint', 'http://portal.example.org/ingest/x',
+                env={'KITWP_LEADS_KEY': self.KEY})
+        self.assertEqual(r.returncode, 2)
+        self.assertNotIn('DUMMY', r.stdout + r.stderr)
