@@ -264,7 +264,8 @@ static; `/thank-you/` noindex; old URLs as 301s (query strings kept); GTM as the
 or better; hardening (no secrets, private files 403, REST users hidden, debug off on live). Core Web Vitals are
 built in from the first section (LCP preload and fetchpriority, sized srcset, nothing lazy above the fold, reserved
 media space, metric-matched fallback font, minimal deferred JS). PageSpeed Insights on live is aimed at a pass, not
-a must: a heavy design that misses it gets a speed plugin that fits the host; the design is never changed for a
+a must. The live cache plugin is LiteSpeed Cache by default (the profile's `cache_plugin` names another; live
+only); a heavy design that misses a pass gets its further options, one at a time; the design is never changed for a
 score. Local Lighthouse is a regression guard only. Details: `references/seo-security.md`.
 
 Client wp-admin: `client-admin.php` gives the client's Editor login a short menu (Pages, Media, Theme Settings,
@@ -289,7 +290,8 @@ database and PHP on the host > the old site into a sibling folder (rollback: mov
 `installer.php` answers 404, no archive left > wp-config `production`, debug off > `.htaccess` from
 `htaccess-live.txt` > wp-admin: search engines allowed, permalinks saved, reCAPTCHA keys and any ACF licence (the
 developer), tracking, **the live plugin checklist** (RUNBOOK section 4: the profile's live plugins from the
-developer's plugin folder, CFDB7, Converter for Media, the reCAPTCHA keys; staging gets none of it), debug.log read
+developer's plugin folder, CFDB7, Converter for Media, the reCAPTCHA keys, the cache plugin; staging gets none
+of it), debug.log read
 once > the client's own Editor login (`wp user create <login> <email> --role=editor
 --send-email`; never share the admin account). The live admin keeps its own strong password, typed by the
 developer. Rollback if a check fails. Details: `references/launch.md`.

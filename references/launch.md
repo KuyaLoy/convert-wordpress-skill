@@ -107,7 +107,8 @@ with `curl --resolve <host>:443:<server ip>` (GET only) before the A record chan
   block, compression and caching.
 - **The live plugin checklist** is RUNBOOK section 4 (`_setup/launch/RUNBOOK.md`), the one list: the profile's
   live plugins from the developer's plugin folder (`plugin_zips`; `plugin-versions.py` in the go/no-go list shows each
-  zip's version), Contact Form CFDB7, Converter for Media (then the images regenerated) and the reCAPTCHA v3 keys.
+  zip's version), Contact Form CFDB7, Converter for Media (then the images regenerated), the reCAPTCHA v3 keys and
+  the cache plugin (LiteSpeed Cache unless the profile's `cache_plugin` names another).
   **Staging** (a public copy before live) gets none of it and no reCAPTCHA keys, and stays noindex (`--hidden`).
 - wp-admin: untick "Discourage search engines"; save permalinks; the reCAPTCHA keys and the ACF licence (the developer
   types them); tracking set for the live host; Converter for Media and Contact Form CFDB7 installed and active (ask

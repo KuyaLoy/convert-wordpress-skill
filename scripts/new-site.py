@@ -187,6 +187,8 @@ values = {
     'CLIENT_HELP': str(site.get('client_help', profile.get('client_help', ''))).replace("'", "\\'"),
     'LEADS_PREFIX': re.sub(r'[^A-Z0-9_]', '', str(profile.get('leads_portal', {}).get('constant_prefix', '')).upper()),
     'GTM_ID': site.get('gtm', ''),
+    # The live cache plugin (RUNBOOK section 4): LiteSpeed Cache unless the profile or site.json names another.
+    'CACHE_PLUGIN': str(site.get('cache_plugin') or profile.get('cache_plugin') or 'LiteSpeed Cache'),
     # The live plugin checklist's own lines (RUNBOOK section 4): the profile's extra_plugins marked "live" (or
     # "required"), each from its zip in plugin_zips.
     'LIVE_PLUGINS': '\n'.join(

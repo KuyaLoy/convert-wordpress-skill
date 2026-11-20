@@ -64,6 +64,8 @@
     "acf_pro": "",
     "agency_plugin": ""
   },
+  "_cache_plugin_about": "The cache plugin on live (on the live plugin checklist; never staging or local). Empty = LiteSpeed Cache. Name another when the host needs it (LiteSpeed Cache page cache needs a LiteSpeed server or QUIC.cloud).",
+  "cache_plugin": "",
   "_acf_pro_license_about": "Optional: your ACF PRO licence key, typed by you. make-wp-config.py writes it into LOCAL wp-config files only (ACF PRO then activates itself); never printed, never on live unless you choose. Empty = you paste it per site.",
   "acf_pro_license": "",
   "branding": {

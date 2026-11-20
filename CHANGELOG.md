@@ -12,7 +12,11 @@ follows [Keep a Changelog](https://keepachangelog.com).
 - **One live plugin checklist** (RUNBOOK section 4; launch.md, SKILL.md P6 and Done means point to it): the profile's
   own live plugins (an `extra_plugins` entry with `"live": true`, its zip named in `"zip"`, a one-line `"live_note"`;
   new-site.py writes them into the project's RUNBOOK), Contact Form CFDB7, Converter for Media (then the images
-  regenerated) and the reCAPTCHA v3 keys. Profile plugins come only from the developer's plugin folder (`plugin_zips`).
+  regenerated), the reCAPTCHA v3 keys and the cache plugin. Profile plugins come only from the developer's plugin
+  folder (`plugin_zips`).
+- **LiteSpeed Cache is the default live cache plugin** (the profile's or site.json's `cache_plugin` names another):
+  page and browser cache on, CSS/JS options one at a time with a parity check; not on staging or locally. Replaces
+  "no speed plugin by default".
 - **`scripts/launch/plugin-versions.py`:** each zip in `plugin_zips` with its plugin name, Version header and file
   date, in the go/no-go list; the developer confirms each is the newest or replaces it (never the agent).
 - **live-qa.py reCAPTCHA check:** every checked page with a Contact Form 7 form loads the reCAPTCHA script; with

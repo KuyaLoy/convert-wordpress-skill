@@ -64,6 +64,9 @@ Plan about 2 hours on a quiet day (not Friday). The developer does the hosting s
    - [ ] Contact Form CFDB7 (every enquiry kept in wp-admin).
    - [ ] Converter for Media (WebP and AVIF): then regenerate the images and check a few pages.
    - [ ] reCAPTCHA v3: Contact > Integration > reCAPTCHA, the keys for {{DOMAIN}} (the developer pastes them).
+   - [ ] {{CACHE_PLUGIN}} (the cache plugin): page cache and browser cache on; CSS and JS options one at a time, each
+         followed by a parity spot check and `live-qa.py` (anything that changes a pixel or breaks a form goes off
+         again); purge everything after "Discourage search engines" is unticked.
    Profile plugins come only from the developer's plugin folder (`plugin_zips`), never downloaded elsewhere. Tick
    each in Plugins (or `wp plugin list --status=active`); live-qa.py checks the reCAPTCHA script on the form pages.
 3. Tracking: the GTM container (or the tracking plugin) set for the live host only.

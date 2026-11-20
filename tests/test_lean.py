@@ -250,3 +250,5 @@ class LivePlugins093(unittest.TestCase):
         self.assertIn('Contact Form CFDB7', rb)
         self.assertIn('**Staging**', rb)
         self.assertNotIn('{{LIVE_PLUGINS}}', rb)
+        self.assertIn('   - [ ] LiteSpeed Cache (the cache plugin)', rb)
+        self.assertIn('on live the cache plugin\n  LiteSpeed Cache', read(os.path.join(root, '_plan', 'PLAN.md')))

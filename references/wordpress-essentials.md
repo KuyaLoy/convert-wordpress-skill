@@ -30,7 +30,7 @@ section names. `<kit>` is this skill's folder; in a project the tools are in `_p
 | Duplicator (Pro) | `duplicator` or the developer's Pro zip | local | The move to live |
 | Converter for Media | `webp-converter-for-media` | **live only** | Installed at launch: WebP for images uploaded later |
 | Contact Form CFDB7 | `contact-form-cfdb7` | **live only** | Installed at launch: every enquiry kept in the database |
-| A speed plugin that fits the host | per host | live, only if needed | Only when PageSpeed Insights misses a pass on a heavy design (Speed, below) |
+| LiteSpeed Cache (or the profile's `cache_plugin`) | wordpress.org | live (not staging) | The default cache plugin on live; its CSS/JS options only one at a time, with a parity check (Speed, below) |
 | The profile's `extra_plugins` | per entry | per entry | `required` ones in Setup and on live; others when the entry says |
 
 Never ACF PRO and Secure Custom Fields active together. Read `wp-content/debug.log` after every install.
@@ -97,8 +97,9 @@ on live; the installer removed after the move; the client gets their own Editor 
 Built to Core Web Vitals from the first section: LCP preload and `fetchpriority`, sized srcset in WebP, nothing lazy
 above the fold, reserved media space, metric-matched fallback font, minimal deferred JavaScript, caching and
 compression in `.htaccess`. Aim: PageSpeed Insights passes on live (mobile and desktop); it is a target, not a
-must. A heavy design that misses it gets a speed plugin that fits the host (the host's own cache, e.g. LiteSpeed
-Cache on LiteSpeed); the design is never changed for a score, and parity is checked again after. Details:
+must. The live cache plugin is LiteSpeed Cache by default (the profile's `cache_plugin` names another); a heavy
+design that misses a pass gets its further options one at a time; the design is never changed for a score, and
+parity is checked again after. Details:
 `references/seo-security.md` > Performance.
 
 ## Launch

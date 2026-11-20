@@ -63,8 +63,8 @@ brief rules, accessibility promises; each open item with how the build handles i
   kit files ship; sections under about 15 fields and 250 lines; `npm run lint` and the read-only review per phase.
 - **Seeding:** exporters write `_setup/seed/`; Tools > Seeder (local only), idempotent (the second run: "same").
 - **Security and speed:** no secrets in files or chats; file editing off; private files 403 and out of the package;
-  debug off on live; Core Web Vitals from the first section; caching rules in htaccess-live.txt; a speed plugin only
-  when live misses PageSpeed Insights and the theme cannot fix it.
+  debug off on live; Core Web Vitals from the first section; caching rules in htaccess-live.txt; on live the cache plugin
+  {{CACHE_PLUGIN}} (its CSS/JS options only when live misses PageSpeed Insights, one at a time).
 - **Folders:** `{{SITE_DIR}}/` (WordPress root; BUILD-MAP.md, handoff files, `_plan/`, `_setup/` private);
 <!-- starter:barebones -->
   the theme in `wp-content/themes/{{THEME}}/` (includes/, template-parts/, acf-json/, tests/parity/).

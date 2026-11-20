@@ -114,8 +114,11 @@ pixel; for pages and sections the build writes itself, every item applies in ful
   ```
 - **Minimal JavaScript, deferred:** vanilla, `defer` or after the load event (the chat widget, maps below the
   fold), no jQuery for theme code; the static site's own scripts deferred as they were.
-- **No speed plugin by default:** caching and compression rules are in `htaccess-live.txt`, and the theme does the
-  rest. Converter for Media goes on live at launch: it serves WebP for images the client uploads later.
+- **A cache plugin on live, by default LiteSpeed Cache** (the profile's or site.json's `cache_plugin` names
+  another; the host decides: LiteSpeed Cache's page cache needs a LiteSpeed server or QUIC.cloud). It is on the live
+  plugin checklist (RUNBOOK section 4), never on staging or locally. Caching and compression rules are in
+  `htaccess-live.txt` as well, and the theme does the rest. Converter for Media goes on live at launch: it serves
+  WebP for images the client uploads later.
 
 **Measure:** local Lighthouse is a regression guard only (a local stack is not representative): run it after a
 big change to catch a drop. The real check is **PageSpeed Insights** (pagespeed.web.dev, mobile and desktop) on
@@ -124,8 +127,8 @@ and icon fonts; report the field and lab numbers honestly.
 
 **The aim: a pass, not a must.** Optimized by default means PageSpeed Insights should pass on live; a heavy design
 (video, big animation, many fonts) may not, and the design is never changed for a score. When live misses a pass
-after the theme items above, add one speed plugin that fits the host, on live (and staging), with the developer's
-OK: the host's own cache first (LiteSpeed Cache on a LiteSpeed host, the host's plugin on managed WordPress hosts),
-otherwise one well-kept caching plugin. Turn on only page cache and browser cache, then CSS/JS options one at a
+after the theme items above, use the cache plugin's further options on live, with the developer's OK. The cache
+plugin itself is the default one (LiteSpeed Cache, or the profile's `cache_plugin`; on a managed WordPress host its
+own cache). Turn on page cache and browser cache first, then CSS/JS options one at a
 time; after each, run the live parity spot check and `live-qa.py`: anything that changes a pixel or breaks a form is
 turned off again. Report before and after numbers.
