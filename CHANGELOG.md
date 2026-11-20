@@ -5,6 +5,17 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.9.7] - 2026-11-20
+
+A chat that ends its turn while its own work runs says so, so it never looks stopped.
+
+### Added
+
+- **Running, not stopped:** while a background command, a subagent or a check runs past the end of a turn, the
+  last message's first line, the recap and the progress page's Now line read `RUNNING, not stopped: <what>, started
+  HH:MM; I continue by myself when it finishes.`; a real stop says what it waits on instead (SKILL.md,
+  references/phases-and-qa.md > The progress page).
+
 ## [0.9.6] - 2026-11-20
 
 A real build's retro: faster, with the same checks. The kit now writes right the first time what QA kept finding,

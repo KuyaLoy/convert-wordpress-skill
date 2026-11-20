@@ -159,7 +159,10 @@ Republish it (render, then publish to the same link) at every unit end: each pag
 fix batch, each site or clone done; and at every stop: a checkpoint, waiting on the developer, paused. Before a step
 that can run long (a QA run, a full pixel run), write the Now line first, render and republish, then start the step,
 so the page always says what the chat is doing. A phase that runs for hours (P5) is many units, not one: a page that
-still shows yesterday's open findings is wrong.
+still shows yesterday's open findings is wrong. While a background step runs past the end of a turn (a
+background command, a subagent, a check), the Now line reads `RUNNING, not stopped: <what>, started HH:MM; I
+continue by myself when it finishes.`, the same words as the first line of the last message and the recap; the next
+status replaces it. A real stop (waiting on the developer, blocked, a checkpoint, a usage pause) never says RUNNING.
 
 **The live page (Claude, where the artifact database is there).** render.py also writes `_plan/progress-live.html`
 and `_plan/progress-rows.json`. Publish the live page once, privately, with

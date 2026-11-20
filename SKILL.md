@@ -130,7 +130,10 @@ render and push at every unit end (a page built, a QA run collected, a fix batch
 before a long step (a QA run, a full pixel run) write Now and push first. In Claude the page is live (the artifact
 database: render.py writes the rows, ArtifactData sends them, the open page updates itself); elsewhere republish
 the static page (references/phases-and-qa.md > The progress page). Resume short: checkpoint at a page, site or
-phase end with the exact next step; a resume re-checks only what can have changed.
+phase end with the exact next step; a resume re-checks only what can have changed. **Running, not stopped:** a turn
+that ends while its own work keeps running (a background command, a subagent, a check) starts its last message, its
+recap and the progress page's Now line with `RUNNING, not stopped: <what>, started HH:MM; I continue by myself when
+it finishes.` (the time from the clock); a real stop never says RUNNING, it says what it waits on.
 
 ## Start: intake
 
