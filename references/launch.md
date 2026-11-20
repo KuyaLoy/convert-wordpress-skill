@@ -105,6 +105,10 @@ with `curl --resolve <host>:443:<server ip>` (GET only) before the A record chan
   loads and every lead goes to the admin only.
 - `.htaccess` = `htaccess-live.txt`: http and www to https in one hop, the private-files block, the WordPress
   block, compression and caching.
+- **The live plugin checklist** is RUNBOOK section 4 (`_setup/launch/RUNBOOK.md`), the one list: the profile's
+  live plugins from the developer's plugin folder (`plugin_zips`; `plugin-versions.py` in the go/no-go list shows each
+  zip's version), Contact Form CFDB7, Converter for Media (then the images regenerated) and the reCAPTCHA v3 keys.
+  **Staging** (a public copy before live) gets none of it and no reCAPTCHA keys, and stays noindex (`--hidden`).
 - wp-admin: untick "Discourage search engines"; save permalinks; the reCAPTCHA keys and the ACF licence (the developer
   types them); tracking set for the live host; Converter for Media and Contact Form CFDB7 installed and active (ask
   first), then the profile's `extra_plugins` (the `required` ones must be active; a plugin that registers itself with

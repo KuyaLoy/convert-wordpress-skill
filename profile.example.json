@@ -46,19 +46,23 @@
     "method": "GTM container in the head and the noscript after <body>",
     "plugin": ""
   },
-  "_extra_plugins_about": "Plugins of your own or your agency's, on top of the kit's defaults (ACF PRO, Contact Form 7, Yoast SEO; Redirection if needed; Duplicator Pro; Converter for Media and Contact Form CFDB7 on live). \"required\": true = installed in P1 setup with the starter plugins and kept active on live; the others when their \"when\" says. Never installed without an OK.",
+  "_extra_plugins_about": "Plugins of your own or your agency's, on top of the kit's defaults (ACF PRO, Contact Form 7, Yoast SEO; Redirection if needed; Duplicator Pro; Converter for Media and Contact Form CFDB7 on live). \"required\": true = installed in P1 setup with the starter plugins and kept active on live; the others when their \"when\" says. Never installed without an OK. \"live\": true = on the live plugin checklist (RUNBOOK section 4; staging gets none); \"zip\" = its key in plugin_zips (installed only from your plugin folder); \"live_note\" = one line for that checklist.",
   "extra_plugins": [
     {
       "name": "Your agency's plugin",
       "required": false,
       "why": "what it does",
       "when": "P1 setup, live, or a later task",
-      "source": "where it comes from (a zip path, or the developer installs it)"
+      "source": "where it comes from (a zip path, or the developer installs it)",
+      "live": true,
+      "zip": "agency_plugin",
+      "live_note": "what to check on live"
     }
   ],
   "plugin_zips": {
-    "_about": "Paths on this machine to plugin zips you bought.",
-    "acf_pro": ""
+    "_about": "Your plugin folder: paths on this machine to plugin zips you bought or own, keyed by a short name (acf_pro, and any of yours that extra_plugins names in \"zip\"). The only source for these plugins; plugin-versions.py shows each zip's version before go-live. Never licence keys here.",
+    "acf_pro": "",
+    "agency_plugin": ""
   },
   "_acf_pro_license_about": "Optional: your ACF PRO licence key, typed by you. make-wp-config.py writes it into LOCAL wp-config files only (ACF PRO then activates itself); never printed, never on live unless you choose. Empty = you paste it per site.",
   "acf_pro_license": "",

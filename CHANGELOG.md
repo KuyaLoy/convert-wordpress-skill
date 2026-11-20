@@ -5,6 +5,25 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.9.3] - 2026-11-20
+
+### Added
+
+- **One live plugin checklist** (RUNBOOK section 4; launch.md, SKILL.md P6 and Done means point to it): the profile's
+  own live plugins (an `extra_plugins` entry with `"live": true`, its zip named in `"zip"`, a one-line `"live_note"`;
+  new-site.py writes them into the project's RUNBOOK), Contact Form CFDB7, Converter for Media (then the images
+  regenerated) and the reCAPTCHA v3 keys. Profile plugins come only from the developer's plugin folder (`plugin_zips`).
+- **`scripts/launch/plugin-versions.py`:** each zip in `plugin_zips` with its plugin name, Version header and file
+  date, in the go/no-go list; the developer confirms each is the newest or replaces it (never the agent).
+- **live-qa.py reCAPTCHA check:** every checked page with a Contact Form 7 form loads the reCAPTCHA script; with
+  `--hidden` (staging) none does.
+
+### Changed
+
+- **Staging** (a public copy before live) gets none of the live plugin checklist and no reCAPTCHA keys, and stays
+  noindex (`--hidden`): one line in launch.md, the RUNBOOK and qa-report.md.
+- Local stays as before: `required` extra plugins in P1 setup; the others only when the plan lists them.
+
 ## [0.9.2] - 2026-11-20
 
 ### Added

@@ -9,7 +9,7 @@ import urllib.parse
 from helpers import load, run
 
 TOOL = 'scripts/report/live-qa.py'
-PAGES = {'/': 'Home', '/about/': 'About', '/thank-you/': 'Thanks'}
+PAGES = {'/': 'Home', '/about/': 'About', '/thank-you/': 'Thanks', '/contact/': 'Contact'}
 
 
 class Site(http.server.BaseHTTPRequestHandler):
@@ -36,6 +36,9 @@ class Site(http.server.BaseHTTPRequestHandler):
         if p in PAGES:
             robots = 'noindex, follow' if p == '/thank-you/' else 'index, follow'
             local = '<a href="http://shop.test/old/">old</a>' if leaky else ''
+            if p == '/contact/':  # a CF7 form; the clean site loads reCAPTCHA, the leaky one has no keys
+                local += '<form class="wpcf7-form init"></form>' + (
+                    '' if leaky else '<script src="https://www.google.com/recaptcha/api.js?render=abc&ver=3.0"></script>')
             self.send(200, f'<!doctype html><html><head><meta name="description" content="{PAGES[p]} page">'
                            f'<meta name="robots" content="{robots}"><link rel="canonical" href="{base}{p}">'
                            f'</head><body><h1>{PAGES[p]}</h1>{local}</body></html>')
@@ -127,6 +130,16 @@ class LiveQa(unittest.TestCase):
         self.assertIn('FAIL Search engines: / robots meta is index, expected noindex', out)
         self.assertIn('PASS Search engines: /thank-you/ noindex', out)
         self.assertIn('PASS Private files: /_plan/ answers 403', out)
+
+    def test_recaptcha_on_form_pages(self):
+        r, out = self.qa(self.clean, '--routes', '/,/contact/', '--skip', 'seo')
+        self.assertIn('PASS reCAPTCHA: 1 form pages checked, each loads the reCAPTCHA script', out)
+        r, out = self.qa(self.leaky, '--routes', '/contact/', '--skip', 'seo,local,private')
+        self.assertIn('FAIL reCAPTCHA: /contact/ has a form but no reCAPTCHA script', out)
+        r, out = self.qa(self.clean, '--routes', '/contact/', '--hidden', '--skip', 'seo')
+        self.assertIn('FAIL reCAPTCHA: /contact/ loads reCAPTCHA: staging gets no keys', out)
+        r, out = self.qa(self.clean, '--routes', '/', '--skip', 'seo')
+        self.assertIn('NOTE reCAPTCHA: no Contact Form 7 form', out)
 
     def test_helpers(self):
         m = load(TOOL)

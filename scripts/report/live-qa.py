@@ -25,6 +25,8 @@ ends with ALL PASS or N FAIL.
 8. Page content: one H1 and a meta description. With a GTM ID: the container in the head, the noscript right
    after <body>, no other container id.
 9. WebP: with --image, a request that accepts WebP gets image/webp.
+10. reCAPTCHA: every checked page with a Contact Form 7 form loads the reCAPTCHA script (the live keys are in);
+   with --hidden (staging, which gets no keys) it must not. No form on the checked pages: a note.
 Host rules and the certificate are skipped for an IP address or localhost, or with --skip hosts,tls.
 Exit 0 when all pass, 1 on any FAIL, 2 on a usage error, 3 when the host's bot filter blocked the run (then use
 live-qa-console.js in a real browser). Standard library only.
@@ -57,7 +59,9 @@ PRIVATE = ['/_plan/', '/_setup/', '/tasks/', '/.claude/', '/.git/', '/.git/HEAD'
            '/readme.html', '/.htaccess', '/wp-config.php']
 LOCAL_RE = re.compile(r'(?:https?:)?\\?/\\?/(?:[a-z0-9-]+\.)*(?:[a-z0-9-]+\.test|localhost)(?![a-z0-9.-])', re.I)
 ATTR_RE = re.compile(r'([\w:-]+)\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)')
-GROUPS = ('pages', 'missing', 'seo', 'content', 'local', 'redirects', 'hosts', 'private', 'tls', 'webp')
+GROUPS = ('pages', 'missing', 'seo', 'content', 'local', 'redirects', 'hosts', 'private', 'tls', 'webp', 'recaptcha')
+RECAPTCHA_RE = re.compile(r'(?:google\.com|recaptcha\.net)/recaptcha/(?:api|enterprise)\.js', re.I)
+CF7_RE = re.compile(r'class=["\'][^"\']*\bwpcf7(?:-form)?\b', re.I)
 CERT_DAYS = 14
 MAX_FAIL_LINES = 20
 
@@ -465,6 +469,23 @@ def main(argv=None):
         rep.group('Page content', items, f'{len(ok_pages)} pages checked, each has one H1 and a description')
         if gtm:
             rep.group('Tracking', track, f'{len(ok_pages)} pages checked, {gtm} in the head and the noscript')
+
+    # reCAPTCHA on the pages with a form: live has the keys, staging (--hidden) has none.
+    if 'recaptcha' not in skip:
+        form_pages = [p for p in ok_pages if CF7_RE.search(got[p].text)]
+        items = []
+        for p in form_pages:
+            has = bool(RECAPTCHA_RE.search(got[p].text))
+            if a.hidden:
+                items.append((not has, f'{p} ' + ('loads reCAPTCHA: staging gets no keys' if has else 'has no reCAPTCHA (staging)')))
+            else:
+                items.append((has, f'{p} ' + ('loads the reCAPTCHA script' if has else
+                                              'has a form but no reCAPTCHA script (keys in Contact > Integration)')))
+        if form_pages:
+            rep.group('reCAPTCHA', items, f'{len(form_pages)} form pages checked, ' +
+                      ('none loads reCAPTCHA (staging)' if a.hidden else 'each loads the reCAPTCHA script'))
+        else:
+            rep.note('reCAPTCHA', 'no Contact Form 7 form on the checked pages: add the contact page to --routes')
 
     # Local leftovers.
     if 'local' not in skip:

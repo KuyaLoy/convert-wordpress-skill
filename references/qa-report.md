@@ -38,8 +38,11 @@ developer agrees to first.
    - Local leftovers: no `.test` or `localhost` URL in any page.
    - Page content: one H1 and a meta description. With a GTM ID: the container and the noscript on every page.
    - WebP: with `--image`, a browser that accepts WebP gets `image/webp`.
+   - reCAPTCHA: every checked page with a Contact Form 7 form loads the reCAPTCHA script (include the contact page
+     in `--routes`). The rest of the live plugin checklist is ticked in RUNBOOK section 4.
 
-   Before launch, add `--hidden`: then every page must be noindex and robots.txt must block everything. Exit 3
+   Before launch (and on staging), add `--hidden`: then every page must be noindex, robots.txt must block
+   everything, and no form page loads reCAPTCHA (staging gets no keys and none of the live plugins). Exit 3
    means the host's bot filter blocked it: run `live-qa-console.js` in a real browser tab instead.
 2. `node _plan/tools/report/track.mjs https://<domain> <GTM-ID> / /thank-you/`: the container loaded, the
    dataLayer events, the tag hosts; the ads conversion request only on `/thank-you/`.

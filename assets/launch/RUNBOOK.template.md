@@ -10,7 +10,10 @@ Plan about 2 hours on a quiet day (not Friday). The developer does the hosting s
       local parity run clean; seeder second run "same" everywhere.
 - [ ] New copy the static site did not have (a blog page, say) approved by the client; new URLs told to whoever
       runs SEO.
-- [ ] reCAPTCHA v3 keys made for {{DOMAIN}} and {{LOCAL_HOST}}; badge position decided.
+- [ ] reCAPTCHA v3 keys made for {{DOMAIN}}; badge position decided.
+- [ ] Plugin zips are the newest: `python3 _plan/tools/launch/plugin-versions.py --profile <kit>/profile.local.json`
+      lists each zip's plugin, version and file date; the developer confirms each or replaces it in their folder
+      (the agent never updates a zip).
 - [ ] Mail: SPF includes the server (and the host's outgoing filter, if any); DMARC exists (cPanel > Email
       Deliverability shows both green).
 - [ ] Old URL list complete: `_setup/seed/redirects.json` covers every old page and archive URL.
@@ -56,15 +59,21 @@ Plan about 2 hours on a quiet day (not Friday). The developer does the hosting s
 ## 4. Switch on (wp-admin, live)
 
 1. Settings > Reading: untick "Discourage search engines". Settings > Permalinks: Save.
-2. Contact > Integration > reCAPTCHA: the developer pastes the site key and secret.
+2. **The live plugin checklist** (the one list; live only, staging gets none of it). Each installed and active:
+{{LIVE_PLUGINS}}
+   - [ ] Contact Form CFDB7 (every enquiry kept in wp-admin).
+   - [ ] Converter for Media (WebP and AVIF): then regenerate the images and check a few pages.
+   - [ ] reCAPTCHA v3: Contact > Integration > reCAPTCHA, the keys for {{DOMAIN}} (the developer pastes them).
+   Profile plugins come only from the developer's plugin folder (`plugin_zips`), never downloaded elsewhere. Tick
+   each in Plugins (or `wp plugin list --status=active`); live-qa.py checks the reCAPTCHA script on the form pages.
 3. Tracking: the GTM container (or the tracking plugin) set for the live host only.
-4. ACF > Updates: the developer activates the ACF PRO licence. The ACF menu must show (never hide it on live).
-5. Plugins on live (ask first): Converter for Media and Contact Form CFDB7, both must be active; then the profile's
-   `extra_plugins` (the `required` ones must be active). After Converter for Media: regenerate WebP and check the
-   images.
-6. Read `wp-content/debug.log` once (a second copy of a plugin gives "Cannot redeclare" fatals); list the live
+4. ACF > Updates: the ACF PRO licence active (the developer). The ACF menu must show (never hide it on live).
+5. Read `wp-content/debug.log` once (a second copy of a plugin gives "Cannot redeclare" fatals); list the live
    plugins for the handoff.
-7. Users: the client's own login (Editor role) if they edit; never share the admin account.
+6. Users: the client's own login (Editor role) if they edit; never share the admin account.
+
+**Staging** (a public copy before live, when the build has one): none of the live plugin checklist and no reCAPTCHA
+keys; it stays noindex (`live-qa.py --hidden`).
 
 ## 5. Checks (references/qa-report.md has the full list)
 

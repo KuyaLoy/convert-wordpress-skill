@@ -288,8 +288,9 @@ package in one step) >
 database and PHP on the host > the old site into a sibling folder (rollback: move it back) > installer >
 `installer.php` answers 404, no archive left > wp-config `production`, debug off > `.htaccess` from
 `htaccess-live.txt` > wp-admin: search engines allowed, permalinks saved, reCAPTCHA keys and any ACF licence (the
-developer), tracking, **Converter for Media and Contact Form CFDB7 installed and active** (plus every plugin the
-site uses), debug.log read once > the client's own Editor login (`wp user create <login> <email> --role=editor
+developer), tracking, **the live plugin checklist** (RUNBOOK section 4: the profile's live plugins from the
+developer's plugin folder, CFDB7, Converter for Media, the reCAPTCHA keys; staging gets none of it), debug.log read
+once > the client's own Editor login (`wp user create <login> <email> --role=editor
 --send-email`; never share the admin account). The live admin keeps its own strong password, typed by the
 developer. Rollback if a check fails. Details: `references/launch.md`.
 
@@ -315,6 +316,7 @@ developer fills; the agent never types a password). Details: `references/qa-repo
 | `scripts/snapshot-routes.mjs` | Rendered HTML of every route, for client-rendered or server sources |
 | `scripts/setup/setup.py` | P1-01 in one call: database, get-wordpress, make-wp-config, serve-wp (if needed), install-wp |
 | `scripts/setup/install-wp.py` and the others | Install, admin, settings, plugins; the steps one by one when one needs repeating |
+| `scripts/launch/plugin-versions.py` | Go/no-go: each plugin zip in the profile's folder with its version and file date |
 | `scripts/acf/build_field_groups.py`, `sync.php` | ACF JSON, stable keys (`--check`); database sync |
 | `scripts/seed/export.mjs`, `export-pages.py` | Static content into `_setup/seed/` for Tools > Seeder |
 | `scripts/build-map/gate.py`, `render.py` | The phase gate; the private progress page |
@@ -324,6 +326,6 @@ developer fills; the agent never types a password). Details: `references/qa-repo
 ## Done means
 
 Every route 1:1 and editable; forms and emails proven on live; tracking and the conversion proven; old URLs
-redirect; installer and private files not public; any ACF PRO licence active, the fields menu visible; Converter for
-Media and CFDB7 live; QA found 0 before go-live; every phase closed through gate.py; the board, handoff files and gotchas current; the
+redirect; installer and private files not public; any ACF PRO licence active, the fields menu visible; every item of the live
+plugin checklist ticked (RUNBOOK section 4); QA found 0 before go-live; every phase closed through gate.py; the board, handoff files and gotchas current; the
 report PDF, the client pack, the task comment and the stakeholder message handed to the developer.

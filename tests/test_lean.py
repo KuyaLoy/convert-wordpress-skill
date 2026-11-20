@@ -209,3 +209,44 @@ class Quality091(unittest.TestCase):
         pcs = read(os.path.join(theme, 'phpcs.xml.dist'))
         self.assertIn('customAutoEscapedFunctions', pcs)
         self.assertIn('<element value="shop_img"/>', pcs)
+
+
+class LivePlugins093(unittest.TestCase):
+    """0.9.3: the live plugin checklist comes from the profile; plugin-versions.py reads the zips' headers."""
+
+    def test_plugin_versions(self):
+        import zipfile
+        tmp = tempfile.mkdtemp()
+        good = os.path.join(tmp, 'tracker.zip')
+        with zipfile.ZipFile(good, 'w') as z:
+            z.writestr('tracker/readme.txt', 'x')
+            z.writestr('tracker/tracker.php', "<?php\n/**\n * Plugin Name: Example Tracker\n * Version: 2.4.1\n */\n")
+        prof = os.path.join(tmp, 'profile.local.json')
+        write(prof, json.dumps({'plugin_zips': {'_about': 'x', 'tracker': good, 'gone': 'missing.zip', 'acf_pro': ''}}))
+        r = run('scripts/launch/plugin-versions.py', '--profile', prof)
+        self.assertEqual(r.returncode, 1, r.stdout)
+        self.assertTrue(r.stdout.startswith('FAIL plugin-versions: 2 zips, 1 with a problem'), r.stdout)
+        self.assertIn('- tracker: Example Tracker 2.4.1, file date ', r.stdout)
+        self.assertIn('- gone: zip not found', r.stdout)
+
+    def test_runbook_lists_the_profiles_live_plugins(self):
+        tmp = tempfile.mkdtemp()
+        root = os.path.join(tmp, 'shop')
+        prof = os.path.join(tmp, 'profile.local.json')
+        write(prof, json.dumps({'extra_plugins': [
+            {'name': 'Example Tracker', 'live': True, 'zip': 'tracker', 'live_note': 'empty until the GTM ID'},
+            {'name': 'Example Bridge', 'required': True, 'zip': 'bridge'},
+            {'name': 'Local Helper', 'optional': True}]}))
+        site = json.loads(read(path('assets', 'site.example.json')))
+        site.update(site_name='Corner Shop', domain='cornershop.example.org', wp_root=root, local_host='shop.test',
+                    site_dir='shop', theme='shop', prefix='shop', key='cs')
+        write(os.path.join(root, '_plan', 'site.json'), json.dumps(site))
+        r = run('scripts/new-site.py', os.path.join(root, '_plan', 'site.json'), '--plan-only', '--profile', prof)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        rb = read(os.path.join(root, '_setup', 'launch', 'RUNBOOK.md'))
+        self.assertIn('   - [ ] Example Tracker: from your plugin folder (`plugin_zips.tracker`); empty until the GTM ID.', rb)
+        self.assertIn('   - [ ] Example Bridge: from your plugin folder (`plugin_zips.bridge`).', rb)
+        self.assertNotIn('Local Helper', rb)
+        self.assertIn('Contact Form CFDB7', rb)
+        self.assertIn('**Staging**', rb)
+        self.assertNotIn('{{LIVE_PLUGINS}}', rb)

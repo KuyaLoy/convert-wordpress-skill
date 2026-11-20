@@ -187,6 +187,14 @@ values = {
     'CLIENT_HELP': str(site.get('client_help', profile.get('client_help', ''))).replace("'", "\\'"),
     'LEADS_PREFIX': re.sub(r'[^A-Z0-9_]', '', str(profile.get('leads_portal', {}).get('constant_prefix', '')).upper()),
     'GTM_ID': site.get('gtm', ''),
+    # The live plugin checklist's own lines (RUNBOOK section 4): the profile's extra_plugins marked "live" (or
+    # "required"), each from its zip in plugin_zips.
+    'LIVE_PLUGINS': '\n'.join(
+        f"   - [ ] {p.get('name', '?')}: from your plugin folder"
+        + (f" (`plugin_zips.{p['zip']}`)" if p.get('zip') else '')
+        + (f"; {p['live_note']}" if p.get('live_note') else '') + '.'
+        for p in profile.get('extra_plugins', []) if isinstance(p, dict) and p.get('live', p.get('required'))
+    ) or '   - (no live plugins of your own in the profile)',
     'LEAD_TO': lead.get('to', ''),
     'LEAD_BCC': ', '.join(lead.get('bcc', [])),
     'LEAD_FROM': lead.get('from', f"{site['site_name']} <no-reply@{site['domain']}>"),
