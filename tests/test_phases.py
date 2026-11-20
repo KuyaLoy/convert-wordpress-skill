@@ -133,7 +133,8 @@ class Render(unittest.TestCase):
         self.assertTrue(r.stdout.startswith('ok: 9 phases, 5 sections'), r.stdout)
         with open(os.path.join(tmp, 'progress.json'), encoding='utf-8') as fh:
             data = json.load(fh)
-        self.assertEqual(sorted(data), ['figma', 'findings', 'log', 'pages', 'phases', 'site', 'target', 'updated', 'url'])
+        self.assertEqual(sorted(data), ['blocked', 'figma', 'findings', 'log', 'next', 'now', 'pages', 'phases', 'site',
+                                        'target', 'updated', 'url', 'waiting'])
         self.assertEqual([x['id'] for x in data['phases']],
                          ['plan', 'setup', 'pages', 'forms', 'seo', 'fix', 'qa', 'golive', 'live'])
         self.assertEqual(data['phases'][0]['status'], 'doing')
@@ -143,13 +144,64 @@ class Render(unittest.TestCase):
         f = data['findings'][0]
         self.assertEqual((f['id'], f['page'], f['section'], f['severity'], f['status']),
                          ('F-001', 'global', 'header', 'major', 'open'))
-        self.assertEqual(data['updated'], '2026-11-18')
+        self.assertRegex(data['updated'], r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}')  # 0.9.5: the render time
+        self.assertEqual((data['now']['step'], data['next']), ('P0 planning', 'the plan OK, then P1 Setup'))
         with open(out, encoding='utf-8') as fh:
             html = fh.read()
-        for part in ('Corner Shop build progress', 'Open QA findings (1)', 'header (1 open)', 'Go-live gate'):
+        for part in ('Corner Shop build progress', 'QA findings (1): 1 open', 'header (1 open)', 'Go-live gate'):
             self.assertIn(part, html)
         self.assertIn('logo &lt;b&gt;blurry&lt;/b&gt;', html)
         self.assertNotIn('<b>blurry', html)
+
+    def test_now_line_and_every_finding_with_status(self):
+        """0.9.5: Now/Next at the top with the start time; open, fixed and decided findings, counted per run."""
+        tmp = tempfile.mkdtemp()
+
+        def edit(t):
+            t = t.replace('- **Doing:** P0 planning.', '- **Doing:** P5 full QA run 2 (started 14:05).')
+            t = t.replace('- **Next:** the plan OK, then P1 Setup.', '- **Next:** P5-01 fix batch 3.')
+            t = t.replace('- **Waiting on the developer:** the plan OK (with the decisions below).',
+                          '- **Waiting on the developer:** nothing.')
+            for row in ('| F-001 | P2 | Home / Hero | gap 24, expected 32 | major | fixed |',
+                        '| F-002 | P2 | Global / Footer | icon colour: kept, the brand file says so | minor '
+                        '| decided |',
+                        '| F-003 | P5 run 2 | Home / Hero | button hover missing | major | open |',
+                        '| F-004 | P5 run 2 | assets/css/main.css | unused rule | minor | fixed |'):
+                t = finding(t, row)
+            return t
+
+        p = board(tmp, edit)
+        out = os.path.join(tmp, 'progress.html')
+        r = run('scripts/build-map/render.py', p, out)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        with open(os.path.join(tmp, 'progress.json'), encoding='utf-8') as fh:
+            data = json.load(fh)
+        self.assertEqual(data['now']['step'], 'P5 full QA run 2')
+        self.assertRegex(data['now']['started'], r'^\d{4}-\d{2}-\d{2}T14:05$')
+        self.assertEqual((data['next'], data['waiting'], data['blocked']), ('P5-01 fix batch 3', 'nothing', 'nothing'))
+        self.assertEqual(sorted(f['status'] for f in data['findings']), ['decided', 'fixed', 'fixed', 'open'])
+        with open(out, encoding='utf-8') as fh:
+            html = fh.read()
+        top = html.index('class="card now"')
+        self.assertLess(top, html.index('<h2>Phases'))
+        for part in ('<b>P5 full QA run 2</b>', 'started 14:05', 'P5-01 fix batch 3', 'id="ago" data-at=',
+                     'QA findings (4): 1 open', '1 open</span>', '2 fixed</span>', '1 decided</span>',
+                     '<td>P2</td><td>2</td><td>0</td><td>1</td><td>1</td>',
+                     '<td>P5 run 2</td><td>2</td><td>1</td><td>1</td><td>0</td>',
+                     'Fixed and decided (3)', 'icon colour: kept', 'button hover missing'):
+            self.assertIn(part, html)
+        self.assertLess(html.index('button hover missing'), html.index('Fixed and decided'))
+        self.assertNotIn('Waiting</span>', html)  # "nothing" is not shown
+
+    def test_old_board_still_renders(self):
+        """A board made before 0.9.5: no Next line in "## Now"; Next comes from the header line."""
+        tmp = tempfile.mkdtemp()
+        p = board(tmp, lambda t: t.replace('- **Next:** the plan OK, then P1 Setup.\n', ''))
+        r = run('scripts/build-map/render.py', p, os.path.join(tmp, 'progress.html'))
+        self.assertEqual(r.returncode, 0, r.stderr)
+        with open(os.path.join(tmp, 'progress.json'), encoding='utf-8') as fh:
+            data = json.load(fh)
+        self.assertEqual((data['now']['step'], data['now']['started'], data['next']), ('P0 planning', '', 'P1 Setup'))
 
 
 class InstallWp(unittest.TestCase):

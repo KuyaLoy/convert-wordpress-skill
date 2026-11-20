@@ -106,10 +106,19 @@ brief, or re-read the changed files with the checklist as if someone else wrote 
 ## The progress page
 
 `python3 _plan/tools/build-map/render.py BUILD-MAP.md _plan/progress.html` writes `_plan/progress.json` and the page
-from the board: phases, pages x sections x status, open findings, the log. The page and the JSON keys are the same
-as the figma-to-wordpress skill's progress page, so a lead or a Command Center reads both the same way. Publish the
-page privately once, keep its link (`"url"` in progress.json stays when the page is rendered again), and republish
-it to the same link after each phase.
+from the board. At the top, in large type: Now (the board's Doing line, with the time it started), Next, anything
+waiting on the developer or blocked, and the time the page was rendered ("n min ago" while it is open). Then the
+phases, pages x sections x status, every QA finding with its status (counts per status and per QA run, open first,
+fixed and decided folded), the log. The page and the JSON keys are the same as the figma-to-wordpress skill's
+progress page, so a lead or a Command Center reads both the same way (0.9.5 added `now` with `step` and `started`,
+`next`, `waiting`, `blocked`; `updated` is the render time). Publish the page privately once and keep its link
+(`"url"` in progress.json stays when the page is rendered again).
+
+Republish it (render, then publish to the same link) at every unit end: each page built, each QA run collected, each
+fix batch, each site or clone done; and at every stop: a checkpoint, waiting on the developer, paused. Before a step
+that can run long (a QA run, a full pixel run), write the Now line first, render and republish, then start the step,
+so the page always says what the chat is doing. A phase that runs for hours (P5) is many units, not one: a page that
+still shows yesterday's open findings is wrong.
 
 ## The developer's two gates
 

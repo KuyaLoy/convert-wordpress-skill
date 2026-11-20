@@ -120,8 +120,9 @@ python3 _plan/tools/build-map/render.py BUILD-MAP.md _plan/progress.html   # pro
 ```
 
 Run gate.py at the start of every session. Write `ok <date>` in "Developer gates" only after the developer says it
-in the chat. After `--close`: re-render the progress page (republished to the same private link), update both
-handoff files.
+in the chat. After `--close`: update both handoff files. The progress page: update the board's "## Now" lines,
+render and republish to the same private link at every unit end (a page built, a QA run collected, a fix batch, a
+site done) and every stop; before a long step (a QA run, a full pixel run) write Now and republish first.
 
 ## Start: intake
 
@@ -161,7 +162,7 @@ handoff files.
 - **P0-03 Board and handoff:** every page and its sections in BUILD-MAP.md "Pages" (keep its headings: render.py
   and gate.py read them); the private progress page (the same page and progress.json keys as figma-to-wordpress): `python3
   _plan/tools/build-map/render.py BUILD-MAP.md _plan/progress.html`, published privately and republished to the
-  same link after each phase.
+  same link at every unit end and every stop (references/phases-and-qa.md > The progress page).
 - **P0-04 Decisions and the Plan OK** (defaults in brackets; the developer may just say OK): local folder, URL and
   database; starter theme (_tw for a Tailwind source or a site clearly easier in Tailwind, else Barebones with
   CSS-variable tokens; the choice and one reason); spam protection (CF7 reCAPTCHA v3 plus the static honeypot, badge

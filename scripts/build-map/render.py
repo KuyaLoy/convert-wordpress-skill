@@ -4,13 +4,16 @@
 
 BUILD-MAP.md is the source of truth (gate.py checks it). This script reads it, writes progress.json in the shared
 progress shape (the keys figma-to-wordpress's references/progress.md defines: site, target, figma, url, updated,
-phases, pages with sections, findings, log; default: next to out.html) and renders out.html from that JSON: phases,
-pages x sections x status, open QA findings, the log. Self-contained (no scripts, no requests). Publish it as a
-private page and republish to the same link after each phase.
+phases, pages with sections, findings, log; 0.9.5 adds now, next, waiting, blocked; updated is the render time;
+default: next to out.html) and renders out.html from that JSON: the Now/Next line and the update time at the top,
+phases, pages x sections x status, every QA finding with its status (counts per status and per QA run), the log.
+Self-contained (no requests; one tiny inline script turns the time into "n min ago"). Publish it as a private page
+and republish to the same link at every unit end and every stop (references/phases-and-qa.md > The progress page).
 
 The page layout and CSS follow figma-to-wordpress's scripts/progress.py (MIT licence), so both skills show the
 same page.
 """
+import datetime
 import html
 import json
 import os
@@ -84,6 +87,26 @@ def section(name):
     return next((sections[n] for n in order if n == name or n.startswith(name + ' ')), [])
 
 
+def now_lines():
+    """The board's "## Now" block: Doing (started HH:MM), Next, Waiting on the developer, Blocked."""
+    got = {}
+    for line in section('Now'):
+        m = re.match(r'^- \*\*(Doing|Next|Waiting[^:*]*|Blocked):\*\*\s*(.*)$', line.strip())
+        if m:
+            got[m.group(1).split(' ')[0].lower()] = plain(m.group(2)).rstrip('.')
+    return got
+
+
+def started_at(text):
+    """'P5 QA run 2 (started 14:05)' -> ('P5 QA run 2', '<today>T14:05'); a date before the time is kept."""
+    m = re.search(r'\s*\(started (?:(.+?) )?(\d{1,2}:\d{2})\)\s*$', text)
+    if not m:
+        return text, ''
+    day = iso(m.group(1)) if m.group(1) else RENDERED[:10]
+    return text[:m.start()].strip(), f'{day}T{int(m.group(2).split(":")[0]):02d}:{m.group(2).split(":")[1]}'
+
+
+RENDERED = datetime.datetime.now().astimezone().isoformat(timespec='minutes')
 hm = re.search(r'^# BUILD-MAP:\s*(.+?)\s+(?:WordPress\s+)?build\s*$', md, re.M)
 um = re.search(r'Updated: \*\*(.+?)\*\*', md)
 
@@ -136,8 +159,14 @@ for line in section('Log'):
         log.append({'at': iso(m.group(1)), 'text': plain(m.group(2))})
 log.reverse()  # the board lists newest first; the shared shape appends
 
+nl = now_lines()
+doing, started = started_at(nl.get('doing', ''))
+hn = re.search(r'\| Next: \*\*(.+?)\*\*', md)  # old boards: no Next line in "## Now", the header has one
+
 data = {'site': hm.group(1).strip() if hm else 'Site', 'target': 'wordpress', 'figma': '', 'url': '',
-        'updated': iso(um.group(1)) if um else '',
+        'updated': RENDERED,
+        'now': {'step': doing, 'started': started}, 'next': nl.get('next') or (plain(hn.group(1)) if hn else ''),
+        'waiting': nl.get('waiting', ''), 'blocked': nl.get('blocked', ''),
         'phases': [{'id': pid, 'name': name, 'status': phase_status(ref, pid)} for pid, name, ref in PHASES],
         'pages': pages, 'findings': findings, 'log': log}
 if os.path.isfile(JSON_OUT):  # keep the published link saved earlier
@@ -175,7 +204,13 @@ vertical-align:top}th{font-size:13px;color:var(--mute);font-weight:500}.chips{di
 .chip.has-open{outline:2px solid var(--open);outline-offset:1px}.sev{font-weight:600}.sev.blocker,.sev.major{
 color:var(--open)}.legend{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.scroll{overflow-x:auto}
 ul.log{list-style:none;padding:0;margin:0}ul.log li{padding:4px 0;border-top:1px solid var(--line)}
-@media (max-width:640px){td,th{padding:6px 4px}.hide-sm{display:none}}
+.now{margin-top:14px;border-left:6px solid var(--building)}.now .big{font-size:22px;line-height:1.35}
+.now .lbl{display:inline-block;min-width:64px;font-size:13px;color:var(--mute);text-transform:uppercase;
+letter-spacing:.04em}.now .upd{font-size:20px;font-weight:600;margin-top:8px}.st{font-size:12px;padding:2px 8px;
+border-radius:999px;color:var(--chipink);white-space:nowrap}.st.open{background:var(--open)}.st.fixed{
+background:var(--fixed)}.st.decided{background:var(--todo);color:var(--ink)}.counts{display:flex;flex-wrap:wrap;
+gap:8px;margin:0 0 10px}details summary{cursor:pointer;padding:8px 0}
+@media (max-width:640px){td,th{padding:6px 4px}.hide-sm{display:none}.now .big{font-size:18px}}
 """
 
 
@@ -211,12 +246,57 @@ for p in data['pages']:
     rows.append(f'<tr><td><b>{e(p["name"])}</b><br><span class="mute">{e(p["route"])}</span></td>'
                 f'<td><div class="chips">{"".join(chips)}</div></td>'
                 f'<td class="hide-sm">{pdone}/{len(p["sections"])}</td></tr>')
-frows = ''.join(
-    f'<tr><td>{e(f["id"])}</td><td class="sev {e(f["severity"])}">{e(f["severity"])}</td>'
-    f'<td>{e(f["page"])}{"/" + e(f["section"]) if f["section"] else ""}</td><td>{e(f["what"])}</td></tr>'
-    for f in sorted(of, key=lambda f: ['blocker', 'major', 'minor'].index(f['severity'])
-                    if f['severity'] in ('blocker', 'major', 'minor') else 3))
+FSTATES = ('open', 'fixed', 'decided')
+
+
+def frow(f):
+    st = f['status'] if f['status'] in FSTATES else 'open'
+    return (f'<tr><td>{e(f["id"])}</td><td><span class="st {st}">{e(f["status"])}</span></td>'
+            f'<td class="sev {e(f["severity"])}">{e(f["severity"])}</td><td class="hide-sm">{e(f["phase"])}</td>'
+            f'<td>{e(f["page"])}{"/" + e(f["section"]) if f["section"] else ""}</td><td>{e(f["what"])}</td></tr>')
+
+
+def by_sev(f):
+    return ['blocker', 'major', 'minor'].index(f['severity']) if f['severity'] in ('blocker', 'major', 'minor') else 3
+
+
+FHEAD = ('<tr><th>ID</th><th>Status</th><th>Severity</th><th class="hide-sm">QA run</th><th>Where</th>'
+         '<th>What</th></tr>')
 closed = [f for f in data['findings'] if f['status'] != 'open']
+fcount = {s: sum(1 for f in data['findings'] if f['status'] == s) for s in FSTATES}
+fcounts = ' &middot; '.join(f'<span class="st {s}">{fcount[s]} {s}</span>' for s in FSTATES)
+runs = {}  # the Phase column names the QA run ("P2", "P5 run 2"); first seen first
+for f in data['findings']:
+    runs.setdefault(f['phase'] or '?', {s: 0 for s in FSTATES})[f['status'] if f['status'] in FSTATES else 'open'] += 1
+run_rows = ''.join(f'<tr><td>{e(k)}</td><td>{sum(v.values())}</td><td>{v["open"]}</td><td>{v["fixed"]}</td>'
+                   f'<td>{v["decided"]}</td></tr>' for k, v in runs.items())
+frows = ''.join(frow(f) for f in sorted(of, key=by_sev))
+crows = ''.join(frow(f) for f in closed)
+
+
+def hm_time(stamp):
+    """'2026-11-20T14:05+08:00' -> '20 Nov 2026 14:05'."""
+    m = re.match(r'^(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2})', stamp or '')
+    if not m:
+        return (stamp or '').replace('T', ' ')
+    mon = [k for k, v in MONTHS.items() if v == int(m.group(2))][0].title()
+    return f'{int(m.group(3))} {mon} {m.group(1)} {m.group(4)}'
+
+
+now_d = data['now']
+now_html = (f'<div class="big"><span class="lbl">Now</span> <b>{e(now_d["step"]) or "nothing written"}</b>'
+            + (f' <span class="mute">started {e(now_d["started"][11:16])}</span>' if now_d['started'] else '')
+            + '</div>'
+            + (f'<div class="big"><span class="lbl">Next</span> {e(data["next"])}</div>' if data['next'] else '')
+            + ''.join(f'<div><span class="lbl">{label}</span> {e(data[k])}</div>'
+                      for k, label in (('waiting', 'Waiting'), ('blocked', 'Blocked'))
+                      if data[k] and data[k].lower() not in ('nothing', 'none', 'no'))
+            + f'<div class="upd">Updated {e(hm_time(data["updated"]))} '
+              f'<span class="mute" id="ago" data-at="{e(data["updated"])}"></span></div>')
+AGO = ("<script>(function(){var t=document.getElementById('ago'),d=new Date(t.getAttribute('data-at'));"
+       "function f(){var m=Math.floor((Date.now()-d)/60000);if(isNaN(m)||m<0)return;t.textContent='('+(m<1?"
+       "'just now':m<60?m+' min ago':Math.floor(m/60)+' h '+m%60+' min ago')+')'}f();setInterval(f,60000)})();"
+       "</script>")
 log_html = ''.join(f'<li><span class="mute">{e(x["at"][:16].replace("T", " "))}</span> {e(x["text"])}</li>'
                    for x in reversed(data['log'][-25:]))
 title = f'{data["site"]} build progress'
@@ -224,7 +304,8 @@ page = f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{e(title)}</title><style>{CSS}</style></head><body><main>
 <h1>{e(title)}</h1>
-<div class="mute">Target: {e(data["target"])} &middot; Updated {e(data["updated"][:16].replace("T", " "))}</div>
+<div class="mute">Target: {e(data["target"])}</div>
+<div class="card now">{now_html}</div>
 <div class="stats">
 <div class="card stat"><b>{done}/{sum(c.values())}</b>sections done</div>
 <div class="card stat"><b>{c["building"] + c["built"]}</b>building or built</div>
@@ -236,12 +317,16 @@ page = f"""<!doctype html>
 <h2>Pages and sections</h2><div class="legend">{legend}</div>
 <div class="card scroll"><table><tr><th>Page</th><th>Sections</th><th class="hide-sm">Done</th></tr>
 {''.join(rows) or '<tr><td colspan="3" class="mute">No pages yet.</td></tr>'}</table></div>
-<h2>Open QA findings ({len(of)})</h2>
-<div class="card scroll"><table><tr><th>ID</th><th>Severity</th><th>Where</th><th>What</th></tr>
-{frows or '<tr><td colspan="4" class="mute">None open.</td></tr>'}</table>
-<p class="mute">{len(closed)} closed (fixed or decided).</p></div>
+<h2>QA findings ({len(data["findings"])}): {len(of)} open</h2>
+<div class="card scroll"><div class="counts">{fcounts}</div>
+{f'<table><tr><th>QA run</th><th>Found</th><th>Open</th><th>Fixed</th><th>Decided</th></tr>{run_rows}</table>'
+ if run_rows else ''}
+<h3>Open ({len(of)})</h3><table>{FHEAD}
+{frows or '<tr><td colspan="6" class="mute">None open.</td></tr>'}</table>
+{f'<details><summary>Fixed and decided ({len(closed)})</summary><table>{FHEAD}{crows}</table></details>'
+ if closed else ''}</div>
 <h2>Log</h2><div class="card"><ul class="log">{log_html}</ul></div>
-</main></body></html>
+</main>{AGO}</body></html>
 """
 with open(OUT, 'w', encoding='utf-8', newline='\n') as fh:
     fh.write(page)

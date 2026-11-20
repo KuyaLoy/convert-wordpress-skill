@@ -40,7 +40,11 @@ Written only after the developer says it in the chat: `ok <date>`.
 
 ## Now
 
+The top of the progress page. Update the Doing line (with the time it started, `(started 14:05)`) when a step
+starts, the rest at every stop, then render and republish.
+
 - **Doing:** P0 planning.
+- **Next:** the plan OK, then P1 Setup.
 - **Waiting on the developer:** the plan OK (with the decisions below).
 - **Blocked:** nothing.
 
@@ -143,7 +147,8 @@ checked again). Page and Section are short names; render.py makes the slugs.
 
 One list for the whole build, IDs running on (F-001, F-002...). Where: `Page / Section` as in Pages, or a file.
 Severity `blocker` (fixed at once), `major` or `minor` (both wait for P5). Status `open` > `fixed` (fixed AND
-checked again by a QA run) or `decided` (kept as it is on purpose, with the reason in the finding).
+checked again by a QA run) or `decided` (kept as it is on purpose, with the reason in the finding). Phase names the
+QA run that found it (`P2`; in P5 `P5 run 1`, `P5 run 2`): the progress page counts findings per run.
 
 | ID | Phase | Where | Finding | Severity | Status |
 |---|---|---|---|---|---|

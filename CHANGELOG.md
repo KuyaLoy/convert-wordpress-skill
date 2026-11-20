@@ -5,6 +5,26 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.9.5] - 2026-11-20
+
+The progress page says what the chat is doing now and stays current.
+
+### Added
+
+- **Now and Next at the top** of the progress page, in large type: the board's "## Now" Doing line with the time it
+  started (`(started 14:05)`), Next, anything waiting on the developer or blocked, and the time the page was
+  rendered ("n min ago" while the page is open; one tiny inline script). The board template gets a Next line.
+- **Every QA finding with its status:** counts per status (open, fixed, decided) and per QA run (the finding's Phase
+  column: `P2`, `P5 run 2`), open first, fixed and decided folded under them.
+- progress.json, additions only: `now` (`step`, `started`), `next`, `waiting`, `blocked`; `updated` is the render
+  time (date and time). Boards made before 0.9.5 still render (Next comes from the header line).
+
+### Changed
+
+- **Republish at every unit end, not only at phase ends:** each page built, each QA run collected, each fix batch,
+  each site done, and every stop (checkpoint, waiting, paused); before a long step (a QA run, a full pixel run) the
+  Now line is written and the page republished first. P5 alone ran for hours with a page hours old.
+
 ## [0.9.4] - 2026-11-20
 
 The leads portal is mandatory on live and catches every lead, even when the email fails.
