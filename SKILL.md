@@ -354,6 +354,7 @@ developer fills; the agent never types a password). Details: `references/qa-repo
 | `scripts/setup/setup.py` | P1-01 in one call: database, get-wordpress, make-wp-config, serve-wp (if needed), install-wp |
 | `scripts/setup/install-wp.py` and the others | Install, admin, settings, plugins; the steps one by one when one needs repeating |
 | `scripts/report/leads-check.py` | The leads portal endpoint and key with a GET (stores nothing; the key never printed) |
+| `scripts/launch/lead-source-plugin.py` | The Lead source table and form attribution as a must-use plugin for a WordPress site the kit did not build |
 | `scripts/launch/plugin-versions.py` | Go/no-go: each plugin zip in the profile's folder with its version and file date |
 | `scripts/acf/build_field_groups.py`, `sync.php` | ACF JSON, stable keys (`--check`); database sync |
 | `scripts/seed/export.mjs`, `export-pages.py` | Static content into `_setup/seed/` for Tools > Seeder |

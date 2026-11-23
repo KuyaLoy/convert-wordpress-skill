@@ -148,7 +148,8 @@ On every lead form by default, no plugin, nothing to set up (`includes/forms-att
   JavaScript the form page's own address (the Referer) still gives its campaign tags and click ids. Reporting only:
   never used to decide anything about a lead.
 - **Everywhere the lead goes:** the lead email's **Lead source** table under the details (`[_kitk_source]`,
-  `includes/forms-lead-source.php`): a title row in the email's brand colour, then "First visit", "Latest campaign
+  `includes/forms-lead-source.php`): a title row in the email's brand colour (`KITWP_BRAND_COLOUR`; its text black
+  or white, whichever has the higher contrast; not a colour: #28292D with white), then "First visit", "Latest campaign
   visit" (only when it differs from the first) and "Form sent from" (the page). Each visit starts with its source in
   words (bold): utm_source / utm_medium; else "Google Ads click", "Facebook / Instagram click", "Microsoft Ads
   click"; else "Google search", "Bing search", "Yahoo search", "DuckDuckGo search" or "<site> (link)"; else "Direct
@@ -157,6 +158,11 @@ On every lead form by default, no plugin, nothing to set up (`includes/forms-att
   the same rows. Contact Form CFDB7 stores the posted fields; the leads portal gets the same names as fields
   (`gclid` from the visit); the dataLayer gets `generate_lead` on /thank-you/, once per sent form, with
   `form_name` (the CF7 form's title), `lead_source` and `lead_medium`. A refresh pushes nothing.
+- **A WordPress site the kit did not build:** `python3 <kit>/scripts/launch/lead-source-plugin.py <out_dir>
+  --brand '#rrggbb'` makes a must-use plugin from these same files (the loader and a `kitwp-lead-source/` folder):
+  copy both into `wp-content/mu-plugins/`. It adds the table where the Mail tab has `<!-- kitwp-lead-source -->`,
+  else before `</body>`, else at the end (a plain-text mail gets the rows as text), to the main email only; an error
+  leaves the email as it was. `--consent banner` for a banner without Consent Mode. Never on a kit-built site.
 - **Prove it:** open a form page with `?utm_source=qa&utm_medium=test&utm_campaign=launch&gclid=TEST`, send a TEST
   lead: the email's Lead source table and the portal show them; a lead from a plain visit shows "Direct (typed in,
   bookmark or no source)".

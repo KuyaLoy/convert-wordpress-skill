@@ -30,7 +30,12 @@ function kitwp_attribution_visits( $a ) {
 			$visits['first'][ $name ] = $a[ 'first_' . $short ];
 		}
 	}
-	foreach ( [ 'referrer' => 'referrer', 'landing' => 'landing_page', 'time' => 'seen' ] as $key => $name ) {
+	$map = [
+		'referrer' => 'referrer',
+		'landing'  => 'landing_page',
+		'time'     => 'seen',
+	];
+	foreach ( $map as $key => $name ) {
 		if ( isset( $a[ 'time' === $key ? 'last_seen' : $name ] ) ) {
 			$visits['last'][ $key ] = $a[ 'time' === $key ? 'last_seen' : $name ];
 		}
@@ -52,14 +57,27 @@ function kitwp_attribution_source( $visit ) {
 	if ( ! empty( $visit['utm_source'] ) ) {
 		return $visit['utm_source'] . ( ! empty( $visit['utm_medium'] ) ? ' / ' . $visit['utm_medium'] : '' );
 	}
-	foreach ( [ 'gclid' => 'Google Ads click', 'gbraid' => 'Google Ads click', 'wbraid' => 'Google Ads click', 'fbclid' => 'Facebook / Instagram click', 'msclkid' => 'Microsoft Ads click' ] as $name => $label ) {
+	$map = [
+		'gclid'   => 'Google Ads click',
+		'gbraid'  => 'Google Ads click',
+		'wbraid'  => 'Google Ads click',
+		'fbclid'  => 'Facebook / Instagram click',
+		'msclkid' => 'Microsoft Ads click',
+	];
+	foreach ( $map as $name => $label ) {
 		if ( ! empty( $visit[ $name ] ) ) {
 			return $label;
 		}
 	}
 	if ( ! empty( $visit['referrer'] ) ) {
 		$host = strtolower( (string) wp_parse_url( $visit['referrer'], PHP_URL_HOST ) );
-		foreach ( [ 'google.' => 'Google search', 'bing.' => 'Bing search', 'yahoo.' => 'Yahoo search', 'duckduckgo.' => 'DuckDuckGo search' ] as $needle => $label ) {
+		$map  = [
+			'google.'     => 'Google search',
+			'bing.'       => 'Bing search',
+			'yahoo.'      => 'Yahoo search',
+			'duckduckgo.' => 'DuckDuckGo search',
+		];
+		foreach ( $map as $needle => $label ) {
 			if ( str_contains( $host, $needle ) ) {
 				return $label;
 			}
@@ -82,7 +100,19 @@ function kitwp_attribution_rows( $a, $page ) {
 	$rows   = [];
 	$visit  = static function ( $label, $v ) {
 		$lines = [ kitwp_attribution_source( $v ) ];
-		foreach ( [ 'utm_campaign' => 'Campaign', 'utm_term' => 'Keyword', 'utm_content' => 'Ad', 'gclid' => 'gclid', 'gbraid' => 'gbraid', 'wbraid' => 'wbraid', 'fbclid' => 'fbclid', 'msclkid' => 'msclkid', 'referrer' => 'From', 'landing' => 'Landing page' ] as $key => $name ) {
+		$map   = [
+			'utm_campaign' => 'Campaign',
+			'utm_term'     => 'Keyword',
+			'utm_content'  => 'Ad',
+			'gclid'        => 'gclid',
+			'gbraid'       => 'gbraid',
+			'wbraid'       => 'wbraid',
+			'fbclid'       => 'fbclid',
+			'msclkid'      => 'msclkid',
+			'referrer'     => 'From',
+			'landing'      => 'Landing page',
+		];
+		foreach ( $map as $key => $name ) {
 			if ( ! empty( $v[ $key ] ) ) {
 				$lines[] = $name . ': ' . $v[ $key ];
 			}
@@ -109,8 +139,8 @@ function kitwp_attribution_rows( $a, $page ) {
 }
 
 /**
- * The "Lead source" table for the lead email ([_kitk_source]): a title row in the email's brand colour, label cells
- * grey, as the email's details table. Plain text: the same rows as lines.
+ * The "Lead source" table for the lead email ([_kitk_source]): a title row in the email's brand colour (its text
+ * black or white, whichever reads better), label cells grey, as the email's details table. Plain text: the same rows as lines.
  *
  * @param array<string, string> $a    Clean attribution.
  * @param string                $page The page the form was sent from.
@@ -138,8 +168,34 @@ function kitwp_attribution_table( $a, $page, $html = true ) {
 			? '<tr><td style="' . $cell . '" colspan="2">' . $lines[0] . '</td></tr>'
 			: '<tr><td style="' . $cell . 'width:38%;background-color:#fafafa;font-weight:bold;">' . $e( $row[0] ) . '</td><td style="' . $cell . '">' . implode( '<br>', $lines ) . '</td></tr>';
 	}
-	$dark = $e( KITWP_BRAND_COLOUR );
+	[ $bg, $ink ] = kitwp_attribution_title_colours( (string) KITWP_BRAND_COLOUR );
 	return '<table role="presentation" width="100%" style="font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.4;color:#333333;border-collapse:collapse;width:100%;margin-top:16px;"><tbody>'
-		. '<tr><td style="' . $cell . 'background-color:' . $dark . ';border-color:' . $dark . ';color:#ffffff;" colspan="2"><b>Lead source</b></td></tr>'
+		. '<tr><td style="' . $cell . 'background-color:' . $bg . ';border-color:' . $bg . ';color:' . $ink . ';" colspan="2"><b>Lead source</b></td></tr>'
 		. $out . '</tbody></table>';
+}
+
+/**
+ * The title row's colours: the email's brand colour, and #1a1a1a or #ffffff on it, whichever has the higher
+ * contrast (WCAG relative luminance; a yellow brand gets dark text, a dark one white). Not a #rgb or #rrggbb colour:
+ * #28292D with white.
+ *
+ * @param string $brand The brand colour.
+ * @return string[] [ background, text ]
+ */
+function kitwp_attribution_title_colours( $brand ) {
+	$hex = ltrim( trim( $brand ), '#' );
+	if ( 3 === strlen( $hex ) ) {
+		$hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+	}
+	if ( ! preg_match( '/^[0-9a-f]{6}$/i', $hex ) ) {
+		return [ '#28292D', '#ffffff' ];
+	}
+	$lum = 0.0;
+	foreach ( [ 0.2126, 0.7152, 0.0722 ] as $i => $weight ) {
+		$c    = hexdec( substr( $hex, $i * 2, 2 ) ) / 255;
+		$lum += $weight * ( $c <= 0.03928 ? $c / 12.92 : ( ( $c + 0.055 ) / 1.055 ) ** 2.4 );
+	}
+	$dark  = ( $lum + 0.05 ) / ( 0.0103 + 0.05 ); // #1a1a1a's luminance is 0.0103
+	$light = 1.05 / ( $lum + 0.05 );
+	return [ '#' . strtolower( $hex ), $dark >= $light ? '#1a1a1a' : '#ffffff' ];
 }

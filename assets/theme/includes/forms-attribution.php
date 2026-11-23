@@ -2,7 +2,7 @@
 /**
  * Lead forms: where each lead came from (form attribution), on every lead form by default, with no plugin.
  *
- * assets/attribution.js keeps the first visit and the latest campaign visit in the browser (first party only: nothing
+ * The browser script, assets/attribution.js, keeps the first visit and the latest campaign visit in the browser (first party only: nothing
  * is sent anywhere until the visitor sends a form) and fills hidden fields on every Contact Form 7 form. Here the
  * server checks them once, as CF7 reads the post: an allow-list of names, cleaned, capped in length, addresses
  * without their query. The lead email ([_kitk_source]), Contact Form CFDB7 (it stores the posted fields) and the
@@ -26,14 +26,14 @@ function kitwp_attribution_fields() {
 		$fields[ $name ] = 200;
 	}
 	$fields += [
-		'landing_page'       => 500,
-		'referrer'           => 500,
-		'last_seen'          => 16,
-		'first_source'       => 200,
-		'first_medium'       => 200,
-		'first_campaign'     => 200,
-		'first_term'         => 200,
-		'first_content'      => 200,
+		'landing_page'   => 500,
+		'referrer'       => 500,
+		'last_seen'      => 16,
+		'first_source'   => 200,
+		'first_medium'   => 200,
+		'first_campaign' => 200,
+		'first_term'     => 200,
+		'first_content'  => 200,
 	];
 	foreach ( [ 'gclid', 'gbraid', 'wbraid', 'fbclid', 'msclkid' ] as $name ) {
 		$fields[ 'first_' . $name ] = 200;
@@ -90,7 +90,7 @@ function kitwp_attribution_clean( $posted, $referer = '' ) {
 		if ( str_ends_with( $name, 'landing_page' ) || str_ends_with( $name, 'referrer' ) ) {
 			$value = kitwp_attribution_url( $value );
 		} elseif ( str_ends_with( $name, '_seen' ) ) {
-			$value = preg_match( '/^\d{4}-\d{2}-\d{2}( \d{2}:\d{2})?$/', $value ) ? $value : ''; // UTC; a date alone (0.9.9) too
+			$value = preg_match( '/^\d{4}-\d{2}-\d{2}( \d{2}:\d{2})?$/', $value ) ? $value : ''; // UTC; a date alone (0.9.9) too.
 		} else {
 			$value = sanitize_text_field( $value );
 		}

@@ -23,6 +23,16 @@ The lead email's attribution is the "Lead source" table an existing company buil
   `first_gbraid`, `first_wbraid`, `first_fbclid`, `first_msclkid`; new `last_seen`; `first_seen` and `last_seen`
   are "YYYY-MM-DD HH:MM" UTC (16 characters; a 0.9.9 date alone still passes). Field names and caps otherwise as
   0.9.9; the portal gets the new fields too.
+- The title row takes the email's brand colour (`KITWP_BRAND_COLOUR`) with black or white text, whichever has the
+  higher contrast (a second company sample uses its yellow brand with dark text); #28292D with white otherwise.
+
+### Added
+
+- **Lead source must-use plugin** for a WordPress site the kit did not build:
+  `scripts/launch/lead-source-plugin.py <out_dir> --brand '#rrggbb'` makes it from the theme kit's own files
+  (`assets/mu-plugin/kitwp-lead-source.php` and a folder with forms-attribution.php, forms-lead-source.php and
+  attribution.js); the table goes in the main email (a marker, else before `</body>`, else at the end; plain text
+  as rows); an error leaves the email as it was.
 
 ## [0.9.9] - 2026-11-23
 

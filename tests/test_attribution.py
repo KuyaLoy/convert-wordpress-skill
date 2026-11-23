@@ -12,7 +12,8 @@ ATTR = INC + 'forms-attribution.php'
 SRC = INC + 'forms-lead-source.php'
 CORE = [(ATTR, 'kitwp_attribution_fields'), (ATTR, 'kitwp_attribution_touch'), (ATTR, 'kitwp_attribution_url'),
         (ATTR, 'kitwp_attribution_clean'), (SRC, 'kitwp_attribution_visits'), (SRC, 'kitwp_attribution_source'),
-        (SRC, 'kitwp_attribution_rows'), (SRC, 'kitwp_attribution_table')]
+        (SRC, 'kitwp_attribution_rows'), (SRC, 'kitwp_attribution_table'),
+        (SRC, 'kitwp_attribution_title_colours')]
 PAID = {'utm_source': 'google', 'utm_medium': 'cpc', 'utm_campaign': 'spring', 'gclid': 'Cj0KCQ-test',
         'landing_page': 'https://example.org/offer/?email=a@b.example', 'referrer': 'https://www.google.com/',
         'first_source': 'newsletter', 'first_medium': 'email', 'first_seen': '2026-11-01',
@@ -256,3 +257,15 @@ class Consent(unittest.TestCase):
         self.assertFalse(got['banner_no']['stored'])
         for case in got.values():  # the form still gets this visit's values in every case
             self.assertEqual((case['fields']['utm_source'], case['fields']['gclid']), ('google', 'G1'))
+
+
+@unittest.skipUnless(shutil.which('php'), 'needs PHP')
+class TitleColours(unittest.TestCase):
+    """The title row takes the email's brand colour; its text is black or white, whichever reads better."""
+
+    def test_contrast(self):
+        body = ('echo json_encode( array_map( "kitwp_attribution_title_colours", [ "#fef151", "#1F4E79", "fff", '
+                '"#00a0e0", "nonsense", "" ] ) );')
+        got = php([(SRC, 'kitwp_attribution_title_colours')], body)
+        self.assertEqual(got, [['#fef151', '#1a1a1a'], ['#1f4e79', '#ffffff'], ['#ffffff', '#1a1a1a'],
+                               ['#00a0e0', '#1a1a1a'], ['#28292D', '#ffffff'], ['#28292D', '#ffffff']])
