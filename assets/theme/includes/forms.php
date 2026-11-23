@@ -74,7 +74,9 @@ function kitwp_quote_form_html( $args ) {
 	// The failed-post note needs to know whether CF7 stopped this form's post (spam, aborted).
 	$sub    = class_exists( 'WPCF7_Submission' ) ? WPCF7_Submission::get_instance() : null;
 	$status = $sub && (int) $sub->get_contact_form()->id() === $id ? (string) $sub->get_status() : '';
-	return kitwp_cf7_clean( $html, $ctx['prefix'], $status );
+	$html = kitwp_cf7_clean( $html, $ctx['prefix'], $status );
+	// The form's name for the generate_lead event (assets/attribution.js); parity checks ignore data attributes.
+	return (string) preg_replace( '/^<form /', '<form data-form-name="' . esc_attr( wpcf7_contact_form( $id )->title() ) . '" ', $html, 1 );
 }
 
 /**

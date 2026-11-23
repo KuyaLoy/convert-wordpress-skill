@@ -108,6 +108,13 @@ const KITWP_RECAPTCHA_LAZY = false;
 const KITWP_NOJS_LEADS = false;
 
 /**
+ * Form attribution (includes/forms-attribution.php): how many days the first visit's campaign is kept in the
+ * visitor's browser (first party; nothing leaves it until a form is sent). 0: this visit only (sessionStorage), for
+ * a site whose consent rules allow no stored data before consent.
+ */
+const KITWP_ATTRIBUTION_DAYS = 90;
+
+/**
  * The static build's image widths (the next/image sizes it serves) and its first deviceSize, which decides the
  * srcset when sizes uses vw. Read both from the static site's next.config (images.imageSizes, images.deviceSizes).
  */

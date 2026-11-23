@@ -5,6 +5,25 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.9.9] - 2026-11-23
+
+Every lead form says where the lead came from, and the plan raises the five areas early.
+
+### Added
+
+- **Form attribution by default** on every lead form, no plugin (`includes/forms-attribution.php`,
+  `assets/attribution.js`): the visit's campaign tags (utm_source, utm_medium, utm_campaign, utm_term, utm_content)
+  and ad click ids (gclid, gbraid, wbraid, fbclid, msclkid), its landing page and referrer (last touch, per visit),
+  and the first visit's source, medium, campaign, page, referrer and date (first touch, `KITWP_ATTRIBUTION_DAYS`,
+  90; 0 = this visit only), first party only. Hidden fields on every CF7 form and the chat's post; checked on the
+  server as CF7 reads the post (allow-list, cleaned, capped, addresses without their query; without JavaScript the
+  form page's address still counts). Sent everywhere the lead goes: the lead email's "Where this lead came from"
+  row (`[_kitk_source]`, "Direct" when nothing sent the visitor), Contact Form CFDB7, the leads portal (the same
+  field names), and `generate_lead` on /thank-you/ once per sent form (`form_name`, `lead_source`, `lead_medium`).
+- **Recommended additions at the plan:** PLAN.md lists form attribution, SEO, site speed, testing and tracking, one
+  line each with what the site lacks, what we recommend and its size; the developer decides at the Plan OK.
+  Anything that changes the work is said as soon as it is known.
+
 ## [0.9.8] - 2026-11-20
 
 The chat's state shows in its title, so the sidebar shows what is working.

@@ -272,7 +272,9 @@ class Portal(unittest.TestCase):
     """The portal gets a validated IP and only the form's own fields, capped in length."""
 
     FUNCS = [(PORTAL, 'kitwp_leads_tracking'), (PORTAL, 'kitwp_leads_allowed_fields'), (PORTAL, 'kitwp_leads_send'),
-             (FORMS, 'kitwp_lead_fields')]
+             (FORMS, 'kitwp_lead_fields'), (INC + 'forms-attribution.php', 'kitwp_attribution_fields'),
+             (INC + 'forms-attribution.php', 'kitwp_attribution_url'),
+             (INC + 'forms-attribution.php', 'kitwp_attribution_clean')]
 
     def test_ip_only_from_a_valid_public_proxy_header(self):
         body = r'''

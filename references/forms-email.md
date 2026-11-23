@@ -14,6 +14,7 @@ mail), `forms-local-mail.php` (local capture) and `forms-portal.php` (the leads 
 - The auto-reply and the agency badge: one look for both emails
 - Spam: honeypot and reCAPTCHA v3
 - The chat widget through CF7's REST endpoint
+- Where the lead came from (form attribution)
 - The leads portal
 - Local mail capture
 - Proving delivery
@@ -118,6 +119,32 @@ seeder refuses an email file that is not a full HTML document and reports a form
   `_wpcf7_unit_tag` (`wpcf7-f<id>-o1`), `_wpcf7_container_post`, the fields, and the reCAPTCHA token.
 - A JSON body gets 415; a missing unit tag gets 400; `mail_sent` is the only success.
 - The Chat Lead form's Form tab is the field list; its Mail tab the email.
+
+## Where the lead came from (form attribution)
+
+On every lead form by default, no plugin, nothing to set up (`includes/forms-attribution.php`,
+`assets/attribution.js`):
+
+- **Browser, first party only:** the campaign tags (utm_source, utm_medium, utm_campaign, utm_term, utm_content)
+  and ad click ids (gclid, gbraid, wbraid, fbclid, msclkid) the visit came with, its first page and the other site
+  that sent it: the last touch, per visit (sessionStorage; a new campaign link replaces it). The first visit's
+  source, medium, campaign, page, referrer and date: the first touch, kept `KITWP_ATTRIBUTION_DAYS` (90; 0 = this
+  visit only, for a site whose consent rules allow no stored data before consent). Addresses keep host and path,
+  never the query. Nothing leaves the browser until the visitor sends a form; nothing goes to a third party.
+- **Hidden fields on every CF7 form** (the chat's post too): `utm_source`, `utm_medium`, `utm_campaign`, `utm_term`,
+  `utm_content`, `gclid`, `gbraid`, `wbraid`, `fbclid`, `msclkid`, `landing_page`, `referrer`, `first_source`,
+  `first_medium`, `first_campaign`, `first_landing_page`, `first_referrer`, `first_seen`.
+- **Checked on the server** as CF7 reads the post (`wpcf7_posted_data`): only those names, scalar, cleaned, capped
+  (500 for the addresses, 10 for the date, 200 for the rest), http(s) addresses only; the rest is dropped. Without
+  JavaScript the form page's own address (the Referer) still gives its campaign tags and click ids. Reporting only:
+  never used to decide anything about a lead.
+- **Everywhere the lead goes:** the lead email's "Where this lead came from" row (`[_kitk_source]`: source / medium,
+  campaign, keyword, ad content, ad click, referrer, landing page, first visit; "Direct" when no campaign, ad click
+  or other site sent the visitor), Contact Form CFDB7 (it stores the posted fields), the leads portal (the same
+  names as fields; `gclid` from the visit), and the dataLayer: on /thank-you/, once per sent form, `generate_lead`
+  with `form_name` (the CF7 form's title), `lead_source` and `lead_medium`. A refresh pushes nothing.
+- **Prove it:** open a form page with `?utm_source=qa&utm_medium=test&utm_campaign=launch&gclid=TEST`, send a TEST
+  lead: the email row and the portal show them; a lead from a plain visit shows "Direct".
 
 ## The leads portal
 

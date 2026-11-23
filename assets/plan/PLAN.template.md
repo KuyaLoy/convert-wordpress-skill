@@ -4,6 +4,19 @@ Status: **P0 Plan**. Written {{DATE}}. One page for the Plan OK: the goal, what 
 phases. Read with `CONTENT-MODEL.md` (what gets built), `OLD-SITE-URLS.md` (redirects), `../BUILD-MAP.md` (status
 and QA findings, private), `../handoff.md` (session state). The kit's rules: `<kit>/references/phases-and-qa.md`.
 
+## Recommended additions (the developer decides)
+
+Raised now, at the plan, not at the end. One line each: what this site lacks, what we recommend, its size
+(S, M, L). "Nothing to add" is a valid line. Approved lines go into section 3; the rest go into the report.
+
+| Area | This site today | We recommend | Size | Decision |
+|---|---|---|---|---|
+| Form attribution | Built in by the kit on every lead form (UTMs, ad click ids, landing page, referrer, first visit: email, CFDB7, portal, generate_lead) | Nothing to add, or: call tracking for phone leads | S | |
+| SEO | | (the kit's P4 covers titles, schema, old URLs, sitemap) e.g. Search Console and the sitemap submitted, redirects for old campaign URLs | | |
+| Site speed | | (the kit's P4 covers Core Web Vitals) e.g. image CDN, a host with HTTP/2 or HTTP/3 | | |
+| Testing | | (the kit's QA covers pixel, design, forms, live QA) e.g. uptime monitoring, a monthly form test | | |
+| Tracking | | (the kit's GTM and generate_lead) e.g. Meta Conversions API, Ads enhanced conversions, call tracking | | |
+
 ## 1. Goal
 
 Replace the static site with a WordPress site that **looks and behaves exactly the same on every screen size**,

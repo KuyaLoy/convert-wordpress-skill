@@ -149,7 +149,8 @@ function kitwp_lead_extras( $lead ) {
  * [_kitk_when] When Needed with the picked date, [_kitk_via] Submitted Via, [_kitk_page] page link,
  * [_kitk_received] site time, [_kitk_logo] logo URL, [_kitk_site] site URL, [_kitk_year], [_kitk_name] the
  * sender's name (auto-reply greeting), [_kitk_badge] the agency badge for the footer of the lead email and the
- * auto-reply (KITWP_EMAIL_BADGE; empty when not set).
+ * auto-reply (KITWP_EMAIL_BADGE; empty when not set), [_kitk_source] where the lead came from (form attribution,
+ * one line each: source / medium, campaign, ad click, referrer, landing page, first visit; "Direct" when none).
  * With "Exclude lines with blank mail-tags" on, a row whose tags are all empty is left out, as the static email.
  *
  * @param string|null    $output   Replacement so far.
@@ -201,6 +202,10 @@ function kitwp_lead_special_tags( $output, $name, $html, $mail_tag = null ) {
 			return $h( kitwp_email_logo_url() );
 		case '_kitk_site':
 			return $h( untrailingslashit( home_url() ) );
+		case '_kitk_source':
+			$lines = kitwp_attribution_lines( kitwp_attribution_clean( (array) $submission->get_posted_data() ) );
+			return $html ? implode( '<br>', array_map( 'kitwp_mail_h', $lines ) ) : implode( "
+", $lines );
 		case '_kitk_year':
 			return wp_date( 'Y' );
 		case '_kitk_name':

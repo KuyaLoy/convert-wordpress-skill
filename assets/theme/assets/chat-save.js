@@ -47,6 +47,13 @@
 		Object.keys(values || {}).forEach(function (k) {
 			body.append(k, values[k] == null ? '' : String(values[k]));
 		});
+		// Where the lead came from (assets/attribution.js), as on the page's forms.
+		var attribution = typeof window.kitwpAttribution === 'function' ? window.kitwpAttribution() : {};
+		Object.keys(attribution).forEach(function (k) {
+			if (!body.has(k)) {
+				body.append(k, attribution[k]);
+			}
+		});
 		if (!body.has('source')) {
 			body.append('source', 'chat:' + window.location.pathname);
 		}

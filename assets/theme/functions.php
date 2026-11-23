@@ -41,6 +41,7 @@ $kitwp_kit = [
 	'forms-mail',
 	'forms-local-mail',
 	'forms-portal',
+	'forms-attribution',
 	'client-admin',
 	'schema',
 	'seo',

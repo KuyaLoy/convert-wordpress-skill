@@ -66,7 +66,9 @@ static page (the parity SEO diff).
 - GTM as the tracking task asks: the head snippet at the top of `<head>` (right after the required meta tags) and
   the noscript right after `<body>`, on every page including `/thank-you/`. A tracking plugin or the theme's
   `wp_head` priority 0 and `wp_body_open`; the profile says which.
-- Conversions fire on the thank-you page only; prove it with `track.mjs` on live.
+- Conversions fire on the thank-you page only; prove it with `track.mjs` on live. The kit pushes `generate_lead`
+  there once per sent form (`form_name`, `lead_source`, `lead_medium`; references/forms-email.md > Where the lead
+  came from): a GA4 or Ads tag can use it instead of the page view.
 - Never inject GTM into a built Next.js page (hydration errors); in the Next source use `next/script`.
 - Campaign and landing page URLs never change.
 

@@ -188,6 +188,12 @@ review); never for anything else.
   marked placeholders, a chat or search if the source has one, the live plugin checklist. All of it now, so no rule
   reopens finished work later. The OK message lists the downloads of P1 (WordPress, theme, ACF PRO zip, Contact Form
   7, Yoast SEO).
+- **Recommended additions, raised at the plan** (PLAN.md's list, and first in the Plan OK message): form
+  attribution, SEO, site speed, testing, tracking; for each, what the site lacks and what we recommend, one line with
+  its size ("nothing to add" is a valid line). Form attribution is built in by default; the rest are
+  recommendations: the developer decides, approved ones go into the plan, the others into the report. Anything else
+  that changes the work (a risk, a blocker, a better way) is said in one line as soon as it is known, never first
+  at done.
 
 ## P1 Setup (in one go, after the Plan OK)
 
@@ -276,6 +282,8 @@ Every lead also goes to the profile's leads portal (`leads_portal`), server to s
 or failed: mandatory on live for a site with a lead form (no portal in the profile is a go-live blocker; a site
 without forms says so in site.json). The keys go only into the live wp-config; never from local, development or
 staging.
+Every lead form also says where the lead came from (form attribution, built in: UTM tags, ad click ids, landing
+page, referrer, first visit), in the lead email, CFDB7, the portal and `generate_lead`.
 Details: `references/forms-email.md`.
 
 ## P4 SEO, security, speed

@@ -9,7 +9,8 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Tracking fields a leads portal usually asks for: the form's page, the visitor's IP, Google Ads and Meta click IDs.
+ * Tracking fields a leads portal usually asks for: the form's page, the visitor's IP, Google Ads and Meta click IDs,
+ * and the form attribution (kitwp_attribution_fields(): utm_*, the ad click ids, landing page, referrer, first_*).
  *
  * @param WPCF7_Submission $sub Submission.
  * @return array<string, string>
@@ -33,13 +34,18 @@ function kitwp_leads_tracking( $sub ) {
 	if ( '' === $url ) {
 		$url = (string) wp_get_referer();
 	}
-	return [
+	$attribution = kitwp_attribution_clean( (array) $sub->get_posted_data() );
+	$tracking    = [
 		'source_url' => $url,
 		'ip_address' => $ip,
 		'gclid'      => isset( $_REQUEST['gclid'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['gclid'] ) ) : $cookie( 'gclid' ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read only.
 		'fbp'        => $cookie( '_fbp' ),
 		'fbc'        => $cookie( '_fbc' ),
 	];
+	if ( isset( $attribution['gclid'] ) ) {
+		$tracking['gclid'] = $attribution['gclid']; // the click the visit came with, kept by assets/attribution.js
+	}
+	return $tracking + $attribution;
 }
 
 /**
