@@ -64,12 +64,14 @@ Everything else waits, so the build keeps moving and every fix is made once, wit
 
 ## The self-check before every QA run
 
-`python3 _plan/tools/report/self-check.py <wp_root> --url <local url>` before every QA run (phase QA, the P5 full
-run, each re-check). It finds the classes a build can catch itself, the ones that cost a real build four full QA
-runs: field instructions missing or in developer words, `(array)` on a field read, a theme PHP file without the
-ABSPATH guard, a `phpcs:ignore` without its reason, functions never called, file paths that do not exist, files over
-300 lines, starter leftovers, unfilled or wrong launch files, acf-json or the oEmbed author public. Fix what it finds
-first (it is the build's own work, not a QA finding), then run QA. It checks less than QA, never instead of it.
+`python3 _plan/tools/report/self-check.py <wp_root> --url <local url> --profile <kit>/profile.local.json` before every
+QA run (phase QA, the P5 full run, each re-check). It finds the classes a build can catch itself, the ones that cost a
+real build four full QA runs: field instructions missing or in developer words, `(array)` on a field read, a theme PHP
+file without the ABSPATH guard, a `phpcs:ignore` without its reason, functions never called, file paths that do not
+exist, files over 300 lines, starter leftovers, unfilled or wrong launch files, acf-json or the oEmbed author public,
+and with the profile's tracking plugin, GTM or ACF tracking fields in the theme (tracking goes through the plugin only).
+Fix what it finds first (it is the build's own work, not a QA finding), then run QA. It checks less than QA, never
+instead of it.
 
 ## The fix loop: one full run, then re-check what changed
 

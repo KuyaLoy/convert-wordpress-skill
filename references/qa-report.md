@@ -40,6 +40,9 @@ developer agrees to first.
    - WebP: with `--image`, a browser that accepts WebP gets `image/webp`.
    - reCAPTCHA: every checked page with a Contact Form 7 form loads the reCAPTCHA script (include the contact page
      in `--routes`). The rest of the live plugin checklist is ticked in RUNBOOK section 4.
+   - Plugins: `plugin-check.py _plan/site.json --env live --profile <kit>/profile.local.json --list <wp plugin list
+     JSON>` says OK: exactly the live list, each active, nothing else unless the task asked (staging: `--env
+     staging`). After live QA is at 0 and the report is done, Duplicator is deleted: `--done --files <listing>`.
 
    Before launch (and on staging), add `--hidden`: then every page must be noindex, robots.txt must block
    everything, and no form page loads reCAPTCHA (staging gets no keys and none of the live plugins). Exit 3

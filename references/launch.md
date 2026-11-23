@@ -119,14 +119,22 @@ with `curl --resolve <host>:443:<server ip>` (GET only) before the A record chan
   block, compression and caching.
 - **The live plugin checklist** is RUNBOOK section 4 (`_setup/launch/RUNBOOK.md`), the one list: the profile's
   live plugins from the developer's plugin folder (`plugin_zips`; `plugin-versions.py` in the go/no-go list shows each
-  zip's version), Contact Form CFDB7, Converter for Media (then the images regenerated), the reCAPTCHA v3 keys and
-  the cache plugin (LiteSpeed Cache unless the profile's `cache_plugin` names another), and the leads portal.
-  **Staging** (a public copy before live) gets none of it and no reCAPTCHA keys, and stays noindex (`--hidden`).
+  zip's version; `"where": "live"` ones are installed here first, never on local or staging), Contact Form CFDB7,
+  Converter for Media (then the images regenerated), Redirection when the site has any redirect (every live
+  redirect goes there, never `.htaccess` or theme code), the reCAPTCHA v3 keys on every form and the cache plugin
+  (LiteSpeed Cache unless the profile's `cache_plugin` names another), and the leads portal on every lead form.
+  Live has exactly ACF PRO, Contact Form 7, Yoast SEO and this list (Duplicator until the clean-up), nothing else
+  unless the task asks (site.json `"task_plugins"`): `plugin-check.py --env live` proves it from `wp plugin list`.
+  **Staging** (a public copy before live) gets ACF PRO, Contact Form 7 and Yoast SEO (Redirection if needed), none
+  of the list and no reCAPTCHA keys (`plugin-check.py --env staging`), and stays noindex (`--hidden`).
+- **Clean-up** once live QA is at 0 and the report is done: Duplicator's backups deleted, the plugin deactivated and
+  deleted, its backups folder and any installer or archive gone; `plugin-check.py --env live --done --files`
+  confirms it (RUNBOOK section 5).
 - wp-admin: untick "Discourage search engines"; save permalinks; the reCAPTCHA keys and the ACF licence (the developer
-  types them); tracking set for the live host; Converter for Media and Contact Form CFDB7 installed and active (ask
-  first), then the profile's `extra_plugins` (the `required` ones must be active; a plugin that registers itself with
-  an outside service on activation is activated again once DNS points here); read `debug.log` once; list the live
-  plugins.
+  types them); tracking set for the live host (in the profile's tracking plugin only, when it names one); Converter for
+  Media and Contact Form CFDB7 installed and active (ask first), then the profile's `extra_plugins` (the `required` ones
+  must be active; a plugin that registers itself with an outside service on activation is activated again once DNS
+  points here); read `debug.log` once; list the live plugins.
 - Leads portal (mandatory for a site with a lead form; on the live plugin checklist): the endpoint and key go into
   the live wp-config (the developer pastes them; the theme never sends from local, development or staging),
   `leads-check.py` answers OK, then one TEST lead per form shows in the portal's counts.

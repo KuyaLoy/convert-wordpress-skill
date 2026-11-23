@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Pre-QA self-check: the finding classes a build can catch itself, run before every QA run so QA finds fewer.
 
-    python3 self-check.py <wp_root> [--theme <theme dir>] [--url http://site.test] [-v]
+    python3 self-check.py <wp_root> [--theme <theme dir>] [--url http://site.test]
+                          [--profile <kit>/profile.local.json] [-v]
 
 It checks less than QA does, never instead of QA: the classes that cost a real build 4 QA runs (launch files,
 dead code, field instructions, unsafe casts). Line 1: "OK self-check: 0 found" or "FAIL self-check: <n> found";
@@ -18,6 +19,8 @@ then one line per finding: "<class>: <where>: <what>". Exit 1 when anything is f
   launch         _setup/launch: an unfilled {{TOKEN}}, a doubled www in the host rule, acf-json or readme.html not
                  denied in htaccess-live.txt
   public         with --url: the acf-json files answer 200, or oEmbed shows the author
+  tracking       with --profile naming a tracking plugin (tracking.plugin): the theme loads GTM itself or has ACF
+                 tracking fields (GTM, head or body scripts): tracking goes through that plugin only
 """
 import glob
 import json
@@ -35,6 +38,9 @@ PLAIN_TOKEN = re.compile(r'\b(write|type|shows?|replaced|becomes)\b|\}\s*(=|is\b
 # and a cast wrapped in array_filter() drops the false, so neither is flagged.
 CAST = re.compile(r'(?<!array_filter\( )\(\s*array\s*\)\s*(get_field|get_sub_field|[a-z0-9]+_(field|setting|'
                   r'sub_field))\s*\(')
+GTM_CODE = re.compile(r'googletagmanager\.com/(gtm\.js|ns\.html)|\bGTM-(?!X+\b)[A-Z0-9]{5,}\b')
+TRACK_FIELD = re.compile(r'(^|_)(gtm|tag_manager|tracking|head_scripts?|body_scripts?|header_(code|scripts?)|'
+                         r'footer_(code|scripts?)|analytics)(_|$)', re.I)
 SKIP_DIRS = ('node_modules', 'vendor', 'tests', '.git', 'acf-json', 'starter-removed', 'dist', 'build')
 
 
@@ -181,6 +187,36 @@ def check_public(url, wp_root, theme, out):
         out.append(('public', '/wp-json/oembed/1.0/embed', 'shows the author: drop author_name and author_url'))
 
 
+def check_tracking(theme, profile, out):
+    """With a tracking plugin in the profile, the theme has no tracking of its own."""
+    try:
+        with open(profile, encoding='utf-8') as fh:
+            plugin = str((json.load(fh).get('tracking') or {}).get('plugin') or '').strip()
+    except (OSError, ValueError):
+        return
+    if not plugin:
+        return
+    for p in files(theme, ('.php', '.js')):
+        for n, line in enumerate(read(p).splitlines(), 1):
+            if GTM_CODE.search(line):
+                out.append(('tracking', f"{os.path.relpath(p, theme).replace(os.sep, '/')}:{n}",
+                            f'the theme loads GTM: tracking goes through {plugin} only, remove it'))
+    for p in glob.glob(os.path.join(theme, 'acf-json', '*.json')):
+        try:
+            group = json.loads(read(p))
+        except ValueError:
+            continue
+        stack = list(group.get('fields') or [])
+        while stack:
+            f = stack.pop()
+            if TRACK_FIELD.search(str(f.get('name') or '')):
+                out.append(('tracking', os.path.basename(p), f'ACF tracking field "{f.get("name")}": tracking goes '
+                            f'through {plugin} only, remove the field'))
+            stack += list(f.get('sub_fields') or [])
+            for lay in f.get('layouts') or []:
+                stack += list(lay.get('sub_fields') or [])
+
+
 def status(url):
     try:
         with urllib.request.urlopen(url, timeout=15) as r:
@@ -202,7 +238,7 @@ def fetch(url):
 def main(argv):
     args = [a for a in argv if a != '-v']
     opt = {}
-    for k in ('--theme', '--url'):
+    for k in ('--theme', '--url', '--profile'):
         if k in args:
             i = args.index(k)
             opt[k] = args[i + 1]
@@ -220,6 +256,8 @@ def main(argv):
     check_php(theme, out)
     check_leftovers(theme, out)
     check_launch(wp_root, out)
+    if opt.get('--profile'):
+        check_tracking(theme, opt['--profile'], out)
     if opt.get('--url'):
         check_public(opt['--url'], wp_root, theme, out)
     classes = sorted({c for c, _, _ in out})

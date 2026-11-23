@@ -97,6 +97,7 @@ The fields:
 | `phone_display`, `phone_tel`, `email`, `gtm` | Business details and the GTM container |
 | `font_links` | The static `<head>`'s font `<link>` tags, exactly |
 | `lead.to`, `lead.bcc`, `lead.from` | Lead email recipients and sender |
+| `cache_plugin`, `task_plugins` | The live cache plugin when not the profile's (`"none"` when the host caches); plugins the task asks for beyond the kit's list (names or `{"name", "slug", "where"}`) |
 
 The profile (`profile.local.json` next to SKILL.md, never committed; start from `profile.example.json`) holds the
 developer's or agency's defaults: `level` (`new` or `developer`), `oks` (`group` or `each`), Bcc list, task
@@ -275,7 +276,7 @@ ACF PRO, Contact Form 7 and Yoast SEO, installed by install-wp.py in P1 (the Pla
 | Duplicator | `duplicator` (free), or Pro from the developer's zip | The move to live (launch) |
 | Converter for Media | `webp-converter-for-media` | Must be on live: WebP for images uploaded later (installed at launch, live only; check images after) |
 | Contact Form CFDB7 | `contact-form-cfdb7` | Must be on live: every enquiry kept in the database (installed at launch, live only) |
-| The profile's `extra_plugins` | per entry | The developer's or agency's own plugins: `required` ones in P1 with the starters and active on live; the others when the entry says |
+| The profile's `extra_plugins` | per entry | The developer's or agency's own plugins: `required` ones with `"where": "all"` (or no `where`) in P1 with the starters and active on live; `"where": "live"` ones at launch only, never local or staging; the others when the entry says |
 
 - After every plugin install: read `wp-content/debug.log`. A second copy of a plugin gives "Cannot redeclare"
   fatals.

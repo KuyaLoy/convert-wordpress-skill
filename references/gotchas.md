@@ -173,6 +173,14 @@ Each was found late on a design-sourced build and forced a rework (`references/s
   cPanel block need restoring (launch.md).
 - Duplicator Pro keeps the installer as `*_installer.php.bak` in its backups folder (rename on upload), and its
   template property for the installer password is spelled `installerPassowrd`.
+- Deactivating Duplicator (Pro) leaves its backups, archive and installer included, in `wp-content/backups-dup-pro/`
+  (`backups-dup-lite/` for the free one): delete the backups in Duplicator first, then the plugin, then check the
+  folder is gone (`plugin-check.py --env live --done --files`). An inactive plugin still counts as installed.
+- A staging copy with a live-only plugin acts as if it were live: a cache plugin serves stale pages to the testers,
+  CFDB7 keeps test leads, and a plugin that registers itself with an outside service on activation registers the
+  staging address. Staging gets ACF PRO, Contact Form 7 and Yoast SEO only (`plugin-check.py --env staging`).
+- A tracking plugin and a theme that both load the same GTM container count every page view twice: with a
+  tracking plugin in the profile, the theme has no tracking fields and no GTM (`self-check.py --profile`).
 - After the DNS switch, the developer's own browser can keep the old IP for up to the old TTL (Chrome has its own
   cache: chrome://net-internals/#dns, Clear host cache). Phones on mobile data see the new site first.
 - A local site with the live leads key sends its test submissions to the live leads portal: keep lead forwarding

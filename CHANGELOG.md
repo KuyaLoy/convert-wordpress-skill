@@ -5,6 +5,36 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.9.11] - 2026-11-23
+
+The default plugin stack per environment: live gets exactly the kit's list, staging and local none of the
+live-only plugins, and Duplicator goes once live QA is at 0.
+
+### Added
+
+- **`scripts/report/plugin-check.py`**: the site's plugins (from `wp plugin list --format=json`, CSV, or the
+  Plugins screen one per line) against the list for `--env local|staging|live`. FAIL lines: missing, inactive, not
+  on the list, a live-only plugin on staging or local, ACF PRO and Secure Custom Fields together. `--done` (after
+  live QA is at 0 and the report is done): Duplicator (Pro) must be deleted, not only deactivated; `--files` flags
+  installer and archive leftovers, and with `--done` the Duplicator backups folder. `--expected` prints the plan.
+- The list: ACF PRO, Contact Form 7, Yoast SEO everywhere; Redirection when the site has any redirect (required on
+  live, allowed on local and staging); Contact Form CFDB7, Converter for Media, the cache plugin (LiteSpeed Cache
+  by default) and the profile's live-only plugins on live only; site.json `"task_plugins"` adds what the task asks
+  for, `"cache_plugin": "none"` when the host caches by itself.
+- **`extra_plugins` "where"** in the profile: `"live"` = installed at launch, on the live checklist, never local
+  or staging; `"all"` (the default for a `required` one) = P1 setup and live. `"slug"` = the plugin's folder name.
+- **self-check.py `--profile`**, class `tracking`: when the profile names a tracking plugin, the theme loading GTM
+  or an ACF tracking field (GTM, head or body scripts) is a finding: tracking goes through that plugin only.
+
+### Changed
+
+- RUNBOOK section 4: live has exactly the list and nothing else unless the task asks; every live redirect in the
+  Redirection plugin (never `.htaccess` or theme code); reCAPTCHA active on every form; the plugin check after the
+  checklist; tracking through the profile's tracking plugin only, when it names one. Staging: the three core
+  plugins (Redirection if needed). Section 5: the Duplicator clean-up (backups, plugin, folder, then `--done`).
+- Docs: wordpress-essentials.md (the plugin table per environment), launch.md, seo-security.md, setup.md,
+  qa-report.md, phases-and-qa.md, SKILL.md, profile.example.json, gotchas.md.
+
 ## [0.9.10] - 2026-11-23
 
 The lead email's attribution is the "Lead source" table an existing company build already sends.

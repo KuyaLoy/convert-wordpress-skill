@@ -58,14 +58,17 @@ static page (the parity SEO diff).
 - The seeder writes them into the Redirection plugin (editable in Tools > Redirection): 301, query strings passed
   on, case and trailing slash ignored, permalink monitor on, logs on, no IP logging. A source that already has a rule
   is left as it is.
-- `.htaccess` does only host rules (http and www to https non-www in one hop).
+- `.htaccess` does only host rules (http and www to https non-www in one hop). Every redirect on live is in the
+  Redirection plugin, never in `.htaccess` or theme code; local and staging get Redirection only when needed.
 - Check every old URL locally, and again on live (live-qa.py).
 
 ## Tracking
 
 - GTM as the tracking task asks: the head snippet at the top of `<head>` (right after the required meta tags) and
   the noscript right after `<body>`, on every page including `/thank-you/`. A tracking plugin or the theme's
-  `wp_head` priority 0 and `wp_body_open`; the profile says which.
+  `wp_head` priority 0 and `wp_body_open`; the profile says which. When the profile names a tracking plugin
+  (`tracking.plugin`), it is the only way: no ACF tracking fields or options page and no GTM in the theme
+  (`self-check.py --profile` flags both); the plugin goes on live only and is filled from the tracking task.
 - Conversions fire on the thank-you page only; prove it with `track.mjs` on live. The kit pushes `generate_lead`
   there once per sent form (`form_name`, `lead_source`, `lead_medium`; references/forms-email.md > Where the lead
   came from): a GA4 or Ads tag can use it instead of the page view.

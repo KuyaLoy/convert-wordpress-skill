@@ -83,35 +83,57 @@ Plan about 2 hours on a quiet day (not Friday). The developer does the hosting s
    - [ ] `wp search-replace 'http://{{LIVE_HOST}}' 'https://{{LIVE_HOST}}' --all-tables` (links saved over http).
    - [ ] `wp db search '[a-z0-9-]+\.test|localhost' --all-tables --regex` finds nothing (no WP-CLI: the same search in
          phpMyAdmin); live-qa.py's "local" check (section 5) finds no local host on any page.
-3. **The live plugin checklist** (the one list; live only, staging gets none of it). Each installed and active:
+3. **The live plugin checklist** (the one list; live only, staging gets none of it). Live has exactly ACF PRO,
+   Contact Form 7, Yoast SEO, the plugins below and Duplicator until the clean-up (section 5), nothing else unless
+   the task asks for it (site.json "task_plugins"). Each installed and active:
 {{LIVE_PLUGINS}}
    - [ ] Contact Form CFDB7 (every enquiry kept in wp-admin).
    - [ ] Converter for Media (WebP and AVIF): then regenerate the images and check a few pages.
 <!-- if:redirects -->
-   - [ ] Redirection: Tools > Redirection, import `_setup/seed/redirects.json` (the real list, not the sample).
+   - [ ] Redirection: Tools > Redirection, import `_setup/seed/redirects.json` (the real list, not the sample). Every
+         live redirect goes here, never in `.htaccess` (host rules only) or theme code.
 <!-- /if:redirects -->
-   - [ ] reCAPTCHA v3: Contact > Integration > reCAPTCHA, the keys for {{LIVE_HOST}} (the developer pastes them).
+   - [ ] reCAPTCHA v3: Contact > Integration > reCAPTCHA, the keys for {{LIVE_HOST}} (the developer pastes them),
+         active on every form: the test leads in section 5 go through with it.
    - [ ] {{LEADS_ITEM}}
    - [ ] {{CACHE_PLUGIN}} (the cache plugin): page cache and browser cache on; CSS and JS options one at a time, each
          followed by a parity spot check and `live-qa.py` (anything that changes a pixel or breaks a form goes off
          again); purge everything after "Discourage search engines" is unticked.
-   Profile plugins come only from the developer's plugin folder (`plugin_zips`), never downloaded elsewhere. Tick
-   each in Plugins (or `wp plugin list --status=active`); live-qa.py checks the reCAPTCHA script on the form pages.
+   Profile plugins come only from the developer's plugin folder (`plugin_zips`), never downloaded elsewhere. Prove
+   the list: `wp plugin list --format=json --fields=name,status,title` on the server (or the Plugins screen, one
+   per line) saved as `_plan/live-plugins.json`, then
+   `python3 _plan/tools/report/plugin-check.py _plan/site.json --env live --profile <kit>/profile.local.json --list _plan/live-plugins.json`
+   says OK (missing, inactive or extra plugins are a FAIL). live-qa.py checks the reCAPTCHA script on the form pages.
 <!-- if:tracking -->
+<!-- if:trackplugin -->
+4. Tracking goes through {{TRACKING_WHERE}} only (the profile's tracking plugin): the Google Tag Manager ID
+   {{GTM_ID}} goes in it, on live only. The theme has no tracking fields and loads no GTM of its own
+   (`self-check.py --profile` flags it), so the container loads once.
+<!-- /if:trackplugin -->
+<!-- unless:trackplugin -->
 4. Tracking: the Google Tag Manager ID {{GTM_ID}} goes where this build loads it ({{TRACKING_WHERE}}), on live
    only (local and staging stay empty). If a tracking plugin loads the same container, leave the theme's setting
    empty so it loads once.
+<!-- /unless:trackplugin -->
 <!-- /if:tracking -->
 <!-- unless:tracking -->
+<!-- if:trackplugin -->
+4. Tracking: {{TRACKING_WHERE}} is installed and stays empty until the tracking task brings the GTM ID or the
+   numbers; tracking goes through it only (no tracking fields or GTM in the theme).
+<!-- /if:trackplugin -->
+<!-- unless:trackplugin -->
 4. Tracking: none in this build (site.json "gtm" is empty). If the tracking task brings an ID, add it here first.
+<!-- /unless:trackplugin -->
 <!-- /unless:tracking -->
 5. ACF > Updates: the ACF PRO licence active (the developer). The ACF menu must show (never hide it on live).
 6. Read `wp-content/debug.log` once (a second copy of a plugin gives "Cannot redeclare" fatals); list the live
    plugins for the handoff.
 7. Users: the client's own login (Editor role) if they edit; never share the admin account.
 
-**Staging** (a public copy before live, when the build has one): none of the live plugin checklist and no reCAPTCHA
-keys; it stays noindex (`live-qa.py --hidden`).
+**Staging** (a public copy before live, when the build has one): ACF PRO, Contact Form 7 and Yoast SEO only
+(<!-- if:redirects -->Redirection for the redirects, <!-- /if:redirects -->Duplicator for the move); none of the live
+plugin checklist and no reCAPTCHA keys (`plugin-check.py ... --env staging` says OK); it stays noindex
+(`live-qa.py --hidden`).
 
 ## 5. Checks (references/qa-report.md has the full list)
 
@@ -146,6 +168,14 @@ keys; it stays noindex (`live-qa.py --hidden`).
 - [ ] Next 30 days: Search Console > Pages > Not found weekly; an old URL that is really used gets planned as a
       redirect (the Redirection plugin then joins the live plugins).
 <!-- /unless:redirects -->
+
+**Clean-up, after live QA is at 0 and the report is done** (Duplicator is not needed any more):
+- [ ] Duplicator > Backups: delete every backup; then Plugins: deactivate and delete Duplicator (Pro).
+- [ ] File Manager: `wp-content/backups-dup-pro/` (or `backups-dup-lite/`, `duplicator-backups/`) and any installer
+      or archive file in `public_html` deleted.
+- [ ] `plugin-check.py _plan/site.json --env live --profile <kit>/profile.local.json --list _plan/live-plugins.json
+      --files _plan/live-files.txt --done` says OK with a fresh plugin list and `ls -a ~/public_html
+      ~/public_html/wp-content` saved as `_plan/live-files.txt` ("Duplicator gone").
 
 ## 6. Rollback (a check fails and cannot be fixed quickly)
 

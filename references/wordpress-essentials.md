@@ -23,17 +23,23 @@ section names. `<kit>` is this skill's folder; in a project the tools are in `_p
 
 | Plugin | Slug | Where | When |
 |---|---|---|---|
-| ACF PRO | `advanced-custom-fields-pro` (the developer's zip, profile `plugin_zips.acf_pro`) | local and live | Setup (default; Secure Custom Fields `secure-custom-fields` only if the developer asks) |
-| Contact Form 7 | `contact-form-7` | local and live | Setup |
-| Yoast SEO | `wordpress-seo` | local and live | Setup; seeded in the SEO phase |
-| Redirection | `redirection` | local and live | Only when the site has old URLs to redirect |
-| Duplicator (Pro) | `duplicator` or the developer's Pro zip | local | The move to live |
+| ACF PRO | `advanced-custom-fields-pro` (the developer's zip, profile `plugin_zips.acf_pro`) | local, staging, live | Setup (default; Secure Custom Fields `secure-custom-fields` only if the developer asks) |
+| Contact Form 7 | `contact-form-7` | local, staging, live | Setup |
+| Yoast SEO | `wordpress-seo` | local, staging, live | Setup; seeded in the SEO phase |
+| Redirection | `redirection` | local and staging only if needed; live when the site has any redirect | Every live redirect goes here (never `.htaccess`, which keeps the host rules, or theme code) |
+| Duplicator (Pro) | `duplicator` or the developer's Pro zip | local; live until the clean-up | The move to live; deleted with its backups once live QA is at 0 and the report is done |
 | Converter for Media | `webp-converter-for-media` | **live only** | Installed at launch: WebP for images uploaded later |
 | Contact Form CFDB7 | `contact-form-cfdb7` | **live only** | Installed at launch: every enquiry kept in the database |
-| LiteSpeed Cache (or the profile's `cache_plugin`) | wordpress.org | live (not staging) | The default cache plugin on live; its CSS/JS options only one at a time, with a parity check (Speed, below) |
-| The profile's `extra_plugins` | per entry | per entry | `required` ones in Setup and on live; others when the entry says |
+| LiteSpeed Cache (or the profile's `cache_plugin`) | wordpress.org | **live only** | The default cache plugin on live; its CSS/JS options only one at a time, with a parity check (Speed, below) |
+| The profile's `extra_plugins` | per entry | `"where": "live"`: **live only**; `"all"` (or `required` without `where`): everywhere | `required` ones: Setup (`all`) or launch (`live`), and active on live; others when the entry says |
 
-Never ACF PRO and Secure Custom Fields active together. Read `wp-content/debug.log` after every install.
+Live has exactly this list (Duplicator only until the clean-up) and nothing else unless the task asks for it
+(site.json `"task_plugins"`: names or `{"name", "slug", "where"}`). `scripts/report/plugin-check.py` proves it per
+environment from `wp plugin list` (missing, inactive, extra, a live-only plugin on staging, Duplicator left after
+the clean-up). reCAPTCHA v3 and the leads portal are on every live lead form, proven by one TEST lead per form.
+When the profile names a tracking plugin (`tracking.plugin`), tracking goes through it only: no ACF tracking fields
+or options, no GTM in the theme (`self-check.py --profile` flags both). Never ACF PRO and Secure Custom Fields
+active together. Read `wp-content/debug.log` after every install.
 Details: `references/setup.md` > Starter plugins, `references/launch.md` > After the installer.
 
 ## Local setup in one go

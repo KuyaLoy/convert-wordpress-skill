@@ -253,13 +253,16 @@ values = {
     'GTM_ID': site.get('gtm', ''),
     # The live cache plugin (RUNBOOK section 4): LiteSpeed Cache unless the profile or site.json names another.
     'CACHE_PLUGIN': str(site.get('cache_plugin') or profile.get('cache_plugin') or 'LiteSpeed Cache'),
-    # The live plugin checklist's own lines (RUNBOOK section 4): the profile's extra_plugins marked "live" (or
-    # "required"), each from its zip in plugin_zips.
+    # The live plugin checklist's own lines (RUNBOOK section 4): the profile's extra_plugins that must be on live
+    # ("required" or "live", with "where" "live" or "all"), each from its zip in plugin_zips. "where": "live" ones
+    # are installed here at launch and never on local or staging.
     'LIVE_PLUGINS': '\n'.join(
         f"   - [ ] {p.get('name', '?')}: from your plugin folder"
         + (f" (`plugin_zips.{p['zip']}`)" if p.get('zip') else '')
+        + (' (live only: never local or staging)' if str(p.get('where', '')).lower() == 'live' else '')
         + (f"; {p['live_note']}" if p.get('live_note') else '') + '.'
-        for p in profile.get('extra_plugins', []) if isinstance(p, dict) and p.get('live', p.get('required'))
+        for p in profile.get('extra_plugins', []) if isinstance(p, dict) and (p.get('required') or p.get('live'))
+        and str(p.get('where') or 'live').lower() in ('live', 'all')
     ) or '   - (no live plugins of your own in the profile)',
     'LEAD_TO': lead.get('to', ''),
     'LEAD_BCC': ', '.join(lead.get('bcc', [])),
@@ -286,7 +289,7 @@ else:
                             '"none: <reason>".')
 
 
-FLAGS = {}  # filled below, before the first fill(): redirects, tracking, forms, portal, chat, blog, www
+FLAGS = {}  # filled below, before the first fill(): redirects, tracking, forms, portal, chat, blog, www, trackplugin
 
 
 def fill(text):
@@ -362,7 +365,7 @@ def old_urls_planned():
 
 
 FLAGS.update(redirects=old_urls_planned(), tracking=TRACKING, forms=bool(FORMS), chat=CHAT, blog=BLOG, www=WWW,
-             portal=not NO_PORTAL.lower().startswith('none'))
+             portal=not NO_PORTAL.lower().startswith('none'), trackplugin=bool(_tracking.get('plugin')))
 if site.get('redirects') is False and FLAGS['redirects']:
     notes.append('site.json says "redirects": false, but _plan/OLD-SITE-URLS.md lists 301 rows: the launch files '
                  'include the Redirection steps')

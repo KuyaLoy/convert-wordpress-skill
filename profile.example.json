@@ -46,15 +46,16 @@
     "method": "GTM container in the head and the noscript after <body>",
     "plugin": ""
   },
-  "_extra_plugins_about": "Plugins of your own or your agency's, on top of the kit's defaults (ACF PRO, Contact Form 7, Yoast SEO; Redirection if needed; Duplicator Pro; Converter for Media and Contact Form CFDB7 on live). \"required\": true = installed in P1 setup with the starter plugins and kept active on live; the others when their \"when\" says. Never installed without an OK. \"live\": true = on the live plugin checklist (RUNBOOK section 4; staging gets none); \"zip\" = its key in plugin_zips (installed only from your plugin folder); \"live_note\" = one line for that checklist.",
+  "_extra_plugins_about": "Plugins of your own or your agency's, on top of the kit's defaults (ACF PRO, Contact Form 7, Yoast SEO everywhere; Redirection when the site has redirects; Duplicator Pro for the move, deleted after live QA; Converter for Media, Contact Form CFDB7 and the cache plugin on live only). \"required\": true = must be there and active wherever it goes. \"where\": \"live\" = live only: installed at launch, on the live plugin checklist (RUNBOOK section 4), never local or staging; \"all\" (the default for a required one) = installed in P1 setup with the starter plugins and kept active on live. Without either, it is installed when its \"when\" says. Never installed without an OK. \"slug\" = its folder name in wp-content/plugins (plugin-check.py matches by it, else by the name); \"zip\" = its key in plugin_zips (installed only from your plugin folder); \"live_note\" = one line for that checklist. A tracking plugin named in tracking.plugin is the only tracking: no tracking fields or GTM in the theme.",
   "extra_plugins": [
     {
       "name": "Your agency's plugin",
-      "required": false,
+      "slug": "agency-plugin",
+      "required": true,
+      "where": "live",
       "why": "what it does",
-      "when": "P1 setup, live, or a later task",
+      "when": "launch (live only)",
       "source": "where it comes from (a zip path, or the developer installs it)",
-      "live": true,
       "zip": "agency_plugin",
       "live_note": "what to check on live"
     }

@@ -121,7 +121,7 @@ leads portal; a skill update during a task applies at the next site or phase bou
 python3 _plan/tools/build-map/gate.py BUILD-MAP.md           # 0 may close, 1 open items listed, 2 a rule broken
 python3 _plan/tools/build-map/gate.py BUILD-MAP.md --close   # opens the next phase
 python3 _plan/tools/build-map/render.py BUILD-MAP.md _plan/progress.html   # progress page + progress.json
-python3 _plan/tools/report/self-check.py <wp_root> --url <local url>      # before every QA run
+python3 _plan/tools/report/self-check.py <wp_root> --url <local url> --profile <kit>/profile.local.json  # before every QA run
 ```
 
 Run gate.py at the start of every session. Write `ok <date>` in "Developer gates" only after the developer says it
@@ -206,10 +206,11 @@ review); never for anything else.
    removed, Contact Form 7 and Yoast SEO (checksums) and ACF PRO from the profile's zip, all active. `--dry-run`
    shows the steps first. Exit 1 lists open items (no ACF PRO zip or local password yet: the developer adds them to
    the profile, then run it again). ACF PRO activates itself when the profile has `acf_pro_license`; otherwise the
-   developer pastes the licence. The business's language and date
-   formats in Settings. Profile `extra_plugins` marked `required` go in here too. **The ACF menu shows** to
-   administrators, on live too. Converter for Media and Contact Form CFDB7 are not installed locally: they go on
-   live at launch. The separate scripts (`references/setup.md`) stay for a step that needs repeating.
+   developer pastes the licence. The business's language and date formats in Settings. Profile `extra_plugins` marked
+   `required` go in here too, except `"where": "live"` ones (launch only). **The ACF menu shows** to administrators, on
+   live too. Converter for Media, Contact Form CFDB7 and the cache plugin are not installed locally or on staging: they
+   go on live at launch (references/wordpress-essentials.md > Plugins: the list per environment). The separate scripts
+   (`references/setup.md`) stay for a step that needs repeating.
 2. **P1-02 Theme.** Get the starter into `wp-content/themes/<theme>/`: Barebones
    (github.com/benchmarkstudios/barebones) for plain CSS, or _tw generated with the slug and prefix (`wp scaffold
    _tw <theme> --theme_name="<Site>" --prefix=<prefix>`, or underscoretw.com) for Tailwind. Then
@@ -356,6 +357,7 @@ developer fills; the agent never types a password). Details: `references/qa-repo
 | `scripts/report/leads-check.py` | The leads portal endpoint and key with a GET (stores nothing; the key never printed) |
 | `scripts/launch/lead-source-plugin.py` | The Lead source table and form attribution as a must-use plugin for a WordPress site the kit did not build |
 | `scripts/launch/plugin-versions.py` | Go/no-go: each plugin zip in the profile's folder with its version and file date |
+| `scripts/report/plugin-check.py` | The plugins per environment (local, staging, live) against the kit's list; `--done`: Duplicator gone after live QA |
 | `scripts/acf/build_field_groups.py`, `sync.php` | ACF JSON, stable keys (`--check`); database sync |
 | `scripts/seed/export.mjs`, `export-pages.py` | Static content into `_setup/seed/` for Tools > Seeder |
 | `scripts/build-map/gate.py`, `render.py`, `live.py` | The phase gate; the private progress page, static and live (the database rows) |
