@@ -6,22 +6,23 @@
  * Settings (window.kitwpAttributionConfig): days (how long the first visit is kept, KITWP_ATTRIBUTION_DAYS; 0 =
  * this visit only), consent (KITWP_ATTRIBUTION_CONSENT) and thankYou (the thank-you page's address).
  *
- * Consent: the first visit goes to localStorage only when the site has no consent banner, or once the visitor
+ * Consent: the two visits go to localStorage only when the site has no consent banner, or once the visitor
  * accepted. "auto" reads Google Consent Mode from the dataLayer: a page that sets a consent default has a banner;
  * ad_storage or analytics_storage "granted" (default or update) is an accept, an update with neither granted a
  * decline. "banner": the site's banner (one without Consent Mode) calls window.kitwpConsent(true or false) when the
  * visitor chooses and on each page with the stored choice (or dispatches a "kitwp:consent" event with detail true or
  * false). "none": no banner. Until an accept, and after a decline, only this visit is kept (sessionStorage, gone
- * with the visit), and a decline removes a stored first visit. The form still gets this visit's values: the visitor
+ * with the visit), and a decline removes the stored visits. The form still gets this visit's values: the visitor
  * sends them with the form.
  *
- * Last touch, per visit (sessionStorage): the campaign tags (utm_source, utm_medium, utm_campaign, utm_term,
- * utm_content) and ad click ids (gclid, gbraid, wbraid, fbclid, msclkid) the visit came with, its first page and
- * the other site that sent it; a new campaign link within the visit replaces them. First touch (localStorage, kept
- * `days`): the first visit's source, medium, campaign, page, referrer and date. Addresses keep host and path only.
- * Each form gets them as hidden fields (utm_*, gclid..., landing_page, referrer, first_source, first_medium,
- * first_campaign, first_landing_page, first_referrer, first_seen). window.kitwpAttribution() returns them (the
- * chat widget adds them to its post). After a form is sent, the thank-you page pushes one generate_lead event to
+ * Two visits, as an existing company build keeps them: the first visit (kept `days`), and the latest campaign visit
+ * (the last one that came with campaign tags, an ad click id or from another website). Each holds the campaign tags
+ * (utm_source, utm_medium, utm_campaign, utm_term, utm_content), ad click ids (gclid, gbraid, wbraid, fbclid,
+ * msclkid), its first page, the other site that sent it and its time (UTC). Addresses keep host and path only.
+ * Each form gets them as hidden fields: the latest campaign visit as utm_*, the click ids, landing_page, referrer,
+ * last_seen; the first visit as first_source, first_medium, first_campaign, first_term, first_content,
+ * first_gclid ... first_msclkid, first_landing_page, first_referrer, first_seen. window.kitwpAttribution()
+ * returns them (the chat widget adds them to its post). After a form is sent, the thank-you page pushes one generate_lead event to
  * the dataLayer with the form's name, source and medium (a refresh or a direct visit pushes nothing).
  */
 (function () {
@@ -89,13 +90,12 @@
 	var session = storage('sessionStorage');
 	var local = days > 0 ? storage('localStorage') : null;
 
-	var last = get(session, 'kitwp_attr_last');
-	if (!last || campaign) {
-		last = arrived;
-		last.landing_page = page(window.location.href);
-		last.referrer = otherSite(document.referrer);
-		put(session, 'kitwp_attr_last', last);
-	}
+	// This page view as a visit; it counts as a campaign visit when it came with tags, a click id or from another site.
+	var here = { t: now, landing: page(window.location.href), referrer: otherSite(document.referrer) };
+	Object.keys(arrived).forEach(function (k) {
+		here[k] = arrived[k];
+	});
+	var tagged = campaign || !!here.referrer;
 	var mode = c.consent === 'banner' || c.consent === 'none' ? c.consent : 'auto';
 	var choice = null; // the banner's answer through window.kitwpConsent(): true or false
 	// Google Consent Mode in the dataLayer: null when the page sets none, else 'yes', 'no' or 'pending'.
@@ -135,29 +135,43 @@
 		return !!local && (s === 'free' || s === 'yes');
 	}
 
-	var first = (mayKeep() && get(local, 'kitwp_attr_first')) || get(session, 'kitwp_attr_first');
-	if (!first || !first.t || (days > 0 && now - first.t > days * 864e5)) {
-		first = {
-			t: now,
-			source: arrived.utm_source || '',
-			medium: arrived.utm_medium || '',
-			campaign: arrived.utm_campaign || '',
-			landing: page(window.location.href),
-			referrer: otherSite(document.referrer),
-		};
-	}
-	put(session, 'kitwp_attr_first', first);
-	// Apply the visitor's current choice: keep the first visit after an accept, drop it after a decline.
-	function sync() {
-		if (mayKeep()) {
-			put(local, 'kitwp_attr_first', first);
-		} else if (local && consent() === 'no') {
-			try {
-				local.removeItem('kitwp_attr_first');
-			} catch (e) {
-				// blocked: nothing was stored
-			}
+	function fresh(v) {
+		if (!v || !v.t || (days > 0 && now - v.t > days * 864e5)) {
+			return null;
 		}
+		if (v.source !== undefined && !v.utm_source) {
+			// kept by 0.9.9: source, medium, campaign
+			v.utm_source = v.source;
+			v.utm_medium = v.medium;
+			v.utm_campaign = v.campaign;
+		}
+		return v;
+	}
+	function load(key) {
+		return fresh((mayKeep() && get(local, key)) || get(session, key));
+	}
+	var first = load('kitwp_attr_first') || here;
+	var last = tagged ? here : load('kitwp_attr_last');
+	put(session, 'kitwp_attr_first', first);
+	if (last) {
+		put(session, 'kitwp_attr_last', last);
+	}
+	// Apply the visitor's current choice: keep both visits after an accept, drop them after a decline.
+	function sync() {
+		[
+			['kitwp_attr_first', first],
+			['kitwp_attr_last', last],
+		].forEach(function (p) {
+			if (mayKeep() && p[1]) {
+				put(local, p[0], p[1]);
+			} else if (local && consent() === 'no') {
+				try {
+					local.removeItem(p[0]);
+				} catch (e) {
+					// blocked: nothing was stored
+				}
+			}
+		});
 	}
 	sync();
 	window.kitwpConsent = function (accepted) {
@@ -168,25 +182,38 @@
 		window.kitwpConsent(e && e.detail);
 	});
 
+	function stamp(t) {
+		return new Date(t).toISOString().slice(0, 16).replace('T', ' '); // UTC
+	}
 	function fields() {
 		var f = {};
-		TAGS.concat(CLICKS, ['landing_page', 'referrer']).forEach(function (k) {
-			if (last[k]) {
-				f[k] = last[k];
+		var keys = TAGS.concat(CLICKS);
+		if (last) {
+			keys.forEach(function (k) {
+				if (last[k]) {
+					f[k] = last[k];
+				}
+			});
+			if (last.landing) {
+				f.landing_page = last.landing;
+			}
+			if (last.referrer) {
+				f.referrer = last.referrer;
+			}
+			f.last_seen = stamp(last.t);
+		}
+		keys.forEach(function (k) {
+			if (first[k]) {
+				f['first_' + k.replace('utm_', '')] = first[k];
 			}
 		});
-		[
-			['first_source', first.source],
-			['first_medium', first.medium],
-			['first_campaign', first.campaign],
-			['first_landing_page', first.landing],
-			['first_referrer', first.referrer],
-		].forEach(function (p) {
-			if (p[1]) {
-				f[p[0]] = p[1];
-			}
-		});
-		f.first_seen = new Date(first.t).toISOString().slice(0, 10);
+		if (first.landing) {
+			f.first_landing_page = first.landing;
+		}
+		if (first.referrer) {
+			f.first_referrer = first.referrer;
+		}
+		f.first_seen = stamp(first.t);
 		return f;
 	}
 	window.kitwpAttribution = fields;

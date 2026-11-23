@@ -192,7 +192,8 @@ class LeadsPortal(unittest.TestCase):
         code += php_function(forms, 'kitwp_leads_tracking') + php_function(forms, 'kitwp_leads_send')
         code += php_function(forms, 'kitwp_leads_allowed_fields')
         code += php_function('assets/theme/includes/forms.php', 'kitwp_lead_fields')
-        for name in ('kitwp_attribution_fields', 'kitwp_attribution_url', 'kitwp_attribution_clean'):  # 0.9.9
+        for name in ('kitwp_attribution_fields', 'kitwp_attribution_touch', 'kitwp_attribution_url',
+                     'kitwp_attribution_clean'):  # 0.9.9
             code += php_function('assets/theme/includes/forms-attribution.php', name)
         code += '\n'.join(hooks) + '\n'
         code += ''.join(f"do_action( '{e}', new Kit_Form() );\n" for e in events)

@@ -125,32 +125,41 @@ seeder refuses an email file that is not a full HTML document and reports a form
 On every lead form by default, no plugin, nothing to set up (`includes/forms-attribution.php`,
 `assets/attribution.js`):
 
-- **Browser, first party only:** the campaign tags (utm_source, utm_medium, utm_campaign, utm_term, utm_content)
-  and ad click ids (gclid, gbraid, wbraid, fbclid, msclkid) the visit came with, its first page and the other site
-  that sent it: the last touch, per visit (sessionStorage; a new campaign link replaces it). The first visit's
-  source, medium, campaign, page, referrer and date: the first touch, kept `KITWP_ATTRIBUTION_DAYS` (90; 0 = this
-  visit only, for a site whose consent rules allow no stored data before consent). Addresses keep host and path,
-  never the query. Nothing leaves the browser until the visitor sends a form; nothing goes to a third party.
+- **Browser, first party only:** two visits, as an existing company build keeps them: the **first visit** (kept
+  `KITWP_ATTRIBUTION_DAYS`, 90; 0 = this visit only, for a site whose consent rules allow no stored data before
+  consent) and the **latest campaign visit** (the last one that came with campaign tags, an ad click id or from
+  another website). Each: the campaign tags (utm_source, utm_medium, utm_campaign, utm_term, utm_content), ad click
+  ids (gclid, gbraid, wbraid, fbclid, msclkid), its first page, the site that sent it, its time (UTC). Addresses
+  keep host and path, never the query. Nothing leaves the browser until the visitor sends a form; nothing goes to
+  a third party.
 - **Consent:** with a consent banner, the first visit goes to localStorage only after the visitor accepts (ads or
   analytics, as the banner defines); until then, and after a decline, only this visit is kept (sessionStorage,
-  gone with the visit), and a decline removes a stored first visit. `KITWP_ATTRIBUTION_CONSENT` "auto" reads Google
+  gone with the visit), and a decline removes the stored visits. `KITWP_ATTRIBUTION_CONSENT` "auto" reads Google
   Consent Mode from the dataLayer; "banner" for a banner without Consent Mode, which calls
   `window.kitwpConsent(true | false)` when the visitor chooses and on each page with the stored choice; "none": no
   banner, stored as above.
-- **Hidden fields on every CF7 form** (the chat's post too): `utm_source`, `utm_medium`, `utm_campaign`, `utm_term`,
-  `utm_content`, `gclid`, `gbraid`, `wbraid`, `fbclid`, `msclkid`, `landing_page`, `referrer`, `first_source`,
-  `first_medium`, `first_campaign`, `first_landing_page`, `first_referrer`, `first_seen`.
+- **Hidden fields on every CF7 form** (the chat's post too). The latest campaign visit: `utm_source`,
+  `utm_medium`, `utm_campaign`, `utm_term`, `utm_content`, `gclid`, `gbraid`, `wbraid`, `fbclid`, `msclkid`,
+  `landing_page`, `referrer`, `last_seen`. The first visit: `first_source`, `first_medium`, `first_campaign`,
+  `first_term`, `first_content`, `first_gclid`, `first_gbraid`, `first_wbraid`, `first_fbclid`, `first_msclkid`,
+  `first_landing_page`, `first_referrer`, `first_seen`. Times: "YYYY-MM-DD HH:MM" UTC.
 - **Checked on the server** as CF7 reads the post (`wpcf7_posted_data`): only those names, scalar, cleaned, capped
-  (500 for the addresses, 10 for the date, 200 for the rest), http(s) addresses only; the rest is dropped. Without
+  (500 for the addresses, 16 for the times, 200 for the rest), http(s) addresses only; the rest is dropped. Without
   JavaScript the form page's own address (the Referer) still gives its campaign tags and click ids. Reporting only:
   never used to decide anything about a lead.
-- **Everywhere the lead goes:** the lead email's "Where this lead came from" row (`[_kitk_source]`: source / medium,
-  campaign, keyword, ad content, ad click, referrer, landing page, first visit; "Direct" when no campaign, ad click
-  or other site sent the visitor), Contact Form CFDB7 (it stores the posted fields), the leads portal (the same
-  names as fields; `gclid` from the visit), and the dataLayer: on /thank-you/, once per sent form, `generate_lead`
-  with `form_name` (the CF7 form's title), `lead_source` and `lead_medium`. A refresh pushes nothing.
+- **Everywhere the lead goes:** the lead email's **Lead source** table under the details (`[_kitk_source]`,
+  `includes/forms-lead-source.php`): a title row in the email's brand colour, then "First visit", "Latest campaign
+  visit" (only when it differs from the first) and "Form sent from" (the page). Each visit starts with its source in
+  words (bold): utm_source / utm_medium; else "Google Ads click", "Facebook / Instagram click", "Microsoft Ads
+  click"; else "Google search", "Bing search", "Yahoo search", "DuckDuckGo search" or "<site> (link)"; else "Direct
+  (typed in, bookmark or no source)"; then Campaign, Keyword, Ad, the click ids, From, Landing page, "When: ... UTC".
+  No page-script data: "Not recorded (the visitor's browser did not run the page script)." The plain-text form has
+  the same rows. Contact Form CFDB7 stores the posted fields; the leads portal gets the same names as fields
+  (`gclid` from the visit); the dataLayer gets `generate_lead` on /thank-you/, once per sent form, with
+  `form_name` (the CF7 form's title), `lead_source` and `lead_medium`. A refresh pushes nothing.
 - **Prove it:** open a form page with `?utm_source=qa&utm_medium=test&utm_campaign=launch&gclid=TEST`, send a TEST
-  lead: the email row and the portal show them; a lead from a plain visit shows "Direct".
+  lead: the email's Lead source table and the portal show them; a lead from a plain visit shows "Direct (typed in,
+  bookmark or no source)".
 
 ## The leads portal
 

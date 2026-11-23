@@ -2,7 +2,7 @@
 /**
  * Lead forms: where each lead came from (form attribution), on every lead form by default, with no plugin.
  *
- * assets/attribution.js keeps the visit's campaign tags and ad click ids in the browser (first party only: nothing
+ * assets/attribution.js keeps the first visit and the latest campaign visit in the browser (first party only: nothing
  * is sent anywhere until the visitor sends a form) and fills hidden fields on every Contact Form 7 form. Here the
  * server checks them once, as CF7 reads the post: an allow-list of names, cleaned, capped in length, addresses
  * without their query. The lead email ([_kitk_source]), Contact Form CFDB7 (it stores the posted fields) and the
@@ -14,26 +14,44 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * The attribution fields and their length caps: the last touch (this visit: the campaign tags and ad click ids it
- * came with, its first page, the site that sent it), then the first touch (the first visit in KITWP_ATTRIBUTION_DAYS).
+ * The attribution fields and their length caps. The latest campaign visit (the last one that came with campaign
+ * tags, an ad click id or from another website): utm_*, the click ids, landing_page, referrer, last_seen. The first
+ * visit in KITWP_ATTRIBUTION_DAYS: the same, named first_*, and first_seen. Times are UTC, "YYYY-MM-DD HH:MM".
  *
  * @return array<string, int> Field name => maximum length.
  */
 function kitwp_attribution_fields() {
 	$fields = [];
-	foreach ( [ 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'gbraid', 'wbraid', 'fbclid', 'msclkid' ] as $name ) {
+	foreach ( kitwp_attribution_touch() as $name ) {
 		$fields[ $name ] = 200;
 	}
-	return $fields + [
+	$fields += [
 		'landing_page'       => 500,
 		'referrer'           => 500,
+		'last_seen'          => 16,
 		'first_source'       => 200,
 		'first_medium'       => 200,
 		'first_campaign'     => 200,
+		'first_term'         => 200,
+		'first_content'      => 200,
+	];
+	foreach ( [ 'gclid', 'gbraid', 'wbraid', 'fbclid', 'msclkid' ] as $name ) {
+		$fields[ 'first_' . $name ] = 200;
+	}
+	return $fields + [
 		'first_landing_page' => 500,
 		'first_referrer'     => 500,
-		'first_seen'         => 10,
+		'first_seen'         => 16,
 	];
+}
+
+/**
+ * The campaign tags and ad click ids, as they arrive in a link.
+ *
+ * @return string[]
+ */
+function kitwp_attribution_touch() {
+	return [ 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'gbraid', 'wbraid', 'fbclid', 'msclkid' ];
 }
 
 /**
@@ -71,8 +89,8 @@ function kitwp_attribution_clean( $posted, $referer = '' ) {
 		}
 		if ( str_ends_with( $name, 'landing_page' ) || str_ends_with( $name, 'referrer' ) ) {
 			$value = kitwp_attribution_url( $value );
-		} elseif ( 'first_seen' === $name ) {
-			$value = preg_match( '/^\d{4}-\d{2}-\d{2}$/', $value ) ? $value : '';
+		} elseif ( str_ends_with( $name, '_seen' ) ) {
+			$value = preg_match( '/^\d{4}-\d{2}-\d{2}( \d{2}:\d{2})?$/', $value ) ? $value : ''; // UTC; a date alone (0.9.9) too
 		} else {
 			$value = sanitize_text_field( $value );
 		}
@@ -81,7 +99,7 @@ function kitwp_attribution_clean( $posted, $referer = '' ) {
 			$clean[ $name ] = $value;
 		}
 	}
-	$touch = array_slice( array_keys( kitwp_attribution_fields() ), 0, 10 ); // the campaign tags and click ids
+	$touch = kitwp_attribution_touch();
 	if ( '' !== $referer && ! array_intersect_key( $clean, array_flip( $touch ) ) ) {
 		parse_str( (string) wp_parse_url( $referer, PHP_URL_QUERY ), $query );
 		foreach ( $touch as $name ) {
@@ -116,47 +134,6 @@ function kitwp_attribution_posted( $posted ) {
 	return $posted + $clean;
 }
 add_filter( 'wpcf7_posted_data', 'kitwp_attribution_posted' );
-
-/**
- * Where the lead came from, as lines for the lead email ("Direct" first when no campaign, ad click or other site
- * sent the visitor).
- *
- * @param array<string, string> $a Clean attribution (kitwp_attribution_clean()).
- * @return string[]
- */
-function kitwp_attribution_lines( $a ) {
-	$pair   = static fn( $x, $y ) => trim( $x . ( '' !== $y ? ' / ' . $y : '' ), ' /' );
-	$lines  = [];
-	$source = $pair( $a['utm_source'] ?? '', $a['utm_medium'] ?? '' );
-	$clicks = [];
-	foreach ( [ 'gclid' => 'Google Ads', 'gbraid' => 'Google Ads (app)', 'wbraid' => 'Google Ads (web to app)', 'fbclid' => 'Meta', 'msclkid' => 'Microsoft Ads' ] as $name => $label ) {
-		if ( isset( $a[ $name ] ) ) {
-			$clicks[] = $label . ' (' . $name . ')';
-		}
-	}
-	if ( '' === $source && ! $clicks && ! isset( $a['referrer'] ) ) {
-		$lines[] = 'Direct (no campaign, ad click or other site)';
-	}
-	foreach ( [
-		'Source / medium' => $source,
-		'Campaign'        => $a['utm_campaign'] ?? '',
-		'Keyword'         => $a['utm_term'] ?? '',
-		'Ad content'      => $a['utm_content'] ?? '',
-		'Ad click'        => implode( ', ', $clicks ),
-		'Referrer'        => $a['referrer'] ?? '',
-		'Landing page'    => $a['landing_page'] ?? '',
-	] as $label => $value ) {
-		if ( '' !== $value ) {
-			$lines[] = $label . ': ' . $value;
-		}
-	}
-	if ( isset( $a['first_seen'] ) ) {
-		$first   = $pair( $a['first_source'] ?? '', $a['first_medium'] ?? '' );
-		$first   = '' !== $first ? $first : ( isset( $a['first_referrer'] ) ? 'from ' . $a['first_referrer'] : 'direct' );
-		$lines[] = 'First visit: ' . implode( ', ', array_filter( [ $a['first_seen'], $first, $a['first_campaign'] ?? '', $a['first_landing_page'] ?? '' ] ) );
-	}
-	return $lines;
-}
 
 /**
  * The browser side: assets/attribution.js on every page (deferred, versioned by its file date), so the landing page

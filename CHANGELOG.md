@@ -5,6 +5,25 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.9.10] - 2026-11-23
+
+The lead email's attribution is the "Lead source" table an existing company build already sends.
+
+### Changed
+
+- **Lead source table** (`includes/forms-lead-source.php`, `[_kitk_source]`) replaces the "Where this lead came
+  from" row: under the details, a title row in the email's brand colour, then "First visit", "Latest campaign
+  visit" (only when it differs) and "Form sent from". Each visit's source in words first (utm_source / utm_medium;
+  else the ad click; else the search engine or "<site> (link)"; else "Direct (typed in, bookmark or no source)"),
+  then Campaign, Keyword, Ad, the click ids, From, Landing page and "When: ... UTC". No page-script data: "Not
+  recorded". The plain-text form has the same rows.
+- The last touch is now the **latest campaign visit** (the last visit with campaign tags, an ad click id or from
+  another website), kept like the first visit (consent rules unchanged), not every visit.
+- The first visit keeps its keyword, ad content and click ids too: `first_term`, `first_content`, `first_gclid`,
+  `first_gbraid`, `first_wbraid`, `first_fbclid`, `first_msclkid`; new `last_seen`; `first_seen` and `last_seen`
+  are "YYYY-MM-DD HH:MM" UTC (16 characters; a 0.9.9 date alone still passes). Field names and caps otherwise as
+  0.9.9; the portal gets the new fields too.
+
 ## [0.9.9] - 2026-11-23
 
 Every lead form says where the lead came from, and the plan raises the five areas early.

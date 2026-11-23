@@ -127,7 +127,7 @@ keys; it stays noindex (`live-qa.py --hidden`).
 <!-- if:forms -->
 - [ ] One real test lead per form ({{FORMS_LIST}}) with the real submit button: lands on /thank-you/, the email
       arrives, every recipient "Accepted" in cPanel > Track Delivery. Open the first form's page with
-      `?utm_source=qa&utm_medium=test&utm_campaign=launch&gclid=TEST`: its email's "Where this lead came from" row
+      `?utm_source=qa&utm_medium=test&utm_campaign=launch&gclid=TEST`: its email's Lead source table
       shows them (CFDB7 and the portal too), and GTM's preview shows `generate_lead` on /thank-you/.
 <!-- if:portal -->
       Each test lead also shows in the leads portal's form counts.
