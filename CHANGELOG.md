@@ -20,6 +20,9 @@ Every lead form says where the lead came from, and the plan raises the five area
   form page's address still counts). Sent everywhere the lead goes: the lead email's "Where this lead came from"
   row (`[_kitk_source]`, "Direct" when nothing sent the visitor), Contact Form CFDB7, the leads portal (the same
   field names), and `generate_lead` on /thank-you/ once per sent form (`form_name`, `lead_source`, `lead_medium`).
+  With a consent banner the first visit is stored only after the visitor accepts (`KITWP_ATTRIBUTION_CONSENT`:
+  "auto" reads Google Consent Mode, "banner" takes `window.kitwpConsent()`, "none"); until then, and after a
+  decline, only this visit is kept (sessionStorage), and a decline removes a stored first visit.
 - **Recommended additions at the plan:** PLAN.md lists form attribution, SEO, site speed, testing and tracking, one
   line each with what the site lacks, what we recommend and its size; the developer decides at the Plan OK.
   Anything that changes the work is said as soon as it is known.

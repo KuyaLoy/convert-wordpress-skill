@@ -115,6 +115,13 @@ const KITWP_NOJS_LEADS = false;
 const KITWP_ATTRIBUTION_DAYS = 90;
 
 /**
+ * Form attribution and the consent banner (assets/attribution.js): "auto" reads Google Consent Mode (a page that
+ * sets a consent default has a banner: the first visit is kept only after an accept); "banner" for a banner without
+ * Consent Mode, which then calls window.kitwpConsent( true | false ); "none" when the site has no banner.
+ */
+const KITWP_ATTRIBUTION_CONSENT = 'auto';
+
+/**
  * The static build's image widths (the next/image sizes it serves) and its first deviceSize, which decides the
  * srcset when sizes uses vw. Read both from the static site's next.config (images.imageSizes, images.deviceSizes).
  */

@@ -4,7 +4,16 @@
  * until the visitor sends a form.
  *
  * Settings (window.kitwpAttributionConfig): days (how long the first visit is kept, KITWP_ATTRIBUTION_DAYS; 0 =
- * this visit only) and thankYou (the thank-you page's address).
+ * this visit only), consent (KITWP_ATTRIBUTION_CONSENT) and thankYou (the thank-you page's address).
+ *
+ * Consent: the first visit goes to localStorage only when the site has no consent banner, or once the visitor
+ * accepted. "auto" reads Google Consent Mode from the dataLayer: a page that sets a consent default has a banner;
+ * ad_storage or analytics_storage "granted" (default or update) is an accept, an update with neither granted a
+ * decline. "banner": the site's banner (one without Consent Mode) calls window.kitwpConsent(true or false) when the
+ * visitor chooses and on each page with the stored choice (or dispatches a "kitwp:consent" event with detail true or
+ * false). "none": no banner. Until an accept, and after a decline, only this visit is kept (sessionStorage, gone
+ * with the visit), and a decline removes a stored first visit. The form still gets this visit's values: the visitor
+ * sends them with the form.
  *
  * Last touch, per visit (sessionStorage): the campaign tags (utm_source, utm_medium, utm_campaign, utm_term,
  * utm_content) and ad click ids (gclid, gbraid, wbraid, fbclid, msclkid) the visit came with, its first page and
@@ -87,9 +96,47 @@
 		last.referrer = otherSite(document.referrer);
 		put(session, 'kitwp_attr_last', last);
 	}
-	var keep = local || session;
-	var first = get(keep, 'kitwp_attr_first');
-	if (!first || !first.t || (local && now - first.t > days * 864e5)) {
+	var mode = c.consent === 'banner' || c.consent === 'none' ? c.consent : 'auto';
+	var choice = null; // the banner's answer through window.kitwpConsent(): true or false
+	// Google Consent Mode in the dataLayer: null when the page sets none, else 'yes', 'no' or 'pending'.
+	function consentMode() {
+		var dl = window.dataLayer || [];
+		var seen = false;
+		var updated = false;
+		var granted = false;
+		for (var i = 0; i < dl.length; i++) {
+			var e = dl[i];
+			if (e && e[0] === 'consent' && (e[1] === 'default' || e[1] === 'update') && e[2]) {
+				seen = true;
+				updated = updated || e[1] === 'update';
+				if (e[2].ad_storage || e[2].analytics_storage) {
+					granted = e[2].ad_storage === 'granted' || e[2].analytics_storage === 'granted';
+				}
+			}
+		}
+		if (!seen) {
+			return null;
+		}
+		return granted ? 'yes' : updated ? 'no' : 'pending';
+	}
+	// 'free' (no banner), 'yes' (accepted), 'no' (declined) or 'pending'.
+	function consent() {
+		if (mode === 'none') {
+			return 'free';
+		}
+		if (choice !== null) {
+			return choice ? 'yes' : 'no';
+		}
+		var cm = consentMode();
+		return cm || (mode === 'banner' ? 'pending' : 'free');
+	}
+	function mayKeep() {
+		var s = consent();
+		return !!local && (s === 'free' || s === 'yes');
+	}
+
+	var first = (mayKeep() && get(local, 'kitwp_attr_first')) || get(session, 'kitwp_attr_first');
+	if (!first || !first.t || (days > 0 && now - first.t > days * 864e5)) {
 		first = {
 			t: now,
 			source: arrived.utm_source || '',
@@ -98,8 +145,28 @@
 			landing: page(window.location.href),
 			referrer: otherSite(document.referrer),
 		};
-		put(keep, 'kitwp_attr_first', first);
 	}
+	put(session, 'kitwp_attr_first', first);
+	// Apply the visitor's current choice: keep the first visit after an accept, drop it after a decline.
+	function sync() {
+		if (mayKeep()) {
+			put(local, 'kitwp_attr_first', first);
+		} else if (local && consent() === 'no') {
+			try {
+				local.removeItem('kitwp_attr_first');
+			} catch (e) {
+				// blocked: nothing was stored
+			}
+		}
+	}
+	sync();
+	window.kitwpConsent = function (accepted) {
+		choice = accepted === true || accepted === 'granted';
+		sync();
+	};
+	document.addEventListener('kitwp:consent', function (e) {
+		window.kitwpConsent(e && e.detail);
+	});
 
 	function fields() {
 		var f = {};
@@ -132,6 +199,7 @@
 		if (!isCf7(form)) {
 			return;
 		}
+		sync(); // a Consent Mode update since the page loaded counts from here
 		var f = fields();
 		Object.keys(f).forEach(function (k) {
 			var input = form.querySelector('input[type="hidden"][name="' + k + '"]');

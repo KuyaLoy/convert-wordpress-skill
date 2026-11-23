@@ -36,10 +36,10 @@ done, not the eye.
 <!-- starter:barebones -->
 - `assets/styles/` Sass sources: the static site's BUILT CSS goes in verbatim (no second minifier).
 - `assets/scripts/` theme JavaScript source: vanilla, no jQuery.
-- `includes/` WordPress setup and hooks. Starter: setup, loaders (enqueue), menus, admin, custom. Kit: config
-  (site constants), cleanup, head, acf, helpers (and -maps), media (and -svg), forms (forms-controls, -spam,
-  -mail, -local-mail, -portal), client-admin, schema, seo, seed and its seed-* steps (local only), snapshot (local
-  only).
+- `includes/` WordPress setup and hooks. Starter: setup, loaders (enqueue), menus, admin, custom. Kit: config (site
+  constants), cleanup, head, acf, helpers (and -maps), media (and -svg), forms (forms-controls, -spam, -mail,
+  -local-mail, -portal, -attribution), client-admin, schema, seo, seed and its seed-* steps (local only), snapshot
+  (local only).
 - `page-templates/` page templates; `template-parts/sections/` one partial per section layout.
 - `acf-json/` ACF local JSON for every field group.
 - `style.css`, `css/` and `js/` are build output: edit the sources, then `npm run build`.
@@ -51,8 +51,8 @@ done, not the eye.
   CSS go here, so the compiled `theme/style.css` gives the same result as the static CSS (swap test 0.000%).
 - `javascript/` theme JavaScript source (esbuild to `theme/js/`): vanilla.
 - `theme/inc/` the starter's helpers; `theme/includes/` the kit: config (site constants), cleanup, head, acf,
-  helpers (and -maps), media (and -svg), forms (forms-controls, -spam, -mail, -local-mail, -portal), client-admin,
-  schema, seo, seed and its seed-* steps (local only), snapshot (local only).
+  helpers (and -maps), media (and -svg), forms (forms-controls, -spam, -mail, -local-mail, -portal, -attribution),
+  client-admin, schema, seo, seed and its seed-* steps (local only), snapshot (local only).
 - `theme/page-templates/` page templates; `theme/template-parts/sections/` one partial per section layout.
 - `theme/acf-json/` ACF local JSON for every field group.
 - `theme/style.css` and `theme/js/` are build output: `npm run dev` (or `npm run watch`), `npm run prod` for the

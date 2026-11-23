@@ -131,6 +131,12 @@ On every lead form by default, no plugin, nothing to set up (`includes/forms-att
   source, medium, campaign, page, referrer and date: the first touch, kept `KITWP_ATTRIBUTION_DAYS` (90; 0 = this
   visit only, for a site whose consent rules allow no stored data before consent). Addresses keep host and path,
   never the query. Nothing leaves the browser until the visitor sends a form; nothing goes to a third party.
+- **Consent:** with a consent banner, the first visit goes to localStorage only after the visitor accepts (ads or
+  analytics, as the banner defines); until then, and after a decline, only this visit is kept (sessionStorage,
+  gone with the visit), and a decline removes a stored first visit. `KITWP_ATTRIBUTION_CONSENT` "auto" reads Google
+  Consent Mode from the dataLayer; "banner" for a banner without Consent Mode, which calls
+  `window.kitwpConsent(true | false)` when the visitor chooses and on each page with the stored choice; "none": no
+  banner, stored as above.
 - **Hidden fields on every CF7 form** (the chat's post too): `utm_source`, `utm_medium`, `utm_campaign`, `utm_term`,
   `utm_content`, `gclid`, `gbraid`, `wbraid`, `fbclid`, `msclkid`, `landing_page`, `referrer`, `first_source`,
   `first_medium`, `first_campaign`, `first_landing_page`, `first_referrer`, `first_seen`.

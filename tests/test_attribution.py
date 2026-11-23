@@ -163,3 +163,56 @@ class BrowserCapture(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+CONSENT_HARNESS = r'''
+const fs = require('fs'), vm = require('vm');
+const code = fs.readFileSync(process.argv[process.argv.length - 1], 'utf8');
+function store() { const m = new Map(); return { m, getItem: (k) => (m.has(k) ? m.get(k) : null),
+  setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; }
+function cm(kind, state) { return { 0: 'consent', 1: kind, 2: { ad_storage: state, analytics_storage: state } }; }
+function visit(local, session, mode, dataLayer, after) {
+  const handlers = {};
+  const window = { location: new URL('https://example.org/?utm_source=google&utm_medium=cpc&gclid=G1'),
+    sessionStorage: session, localStorage: local, dataLayer,
+    kitwpAttributionConfig: { days: '90', consent: mode, thankYou: 'https://example.org/thank-you/' } };
+  const document = { referrer: '', readyState: 'complete', forms: [], createElement: () => ({}),
+    addEventListener: (t, f) => { handlers[t] = f; } };
+  vm.runInNewContext(code, { window, document, URL, URLSearchParams, Date, JSON, Object, Array, parseInt, isNaN });
+  if (after) after(window, handlers);
+  return { stored: local.m.has('kitwp_attr_first'), visit: session.m.has('kitwp_attr_first'),
+           fields: window.kitwpAttribution() };
+}
+const out = {};
+out.none = visit(store(), store(), 'auto', []);
+const L = store();
+out.pending = visit(L, store(), 'auto', [cm('default', 'denied')]);
+out.accepted = visit(L, store(), 'auto', [cm('default', 'denied'), cm('update', 'granted')]);
+out.declined = visit(L, store(), 'auto', [cm('default', 'denied'), cm('update', 'denied')]);
+const B = store();
+out.banner_wait = visit(B, store(), 'banner', []);
+out.banner_yes = visit(B, store(), 'banner', [], (w) => w.kitwpConsent(true));
+out.banner_no = visit(B, store(), 'banner', [], (w, h) => h['kitwp:consent']({ detail: false }));
+console.log(JSON.stringify(out));
+'''
+
+
+@unittest.skipUnless(shutil.which('node'), 'needs Node')
+class Consent(unittest.TestCase):
+    """With a consent banner the first visit is stored only after an accept; a decline removes it."""
+
+    def test_each_case(self):
+        r = subprocess.run(['node', '-e', CONSENT_HARNESS, path('assets/theme/assets/attribution.js')],
+                           capture_output=True, text=True, timeout=60)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        got = json.loads(r.stdout)
+        self.assertTrue(got['none']['stored'])  # no banner: as before
+        self.assertFalse(got['pending']['stored'])  # banner, no choice yet: this visit only
+        self.assertTrue(got['pending']['visit'])
+        self.assertTrue(got['accepted']['stored'])
+        self.assertFalse(got['declined']['stored'])  # declined after an accept: the stored first visit goes
+        self.assertFalse(got['banner_wait']['stored'])
+        self.assertTrue(got['banner_yes']['stored'])
+        self.assertFalse(got['banner_no']['stored'])
+        for case in got.values():  # the form still gets this visit's values in every case
+            self.assertEqual((case['fields']['utm_source'], case['fields']['gclid']), ('google', 'G1'))

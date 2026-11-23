@@ -184,6 +184,7 @@ function kitwp_attribution_script() {
 		'kitwpAttributionConfig',
 		[
 			'days'     => (string) (int) KITWP_ATTRIBUTION_DAYS,
+			'consent'  => (string) KITWP_ATTRIBUTION_CONSENT,
 			'thankYou' => home_url( KITWP_THANK_YOU ),
 		]
 	);
