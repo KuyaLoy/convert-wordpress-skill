@@ -201,8 +201,8 @@ stay theme files.
   - never hard-coded in a template, never a stock photo or invented copy.
   Where the golden master shows the gap itself, the diff for that box is a `decided` finding naming the placeholder.
   Each placeholder goes on the board's QA findings as `decided` (page, field, what the client sends) and into the
-  report's next steps as a client to-do; `grep -rn "PLACEHOLDER" _setup/seed` and a search for "PLACEHOLDER" in
-  wp-admin list them. Live QA lists any still there.
+  report's next steps as a client to-do; `grep -rn "PLACEHOLDER" _setup/seed` (any shell: `text-check.py
+  placeholders`) and a search for "PLACEHOLDER" in wp-admin list them. Live QA lists any still there.
 - More steps: the `kitwp_seed_steps` filter. Extra page rows: `kitwp_seed_expand_row`.
 
 ## Snapshots and parity checks
@@ -284,6 +284,8 @@ grep -rnE $X --include='*.css' --include='*.scss' -e '#[0-9a-fA-F]{3,8}\b' . | g
 grep -rnE $X --include='*.php' --include='*.js' -e '[0-9]+:[0-9]+|\b[A-Z][A-Z0-9]+-T[0-9]+\b' .  # node IDs, ticket tags
 grep -rn $X --include='*.php' -e 'phpcs:ignore' -e 'phpcs:disable' .                  # every ignore has its reason
 ```
+
+Any shell (PowerShell too), the same four searches: `python3 <wp_root>/_plan/tools/report/text-check.py oneoff .`
 
 ## Kit functions at a glance
 

@@ -81,7 +81,8 @@ does every hosting step; the agent gives one step at a time, waits for "done", c
 When the developer wants DNS switched before the install, the docroot is public at once. Put up the 503 page
 first: `_setup/launch/maintenance/maintenance.html` and `htaccess-maintenance.txt` (as `.htaccess`; keep any
 cPanel block below it). Every path answers 503 with Retry-After, `.well-known` and the installer still pass. Check
-with `curl --resolve <host>:443:<server ip>` (GET only) before the A record changes.
+with `curl --resolve <host>:443:<server ip>` (GET only; `curl.exe` in Windows PowerShell) before the A record
+changes.
 
 ## The move
 

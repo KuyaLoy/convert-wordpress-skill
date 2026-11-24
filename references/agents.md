@@ -6,6 +6,7 @@ that reads skills can run it. Paths in SKILL.md are relative to the skill folder
 ## Contents
 
 - Where the skill lives, and updating it
+- Per tool: Claude Code, Codex, Antigravity, T3 Code
 - What the machine needs
 - Asking the developer
 - Replies: beginner mode
@@ -32,6 +33,7 @@ a parent session), it says what to do without it.
 | Cline | `~/.cline/skills/` (each skill is also a slash command) | see Cline's docs |
 | Devin Desktop (was Windsurf) | `~/.config/devin/skills/` or `~/.agents/skills/` | see Devin's docs |
 | Grok Build and others that read skills | `~/.agents/skills/` (check the tool's docs) | `.agents/skills/` |
+| T3 Code | the folder of the agent it runs (Claude Code or Codex above; Antigravity's folder is linked in) | the same |
 | Claude apps (claude.ai, Cowork) | Upload the folder as a skill (zipped), or save it from a skill card | |
 
 Install by cloning the repo into one of those folders. The developer's own defaults go in `profile.local.json` next
@@ -42,6 +44,33 @@ when the developer asks to update the skill: `update.py --check` first (installe
 new), then ask (it downloads), then `update.py`. A git clone updates with `git pull --ff-only` and stops on local
 edits; any other install gets the release zip after a backup in `_backups/`; `profile.local.json` is kept. A new
 chat reads the new version. A copy saved in a Claude app updates by uploading the new version there.
+
+## Per tool: Claude Code, Codex, Antigravity, T3 Code
+
+SKILL.md names the Claude step; in another tool do this instead (open this section whenever a step names a Claude
+tool: an Artifact, a question tool, a subagent, Claude in Chrome, the context meter, the chat title). T3 Code runs
+Claude Code, Codex or Antigravity underneath: use that agent's column (in T3, Antigravity gets no hooks or custom
+agents).
+
+| Step | Claude Code (CLI, desktop app) | Codex | Antigravity | Any other agent |
+|---|---|---|---|---|
+| Load the skill | Automatic from the description, or `/convert-to-wordpress` | Automatic, or `$convert-to-wordpress` or `/skills` | The model decides from the description; `/convert-to-wordpress` in the App; in T3 say "use the convert-to-wordpress skill" in words | "Read `<path>/convert-to-wordpress/SKILL.md` and follow it" |
+| Ask the developer (intake, gates) | The question tool (AskUserQuestion) | `request_user_input` | Numbered options in the text, the recommended one first, then wait | A numbered list, then wait |
+| The fresh read-only QA check | A subagent | A subagent (`spawn_agent`) | A subagent (`invoke_subagent`), not a new conversation | A new chat with the QA brief |
+| Browser steps (installer, wp-admin, live checks) | Claude in Chrome or the desktop app's browser pane | The in-app browser (`browser_use`) | The browser subagent | The kit's Playwright scripts; else the URL and the exact clicks for the developer |
+| The progress page | The Artifact, live with the database (`references/phases-and-qa.md`) | The local file: `render.py BUILD-MAP.md _plan/progress.html --refresh 30 --open`, same content | The same local file | The same local file |
+| Context used | Desktop app: the usage tool; CLI: `/context` | `/status` | No meter: checkpoint at every page end and phase end | The tool's meter if it has one, else as Antigravity |
+| The chat's state in its title | Desktop app: `set_session_title` with "self" | Skip (no title tool) | The conversation's title | Skip |
+| Hooks | None needed: the skill runs without hooks | None needed | None needed | None needed |
+
+- The progress page as a local file: `--open` opens it once in the default browser; `--refresh 30` makes the open
+  tab reload itself every 30 seconds, so each render shows without a click. A lead or a Command Center reads
+  `_plan/progress.json` (the same keys as the published page).
+- Test leads on live (`references/qa-report.md`): with the developer's OK, the browser tool and the real submit
+  button. reCAPTCHA can score an automated browser as a bot: a "spam" answer there is not a site bug; the developer
+  sends that lead from their own browser (no AI extension) and the check continues.
+- Codex and Antigravity: a subagent, not a new chat or conversation, for the QA check and long mechanical jobs (it
+  costs less and reports back into this chat).
 
 ## What the machine needs
 
@@ -61,8 +90,9 @@ system) and which local WordPress app to use. Needed, by step:
 
 ## Asking the developer
 
-- With a question tool (AskUserQuestion and similar): one batch of questions at intake, with the recommended answer
-  first. Without one: a short numbered list in the chat, and wait.
+- With a question tool (AskUserQuestion, Codex's `request_user_input` and similar): one batch of questions at
+  intake, with the recommended answer first. Without one (Antigravity, most others): a short numbered list in the
+  chat, and wait.
 - Two gates: the **Plan OK** and the **Go-live** (`references/phases-and-qa.md`). The Plan OK lists the P1
   downloads, each with its source and size ("P1 setup: WordPress, latest.zip from wordpress.org, about 30 MB;
   Barebones from GitHub; ACF PRO from your zip; Contact Form 7 and Yoast SEO from wordpress.org"), so setup then runs
@@ -99,7 +129,8 @@ a minified bundle tens of thousands. So:
   file only when something failed.
 - Screenshots only for a failure, cropped to the region. Batch shell commands.
 - Context: from 50% finish the section or page, checkpoint (board, both handoff files), send the stop report and
-  continue in a new chat ("continue the WordPress conversion"); at 75% checkpoint at the next safe point.
+  continue in a new chat ("continue the WordPress conversion"); at 75% checkpoint at the next safe point. Where to
+  see it per tool, and what to do without a meter: > Per tool.
 - Model choice where the agent offers it: the strongest model for P0 analysis, CSS and layout failures the
   diffs cannot place, forms and email, the security review and the launch; a faster one for running scripts,
   seeding, lint loops, board and handoff updates and re-runs of failed checks.
@@ -112,7 +143,12 @@ a minified bundle tens of thousands. So:
   that step needs and checking them on the way back (md5).
 - A cloud sandbox cannot reach the developer's local sites: run parity there against snapshots and a mirror
   (`tests/parity/README.md`), or run it on the developer's machine.
-- Windows paths: `D:/sites/<site>` works in Python and Node; Git Bash uses `/d/sites/<site>`.
+- Windows paths: `D:/sites/<site>` works in Python and Node; Git Bash uses `/d/sites/<site>`. Quote every path
+  with a space (`"C:/Users/Jane Doe/sites/<site>"`).
+- Every kit script is Python or Node and runs from any shell. A `grep` check in the docs has a Python twin that
+  runs in PowerShell too: `python3 _plan/tools/report/text-check.py fill|plain|dupes|oneoff|placeholders`
+  (`references/scripts.md`). In Windows PowerShell 5.1, `curl` is another command: type `curl.exe`; `&&` does
+  not exist there: run the commands one by one (or join them with `;`).
 - An app in a browser chat cannot run the build: it can read uploaded files and write the P0 plan. For the
   build, use an agent that runs commands on the developer's computer (Claude Code, Codex, Cursor, Antigravity CLI, OpenCode, Cline...).
 - A browser tool (the developer's browser, or the agent's own) is for phpMyAdmin, the WordPress installer, wp-admin
@@ -124,8 +160,9 @@ a minified bundle tens of thousands. So:
 
 When the agent can start subagents, use them where the team needs a second pair of eyes or parallel hands:
 
-- the read-only QA check at the end of each phase (a fresh subagent that did not write the code, on a faster model
-  where the tool lets you pick, e.g. Sonnet; without subagents, a new chat with the same brief; the brief is in `references/phases-and-qa.md`);
+- the read-only QA check at the end of each phase: a fresh subagent that did not write the code (each tool's call
+  is in > Per tool), on a faster model where the tool lets you pick, e.g. Sonnet; without subagents, a new chat
+  with the same brief (the brief is in `references/phases-and-qa.md`);
 - a long mechanical job (seeding a batch of pages, exporting content), checked by you afterwards;
 - independent research (plugin docs, a host's limits) whose sources go into PLAN.md (Research sources).
 

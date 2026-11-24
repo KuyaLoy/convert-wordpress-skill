@@ -218,7 +218,8 @@ classic PHP themes under GPL-2.0-or-later.
   (its names stay `_tw`). With WP-CLI (needs PHP in the shell): `wp package install underscoretw/scaffold`, then
   `wp scaffold _tw <theme> --theme_name="<Site>" --prefix=<prefix>`. Or on underscoretw.com: Generate, unzip into
   `wp-content/themes/`. When `wp package install` fails (some proxies break Composer's GitHub access), the same zip
-  comes straight from the generator (POST to the home page with `underscoretw_cli=1`, as the WP-CLI package does):
+  comes straight from the generator (POST to the home page with `underscoretw_cli=1`, as the WP-CLI package does;
+  `curl.exe` in Windows PowerShell):
   `curl -X POST https://underscoretw.com/ -d underscoretw_generate=1 -d underscoretw_cli=1 --data-urlencode
   "underscoretw_name=<Site>" -d underscoretw_slug=<theme> -d underscoretw_prefix=<prefix> -o <theme>.zip`.
   WordPress loads `<theme>/theme`; the folder around it holds the Tailwind and build files.
@@ -287,7 +288,8 @@ ACF PRO, Contact Form 7 and Yoast SEO, installed by install-wp.py in P1 (the Pla
   PHPCompatibilityWP for PHP 8.1 to 8.4).
 - `php -l <file>` after every save.
 - The duplicate function check after every PHP save; it must print nothing:
-  `grep -h "^function" includes/*.php | sed 's/(.*//' | sort | uniq -d`. A duplicate name took the reference build
+  `grep -h "^function" includes/*.php | sed 's/(.*//' | sort | uniq -d` (any shell: `text-check.py dupes .` in the
+  theme folder). A duplicate name took the reference build
   down twice, and php -l cannot catch it.
 - No PHP where the agent runs? Lint in a workspace that has it (copy the changed files there, run the checks, never
   edit there).

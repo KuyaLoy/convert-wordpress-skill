@@ -26,7 +26,8 @@ Plan about 2 hours on a quiet day (not Friday). The developer does the hosting s
       `python3 <kit>/scripts/new-site.py _plan/site.json --launch-files` (this runbook again, with those steps).
 <!-- /unless:redirects -->
 - [ ] Where live leads go: {{LEADS_TO_ITEM}}
-- [ ] Client to-dos told to the client: every seeded placeholder (`grep -rn "PLACEHOLDER" _setup/seed`, and
+- [ ] Client to-dos told to the client: every seeded placeholder (`grep -rn "PLACEHOLDER" _setup/seed` or
+      `python3 _plan/tools/report/text-check.py placeholders`, and
       "PLACEHOLDER" in the Media Library search) and every empty fact, each a `decided` finding on the board with
       what the client sends. Launching with any left is the client's choice; they go in the report's next steps.
 <!-- if:portal -->

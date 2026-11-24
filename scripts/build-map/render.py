@@ -2,6 +2,10 @@
 
     python3 render.py <BUILD-MAP.md> <out.html> [--json <progress.json>]
     python3 render.py <BUILD-MAP.md> <out.html> --pushed     after the database writes went through
+    python3 render.py <BUILD-MAP.md> <out.html> --refresh 30 --open    the local page (tools without Artifacts)
+
+--refresh N adds a reload every N seconds to out.html, so a tab showing the local file picks up each new render;
+--open opens out.html in the default browser (once is enough: the reload keeps the tab current).
 
 It also writes the live page (progress-live.html) and the database writes since the last push (progress-rows.json):
 see live.py.
@@ -35,6 +39,16 @@ i = sys.argv.index('--json') if '--json' in sys.argv else -1
 if i != -1 and i + 1 >= len(sys.argv):
     print('FAIL render: --json needs a file path')
     sys.exit(2)
+REFRESH = 0
+if '--refresh' in sys.argv:
+    j = sys.argv.index('--refresh')
+    try:
+        REFRESH = int(sys.argv[j + 1])
+    except (IndexError, ValueError):
+        REFRESH = -1
+    if REFRESH < 5:
+        print('FAIL render: --refresh needs seconds (5 or more)')
+        sys.exit(2)
 JSON_OUT = sys.argv[i + 1] if i != -1 else os.path.join(os.path.dirname(os.path.abspath(OUT)), 'progress.json')
 md = open(SRC, encoding='utf-8').read()
 
@@ -316,7 +330,7 @@ log_html = ''.join(f'<li><span class="mute">{e(x["at"][:16].replace("T", " "))}<
 title = f'{data["site"]} build progress'
 page = f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{e(title)}</title><style>{CSS}</style></head><body><main>
+{f'<meta http-equiv="refresh" content="{REFRESH}">' if REFRESH else ''}<title>{e(title)}</title><style>{CSS}</style></head><body><main>
 <h1>{e(title)}</h1>
 <div class="mute">Target: {e(data["target"])}</div>
 <div class="card now">{now_html}</div>
@@ -348,3 +362,8 @@ n_rows = live.write(data, CSS, os.path.dirname(os.path.abspath(JSON_OUT)))
 print(f'ok: {len(data["phases"])} phases, {sum(c.values())} sections ({done} done), {len(data["findings"])} findings '
       f'({len(of)} open), {len(log)} log lines; wrote {os.path.basename(OUT)} and {os.path.basename(JSON_OUT)}; '
       f'{n_rows} database writes in progress-rows.json')
+if '--open' in sys.argv:  # tools without a published page: the local file in the default browser
+    import pathlib
+    import webbrowser
+    uri = pathlib.Path(os.path.abspath(OUT)).as_uri()
+    print(f'opened: {uri}' if webbrowser.open(uri) else f'open this in a browser: {uri}')

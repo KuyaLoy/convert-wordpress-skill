@@ -8,7 +8,8 @@ project's handoff.md (Failed Attempts) as they happen.
 - A form field named `name`, `s`, `p`, `m`, `page` or `year` (any public query var) makes the form post answer 404:
   WordPress reads query vars from POST. Keep `kitwp_lead_query_vars()`.
 - A duplicate function name across two include files takes the site down, and php -l cannot catch it. After EVERY
-  PHP save: `grep -h "^function" includes/*.php | sed 's/(.*//' | sort | uniq -d` must print nothing.
+  PHP save: `grep -h "^function" includes/*.php | sed 's/(.*//' | sort | uniq -d` must print nothing (any shell:
+  `python3 <wp_root>/_plan/tools/report/text-check.py dupes .` in the theme folder says OK).
 - A `*/` inside a PHP docblock ends the comment early (for example a `sed 's/(.*//'` example): use `//` comments.
 - The kit used to hide the WordPress toolbar for everyone (`show_admin_bar` false) to keep pages 1:1; the developer
   missed Dashboard and Edit Page on the front end. Visitors never get the toolbar, so it stays on for logged-in
@@ -160,7 +161,8 @@ Each was found late on a design-sourced build and forced a rework (`references/s
 - Contact Form 7 6.2 needs PHP 8.3: below that its Composer platform check is a fatal error on every page. Check the
   PHP version the host runs for the domain (cPanel > MultiPHP Manager) before the upload. When the host's version
   differs from the local one, dry-run the site on it first: `php -S 127.0.0.1:8781 -t <wp_root>
-  _plan/tools/setup/wp-router.php` with that PHP, then `curl -H "Host: <site>.test"` a few routes (GET only).
+  _plan/tools/setup/wp-router.php` with that PHP, then `curl -H "Host: <site>.test"` a few routes (GET only;
+  `curl.exe` in Windows PowerShell).
 - A plugin that registers itself with an outside service on activation (it sends `home_url()`) registers the local
   URL if activated locally, and probes the old site if activated on the new server before DNS moves. Activate it on
   live once DNS points there.

@@ -5,6 +5,30 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.9.14] - 2026-11-24
+
+The skill outside Claude Code: a cross-tool audit (Codex, Antigravity, T3 Code). Claude's steps are unchanged.
+
+### Added
+
+- **references/agents.md > Per tool:** for every Claude-only step, what to do in Codex, Antigravity, T3 Code and any
+  other agent: loading the skill, asking the developer (`request_user_input`, numbered options), the read-only QA
+  check (`spawn_agent`, `invoke_subagent`), browser steps, the progress page, the context meter (none in
+  Antigravity and T3: checkpoint at every page and phase end), the chat title. T3 Code's skill folder in the table.
+- **`render.py --refresh N --open`:** the progress page as a local file for tools without Artifacts: it opens once
+  in the default browser and reloads itself, same content. Without the flags the page is unchanged.
+- **`scripts/report/text-check.py`:** the docs' grep checks in Python, for PowerShell and any other shell: `fill`
+  (report), `plain` (the client pack's plain-English check), `dupes` (duplicate functions), `oneoff` (the
+  self-check searches), `placeholders` (the seed's client to-dos). Each doc line with a grep check names its twin;
+  every `curl` line says `curl.exe` for Windows PowerShell.
+
+### Changed
+
+- The description carries the words people type ("convert this site to WordPress", "migrate my website to
+  WordPress", "HTML (or Next.js...) to WordPress", "WordPress conversion"...).
+- SKILL.md opens with what to read first (an existing project, a new one, each phase, another tool), the read table
+  names the section to open, and the scripts table moved to `references/scripts.md` (SKILL.md 371 lines).
+
 ## [0.9.13] - 2026-11-24
 
 ### Fixed

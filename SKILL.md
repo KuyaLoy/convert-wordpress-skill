@@ -1,6 +1,6 @@
 ---
 name: convert-to-wordpress
-description: Converts any existing website (plain HTML, Next.js, React, Astro, Vue and other stacks) into a 1:1 WordPress site with the same design, URLs, SEO and tracking, every page editable in ACF PRO and every form in Contact Form 7. Phase by phase (plan, setup in one go, pages section by section, forms and email, SEO/security/speed), QA after each phase, one fix loop until QA finds 0, then go-live, live QA and the report. Use whenever a site built outside WordPress has to be rebuilt in WordPress.
+description: Converts any existing website (plain HTML, Next.js, React, Astro, Vue and other stacks) into a 1:1 WordPress site with the same design, URLs, SEO and tracking, every page editable in ACF PRO and every form in Contact Form 7. Phase by phase (plan, setup in one go, pages section by section, forms and email, SEO/security/speed), QA after each phase, one fix loop until QA finds 0, then go-live, live QA and the report. Use whenever a site built outside WordPress has to be rebuilt in WordPress, for requests like "convert this site to WordPress", "move or migrate my website to WordPress", "rebuild it in WordPress", "HTML (or Next.js, React, Astro, Vue) to WordPress", "make the site editable in WordPress" or "WordPress conversion".
 license: GPL-2.0-or-later
 ---
 
@@ -14,6 +14,10 @@ business, any country and language.
 
 Its lessons come from real builds: a 36-page Next.js export, a PHP and Tailwind landing page, and a clinic site
 taken live on cPanel.
+
+**Open first:** an existing project: `ai-handoff-summary.md`, then gate.py (Start: intake, step 1). A new one: Start:
+intake below. Each phase: `references/phases-and-qa.md` at its start. Not in Claude Code (Codex, Antigravity, T3
+Code, others): `references/agents.md` > Per tool, for what each Claude-only step becomes there.
 
 **The yardstick for every choice:** fast, quality, best practice, low usage, straightforward: seen from the
 client's side. The client is usually not technical: what they see, read, edit and receive must be simple and plain.
@@ -34,7 +38,7 @@ https://github.com/KuyaLoy/convert-wordpress-skill: ask the developer where thei
 
 | Read | When |
 |---|---|
-| `references/phases-and-qa.md` | At the start of every phase: the phases, QA that logs, the fix loop, the checklist, context |
+| `references/phases-and-qa.md` | At the start of every phase: the phases, QA that logs, the fix loop, the checklist, context; > The progress page before the first render |
 | `references/wordpress-essentials.md` | The WordPress rules in one page (plugins, setup, theme, fields, forms, SEO, security, speed, launch) |
 | `references/setup.md` | Intake, the database, WordPress in one go, the starter theme, the plugins |
 | `references/source-types.md` | Studying the source, the golden master for each stack, Tailwind, languages |
@@ -44,8 +48,9 @@ https://github.com/KuyaLoy/convert-wordpress-skill: ask the developer where thei
 | `references/launch.md` | Go-live with Duplicator, other hosts, changes after launch |
 | `references/qa-report.md` | Live QA, test leads, the report, the task comment |
 | `references/handover.md` | After live QA: the client pack (website sheet, editing guide, message) |
-| `references/gotchas.md` | Before anything risky. Add every new lesson there |
-| `references/agents.md` | Each agent; beginner mode; fewer tokens; which model for which step |
+| `references/gotchas.md` | Before anything risky (search it for the step's word, do not read it whole). Add every new lesson there |
+| `references/agents.md` | Each agent; beginner mode; fewer tokens; which model for which step; > Per tool when not in Claude Code |
+| `references/scripts.md` | Every script and what it does, when you need one this file does not name |
 | `references/glossary.md` | Plain-word meanings for newcomers |
 
 ## Rules (always)
@@ -88,6 +93,8 @@ https://github.com/KuyaLoy/convert-wordpress-skill: ask the developer where thei
 14. **Spend less:** read the summary, not whole files; never read node_modules, minified, vendor or lock files;
     scripts copy markup and print summaries (detail stays in files); screenshots only as cropped failures. Context:
     from 50% finish the section or page, checkpoint (board, handoff files) and continue in a new chat; cap 75%.
+    No context meter (Antigravity, T3 Code): checkpoint at every page and phase end (`references/agents.md` >
+    Per tool).
 15. **Never stop silently.** Every turn that ends without the work going on (a phase closed, a part done, a
     checkpoint or new chat, a pause, a block, waiting for a go or a manual step) ends with a short stop report, never
     a bare status: what was done, the state, every decision taken on your own (with the default chosen), and last
@@ -129,20 +136,20 @@ python3 _plan/tools/build-map/render.py BUILD-MAP.md _plan/progress.html   # pro
 python3 _plan/tools/report/self-check.py <wp_root> --url <local url> --profile <kit>/profile.local.json  # before every QA run
 ```
 
-Run gate.py at the start of every session. Write `ok <date>` in "Developer gates" only after the developer says it
-in the chat. After `--close`: update both handoff files. The progress page: update the board's "## Now" lines,
-render and push at every unit end (a page built, a QA run collected, a fix batch, a site done) and every stop;
-before a long step (a QA run, a full pixel run) write Now and push first. In Claude the page is live (the artifact
-database: render.py writes the rows, ArtifactData sends them, the open page updates itself); elsewhere republish
-the static page (references/phases-and-qa.md > The progress page). Resume short: checkpoint at a page, site or
-phase end with the exact next step; a resume re-checks only what can have changed. **Running, not stopped:** a turn
-that ends while its own work keeps running (a background command, a subagent, a check) starts its last message, its
-recap and the progress page's Now line with `RUNNING, not stopped: <what>, started HH:MM; I continue by myself when
-it finishes.` (the time from the clock); a real stop never says RUNNING, it says what it waits on. **The title
-too** (Claude desktop app: `set_session_title` with "self"; other tools skip it): the chat keeps its state at the
-front of its own title, one call when the state changes, the rest unchanged: `▶ RUNNING | <title>` while it or its
-own background work runs, `⏸ WAITING on <who> | <title>`, `✋ BLOCKED | <title>`, `✓ DONE | <title>` (also in
-review); never for anything else.
+Run gate.py at the start of every session. Write `ok <date>` in "Developer gates" only after the developer says it in
+the chat. After `--close`: update both handoff files. The progress page: update the board's "## Now" lines, render
+and push at every unit end (a page built, a QA run collected, a fix batch, a site done) and every stop; before a long
+step (a QA run, a full pixel run) write Now and push first. In Claude the page is live (the artifact database:
+render.py writes the rows, ArtifactData sends them, the open page updates itself); elsewhere the static page is a
+local file the developer keeps open: `render.py ... --refresh 30 --open` (references/phases-and-qa.md > The progress
+page). Resume short: checkpoint at a page, site or phase end with the exact next step; a resume re-checks only what
+can have changed. **Running, not stopped:** a turn that ends while its own work keeps running (a background command,
+a subagent, a check) starts its last message, its recap and the progress page's Now line with `RUNNING, not stopped:
+<what>, started HH:MM; I continue by myself when it finishes.` (the time from the clock); a real stop never says
+RUNNING, it says what it waits on. **The title too** (Claude desktop app: `set_session_title` with "self";
+Antigravity: its conversation title; other tools skip it): the chat keeps its state at the front of its own title,
+one call when the state changes, the rest unchanged: `▶ RUNNING | <title>` while it or its own background work runs,
+`⏸ WAITING on <who> | <title>`, `✋ BLOCKED | <title>`, `✓ DONE | <title>` (also in review); never for anything else.
 
 ## Start: intake
 
@@ -183,7 +190,7 @@ review); never for anything else.
   and gate.py read them); the private progress page (the same page and progress.json keys as figma-to-wordpress): `python3
   _plan/tools/build-map/render.py BUILD-MAP.md _plan/progress.html`; in Claude the live page
   (`_plan/progress-live.html`, published once with the database) gets rows at every step start and stop, elsewhere
-  the static page is republished (references/phases-and-qa.md > The progress page).
+  the static page, opened locally with `--refresh 30 --open` (references/phases-and-qa.md > The progress page).
 - **P0-04 Decisions and the Plan OK** (defaults in brackets; the developer may just say OK): local folder, URL and
   database; starter theme (_tw for a Tailwind source or a site clearly easier in Tailwind, else Barebones with
   CSS-variable tokens; the choice and one reason); spam protection (CF7 reCAPTCHA v3 plus the static honeypot, badge
@@ -345,32 +352,16 @@ developer. Rollback if a check fails. Details: `references/launch.md`.
 (tracking), `shots.mjs` and `pdf.mjs` (the report) in `_plan/tools/report/`. PageSpeed Insights on live (mobile and
 desktop), reported honestly. Three test leads (inline form, pop-up, chat) named `TEST <developer> - please ignore`,
 sent with the real submit button after the developer agrees; the developer confirms the emails and the host's
-delivery log. Fill `report.html` with verified facts only (`grep -n "\[\[" report.html` prints nothing), make one
-PDF, and draft the task comment and the stakeholder message (login with `[PASTE PASSWORD HERE]`, which the
-developer fills; the agent never types a password). Details: `references/qa-report.md`. Then the client pack from
-`_setup/handover/` (guide screenshots taken as the client's Editor, plain English only): `references/handover.md`.
+delivery log. Fill `report.html` with verified facts only (`grep -n "\[\[" report.html` prints nothing; any shell:
+`python3 _plan/tools/report/text-check.py fill report.html` says OK), make one PDF, and draft the task comment and
+the stakeholder message (login with `[PASTE PASSWORD HERE]`, which the developer fills; the agent never types a
+password). Details: `references/qa-report.md`. Then the client pack from `_setup/handover/` (guide screenshots taken
+as the client's Editor, plain English only): `references/handover.md`.
 
-## Scripts at a glance
+## Scripts
 
-| Script (in the project: `_plan/tools/...`) | Does |
-|---|---|
-| `scripts/doctor.py` | This computer: tools, the local WordPress app, where to build (`--json`) |
-| `scripts/start.py` | The intake in one call: new-site.py --start, get-source.py (the copy) and analyze-source.py (the study) |
-| `scripts/get-source.py`, `analyze-source.py` | The working copy (clone, zip, folder or a capture); the study of it |
-| `scripts/new-site.py` | `--plan-only` for P0; then prepares the starter theme and copies the kit in |
-| `scripts/snapshot-routes.mjs` | Rendered HTML of every route, for client-rendered or server sources |
-| `scripts/setup/setup.py` | P1-01 in one call: database, get-wordpress, make-wp-config, serve-wp (if needed), install-wp |
-| `scripts/setup/install-wp.py` and the others | Install, admin, settings, plugins; the steps one by one when one needs repeating |
-| `scripts/report/leads-check.py` | The leads portal endpoint and key with a GET (stores nothing; the key never printed) |
-| `scripts/launch/lead-source-plugin.py` | The Lead source table and form attribution as a must-use plugin for a WordPress site the kit did not build |
-| `scripts/launch/plugin-versions.py` | Go/no-go: each plugin zip in the profile's folder with its version and file date |
-| `scripts/report/plugin-check.py` | The plugins per environment (local, staging, live) against the kit's list; `--done`: Duplicator gone after live QA |
-| `scripts/acf/build_field_groups.py`, `sync.php` | ACF JSON, stable keys (`--check`); database sync |
-| `scripts/seed/export.mjs`, `export-pages.py` | Static content into `_setup/seed/` for Tools > Seeder |
-| `scripts/build-map/gate.py`, `render.py`, `live.py` | The phase gate; the private progress page, static and live (the database rows) |
-| `scripts/report/self-check.py` | Before every QA run: the classes a build catches itself (instructions, casts, guards, dead code, launch files) |
-| `scripts/parity/` (the theme's `tests/parity/`) | `check-section.py` (one call per section), pixel, text, SEO and DOM diffs, `seodiff.py` (head tags and JSON-LD values), `changed-routes.py` (what a fix pass changed), `design-check.mjs` (states, motion, long content), `long-content.php`; mirror and server for cloud runs |
-| `scripts/update.py` | Updates this skill from GitHub (`--check` only looks); `/update-convert-wordpress-skill` runs it |
+Every script, with what it does: `references/scripts.md`. Run them with the `python3` (or `node`)
+command doctor.py printed, from any shell.
 
 ## Done means
 

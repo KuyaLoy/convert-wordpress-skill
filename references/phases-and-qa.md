@@ -123,7 +123,7 @@ Every QA run checks the items that apply to what the phase built (P5: all of the
 | Code quality | Tokens, not one-off values (the search finds 0 in what the build wrote); only used kit files and helpers ship; sections under about 15 fields and 250 lines; one job per file, JS enqueued; no task or ticket IDs in comments; `npm run lint` passes | `references/build.md` > Code quality; the read-only check reads the changed files |
 | Data | Seeder second run says "same" everywhere | Tools > Seeder |
 | Forms (P3 on) | Every form posts with JavaScript off, 303 to /thank-you/, branded HTML email and auto-reply, honeypot and reCAPTCHA; the leads portal sender in (on mail sent and mail failed) and the Theme Settings > Leads portal group there (administrators only, empty until live), or site.json says "none"; form attribution: a post with UTMs and a click id shows them in the email's Lead source table, a plain one "Direct (typed in, bookmark or no source)" | Local mail in `_setup/mail/` |
-| SEO (P4 on) | Titles, descriptions, canonicals, robots, theme-color, viewport, icons, og and twitter tags and every JSON-LD value equal to the source, with the same HTTP status; /thank-you/ noindex; old URLs 301 | `tests/parity/seodiff.py <source> <local url>`, `curl -I` |
+| SEO (P4 on) | Titles, descriptions, canonicals, robots, theme-color, viewport, icons, og and twitter tags and every JSON-LD value equal to the source, with the same HTTP status; /thank-you/ noindex; old URLs 301 | `tests/parity/seodiff.py <source> <local url>`, `curl -I` (`curl.exe -I` in Windows PowerShell) |
 | Security (P4 on) | No secrets in files, private files 403, REST users hidden, file editing off, nonces and capability checks | `live-qa.py --hidden` style checks locally, a code read |
 | Speed (P4 on) | LCP preload and fetchpriority, sized srcset, nothing lazy above the fold, reserved media space, deferred JS; local Lighthouse not below the source | `references/seo-security.md` > Performance |
 
@@ -155,7 +155,7 @@ phases, pages x sections x status, every QA finding with its status (counts per 
 fixed and decided folded), the log. The page and the JSON keys are the same as the figma-to-wordpress skill's
 progress page, so a lead or a Command Center reads both the same way (0.9.5 added `now` with `step` and `started`,
 `next`, `waiting`, `blocked`; `updated` is the render time). Publish the page privately once and keep its link
-(`"url"` in progress.json stays when the page is rendered again).
+(`"url"` in progress.json stays when the page is rendered again; other tools keep the local file, below).
 
 Republish it (render, then publish to the same link) at every unit end: each page built, each QA run collected, each
 fix batch, each site or clone done; and at every stop: a checkpoint, waiting on the developer, paused. Before a step
@@ -183,7 +183,13 @@ and `_plan/progress-rows.json`. Publish the live page once, privately, with
 3. Then `render.py BUILD-MAP.md _plan/progress.html --pushed`, so the next render sends only what changed.
 Most steps send two or three writes (meta/now, a section, a log line). The collections and fields are in
 `_plan/tools/build-map/live.py` (the same as figma-to-wordpress's live page). Republish the live page only when the
-kit's page changes. Other AI tools: the static page, republished as above.
+kit's page changes.
+
+**Other AI tools** (no Artifact: Codex, Antigravity, T3 Code, others): the static page is a local file, same content.
+Render once with `render.py BUILD-MAP.md _plan/progress.html --refresh 30 --open` (it opens in the default browser
+and reloads itself every 30 seconds), then plain `render.py` at the same moments as above; a lead reads
+`_plan/progress.json` (`references/agents.md` > Per tool).
+
 ## The developer's two gates
 
 - **Plan OK** at the end of P0: the plan documents, the board and the decisions. The OK covers the downloads and

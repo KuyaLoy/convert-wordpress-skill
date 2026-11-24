@@ -65,6 +65,10 @@ grep -n -i -E "\bACF\b|\bSCF\b|\bCF7\b|contact form 7|\bDNS\b|cache|plugin|\bPHP
   website-sheet.html editing-guide.html client-message.md
 ```
 
+Any shell (PowerShell too): `python3 <wp_root>/_plan/tools/report/text-check.py plain website-sheet.html
+editing-guide.html client-message.md` runs the same four checks (OK, or FAIL with each hit; the jargon hits listed
+to read).
+
 The first three print nothing. Read every hit of the last one: a word stays only when the client sees it on screen
 or it is explained in five words or fewer (the guide explains "Plugins (add-ons that run parts of the site)").
 Then read each sentence once as the client would: short, one idea, no jargon, nothing internal.
