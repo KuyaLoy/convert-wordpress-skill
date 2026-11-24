@@ -251,7 +251,7 @@ class Retro096(unittest.TestCase):
 
     def test_live_rows_diff_and_pushed(self):
         tmp = tempfile.mkdtemp()
-        p = board(tmp, lambda t: finding(t, '| F-001 | P2 | Home / Hero | a \| b, then </script> | major | open |'))
+        p = board(tmp, lambda t: finding(t, '| F-001 | P2 | Home / Hero | a \\| b, then </script> | major | open |'))
         out = os.path.join(tmp, 'progress.html')
         self.assertEqual(run('scripts/build-map/render.py', p, out).returncode, 0)
         with open(os.path.join(tmp, 'progress-rows.json'), encoding='utf-8') as fh:

@@ -31,4 +31,4 @@ each agent.
 - Before every release, walk the start as three people and fix what trips them: a Windows beginner with a zip and
   nothing installed, a Mac marketer with only a live address, a developer with XAMPP and a Next.js repo.
 - `site/` is the website (see `site/README.md`), not part of the skill: never read it while converting a site.
-  It shows the author's own contact details and social links on purpose; the no-names rule is for the skill.
+  It names the author by the GitHub link only: no personal contact details or social profiles there either.

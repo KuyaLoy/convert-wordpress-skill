@@ -278,10 +278,11 @@ five rules, in the same order, are in the figma-to-wordpress skill.
 (in a 1:1 build most one-off hits are copied source markup, which stays):
 
 ```
-X="--exclude-dir=node_modules --exclude-dir=vendor --exclude-dir=tests --exclude-dir=dist --exclude-dir=build"
-grep -rnE $X --include='*.php' --include='*.js' -e '[a-z]-\[(#|[0-9])' .            # one-off values
+X="--exclude-dir=node_modules --exclude-dir=vendor --exclude-dir=tests --exclude-dir=dist --exclude-dir=build --exclude-dir=.next"
+grep -rnE $X --include='*.php' --include='*.js' --include='*.jsx' --include='*.tsx' -e '[a-z]-\[(#|[0-9])' .  # one-off values
 grep -rnE $X --include='*.css' --include='*.scss' -e '#[0-9a-fA-F]{3,8}\b' . | grep -v tokens   # raw hex (build's own CSS)
-grep -rnE $X --include='*.php' --include='*.js' -e '[0-9]+:[0-9]+|\b[A-Z][A-Z0-9]+-T[0-9]+\b' .  # node IDs, ticket tags
+grep -rnE $X --include='*.php' --include='*.js' --include='*.jsx' --include='*.tsx' \
+  -e '[0-9]+:[0-9]+|\b[A-Z][A-Z0-9]+-T[0-9]+\b' .                                      # node IDs, ticket tags
 grep -rn $X --include='*.php' -e 'phpcs:ignore' -e 'phpcs:disable' .                  # every ignore has its reason
 ```
 

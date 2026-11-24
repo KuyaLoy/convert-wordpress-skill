@@ -17,13 +17,13 @@ import os
 import re
 import sys
 
-SKIP_DIRS = {'node_modules', 'vendor', 'tests', 'dist', 'build'}
+SKIP_DIRS = {'node_modules', 'vendor', 'tests', 'dist', 'build', '.next'}
 JARGON = re.compile(r'\bACF\b|\bSCF\b|\bCF7\b|contact form 7|\bDNS\b|cache|plugin|\bPHP\b|database|repeater|'
                     r'field group|_setup|_plan|\.html|password:', re.I)
 ONEOFF = [  # (label, extensions, pattern, drop lines containing) as in references/build.md > Self-check
-    ('one-off value', ('.php', '.js'), re.compile(r'[a-z]-\[(#|[0-9])'), None),
+    ('one-off value', ('.php', '.js', '.jsx', '.tsx'), re.compile(r'[a-z]-\[(#|[0-9])'), None),
     ('raw hex', ('.css', '.scss'), re.compile(r'#[0-9a-fA-F]{3,8}\b'), 'tokens'),
-    ('node ID or ticket tag', ('.php', '.js'), re.compile(r'[0-9]+:[0-9]+|\b[A-Z][A-Z0-9]+-T[0-9]+\b'), None),
+    ('node ID or ticket tag', ('.php', '.js', '.jsx', '.tsx'), re.compile(r'[0-9]+:[0-9]+|\b[A-Z][A-Z0-9]+-T[0-9]+\b'), None),
     ('phpcs ignore', ('.php',), re.compile(r'phpcs:ignore|phpcs:disable'), None),
 ]
 

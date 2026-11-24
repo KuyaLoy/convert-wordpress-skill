@@ -23,5 +23,5 @@ SITE_URL=https://example.com/convert-to-wordpress/ SITE_BASE_PATH=/convert-to-wo
 ```
 
 Rules: plain words, no em or en dashes, the plain label first and the game tag second, motion off when the visitor
-asks for reduced motion, both themes checked (Auto, Light, Dark). The author's contact details and social links in
-`src/content/site.ts` are there on purpose (the "Need a developer?" section and the footer).
+asks for reduced motion, both themes checked (Auto, Light, Dark). The author appears only as the GitHub link
+(`AUTHOR` and `REPO` in `src/content/site.ts`, the footer): no personal contact details or social profiles.

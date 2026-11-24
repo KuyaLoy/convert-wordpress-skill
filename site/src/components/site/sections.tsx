@@ -14,7 +14,6 @@ import {
   FOR_YOU,
   GUILD,
   HERO,
-  HIRE,
   INSTALL,
   LEVELS,
   NAV,
@@ -517,44 +516,6 @@ export function Guild() {
             </Button>
           ))}
         </div>
-      </div>
-    </section>
-  );
-}
-
-export function Hire() {
-  return (
-    <section id="hire" aria-labelledby="hire-title" className="py-20 md:py-28">
-      <div className={`${wrap} grid items-center gap-12 lg:grid-cols-[1fr_1.1fr]`}>
-        <div>
-          <span className="grid size-14 place-items-center bg-brand text-ink">
-            <Icon name="briefcase" className="size-8" />
-          </span>
-          <h2 id="hire-title" className="mt-6 text-4xl md:text-5xl">
-            {HIRE.title}
-          </h2>
-          <p className="mt-5 max-w-xl text-lg text-muted-foreground">{HIRE.lead}</p>
-        </div>
-        <ul className="space-y-6 px-1">
-          {HIRE.contacts.map((c) => (
-            <li key={c.label}>
-              <a
-                href={c.href}
-                className="pixel-frame group flex items-center gap-5 bg-panel p-5 transition-colors hover:bg-primary hover:text-primary-foreground"
-              >
-                <span className="grid size-12 shrink-0 place-items-center bg-secondary text-foreground group-hover:bg-ink group-hover:text-brand">
-                  <Icon name={c.icon} className="size-6" />
-                </span>
-                <span className="min-w-0">
-                  <span className="block font-pixel text-base text-muted-foreground group-hover:text-primary-foreground">
-                    {c.label}
-                  </span>
-                  <span className="block text-lg [overflow-wrap:anywhere]">{c.value}</span>
-                </span>
-              </a>
-            </li>
-          ))}
-        </ul>
       </div>
     </section>
   );

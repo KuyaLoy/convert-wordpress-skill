@@ -5,6 +5,20 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.9.15] - 2026-11-24
+
+### Changed
+
+- The website (`site/`) names the author by the GitHub link only: the personal social links (LinkedIn, Facebook,
+  Instagram, Threads, X) and the "Need a developer?" section with personal contact details are removed, with the
+  icons only they used. `AGENTS.md` and `site/README.md` say so. Older releases and the git history still hold them.
+
+### Fixed
+
+- `text-check.py oneoff` also searches `.jsx` and `.tsx` files and skips `.next/` like `node_modules/`; the grep
+  lines in `references/build.md` match.
+- `render.py` closes the board file it reads; `tests/test_phases.py` has no invalid escape warning.
+
 ## [0.9.14] - 2026-11-24
 
 The skill outside Claude Code: a cross-tool audit (Codex, Antigravity, T3 Code). Claude's steps are unchanged.

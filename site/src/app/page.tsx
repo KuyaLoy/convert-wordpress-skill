@@ -3,7 +3,6 @@ import {
   ForYou,
   Guild,
   Hero,
-  Hire,
   Install,
   LevelMap,
   Nav,
@@ -32,7 +31,6 @@ export default function Home() {
           <Safety />
           <PatchNotes />
           <Guild />
-          <Hire />
         </main>
         <aside className="hidden border-l-4 border-line-soft xl:block">
           <SectionRail sections={SECTIONS} cta={HERO.primary} />

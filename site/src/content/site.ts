@@ -4,14 +4,9 @@
 export const REPO = "https://github.com/KuyaLoy/convert-wordpress-skill";
 export const AUTHOR = { name: "KuyaLoy", url: "https://github.com/KuyaLoy" };
 
-// Footer links: the author's profiles. Icons: pixel brand marks (components/site/brand-icons.tsx).
+// Footer link: the author's GitHub profile. Icon: pixel brand mark (components/site/brand-icons.tsx).
 export const SOCIALS: { label: string; href: string; icon: string }[] = [
   { label: "GitHub", href: AUTHOR.url, icon: "github" },
-  { label: "LinkedIn", href: "https://www.linkedin.com/in/mynameisloloy/", icon: "linkedin" },
-  { label: "Facebook", href: "https://www.facebook.com/robin.tapiru/", icon: "facebook" },
-  { label: "Instagram", href: "https://www.instagram.com/tapiru_robin/", icon: "instagram" },
-  { label: "Threads", href: "https://www.threads.com/@tapiru_robin", icon: "threads" },
-  { label: "X", href: "https://x.com/BUKO_roll", icon: "x" },
 ];
 
 export const NAV = [
@@ -32,7 +27,6 @@ export const SECTIONS = [
   { id: "rules", label: "House rules" },
   { id: "patch-notes", label: "What's new" },
   { id: "contribute", label: "Help make it better" },
-  { id: "hire", label: "Need a developer?" },
 ];
 
 export const HERO = {
@@ -217,21 +211,6 @@ export const GUILD = {
     { label: "Report a problem", href: `${REPO}/issues/new?template=bug.yml`, icon: "bug" },
     { label: "Share your setup", href: `${REPO}/issues/new?template=setup.yml`, icon: "monitor" },
     { label: "Send a fix", href: `${REPO}/blob/main/CONTRIBUTING.md`, icon: "git-merge" },
-  ],
-};
-
-export const HIRE = {
-  title: "Need a developer?",
-  lead: "I'm KuyaLoy, the developer behind this skill. If you would rather have the conversion done for you, or want a hand with yours, get in touch.",
-  contacts: [
-    {
-      label: "Email",
-      value: "robintapiru0894@gmail.com",
-      href: "mailto:robintapiru0894@gmail.com?subject=WordPress%20conversion",
-      icon: "mail",
-    },
-    { label: "Phone", value: "+971 56 594 4497", href: "tel:+971565944497", icon: "phone" },
-    { label: "Website", value: "robintapiru.com", href: "https://robintapiru.com", icon: "globe" },
   ],
 };
 

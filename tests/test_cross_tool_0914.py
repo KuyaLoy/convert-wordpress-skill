@@ -52,6 +52,9 @@ def theme():
     write(os.path.join(t, 'assets', 'app.js'), 'const t = "10:30";\n')
     write(os.path.join(t, 'node_modules', 'x', 'i.js'), 'const z = "mt-[1px] 9:9";\n')
     write(os.path.join(t, 'vendor', 'v.php'), '<?php // phpcs:ignore all\n')
+    write(os.path.join(t, 'src', 'Hero.tsx'), 'export const H = () => <div className="pt-[22px]" />;\n')
+    write(os.path.join(t, 'src', 'Card.jsx'), 'const id = "PRJ-T12";\n')
+    write(os.path.join(t, '.next', 'server', 'page.js'), 'const z = "mt-[1px] 9:9";\n')
     return t
 
 
@@ -114,15 +117,20 @@ class TextCheck(unittest.TestCase):
         self.assertIn('template-parts/hero.php:2:[phpcs ignore]', out)
         self.assertNotIn('node_modules', out)
         self.assertNotIn('vendor', out)
-        self.assertIn('OK oneoff: 6 hits', out)
+        self.assertIn('src/Hero.tsx:1:[one-off value]', out)  # 0.9.15: React files too
+        self.assertIn('src/Card.jsx:1:[node ID or ticket tag]', out)
+        self.assertNotIn('.next', out)  # a Next.js build folder is skipped like node_modules
+        self.assertIn('OK oneoff: 8 hits', out)
 
     @unittest.skipUnless(GREP_OK, 'no bash with grep')
     def test_oneoff_matches_the_grep_lines(self):
         t = theme()
-        x = '--exclude-dir=node_modules --exclude-dir=vendor --exclude-dir=tests --exclude-dir=dist --exclude-dir=build'
-        cmds = [f"grep -rnE {x} --include='*.php' --include='*.js' -e '[a-z]-\\[(#|[0-9])' .",
+        x = ('--exclude-dir=node_modules --exclude-dir=vendor --exclude-dir=tests --exclude-dir=dist --exclude-dir=build'
+             ' --exclude-dir=.next')
+        r = "--include='*.php' --include='*.js' --include='*.jsx' --include='*.tsx'"
+        cmds = [f"grep -rnE {x} {r} -e '[a-z]-\\[(#|[0-9])' .",
                 f"grep -rnE {x} --include='*.css' --include='*.scss' -e '#[0-9a-fA-F]{{3,8}}\\b' . | grep -v tokens",
-                f"grep -rnE {x} --include='*.php' --include='*.js' -e '[0-9]+:[0-9]+|\\b[A-Z][A-Z0-9]+-T[0-9]+\\b' .",
+                f"grep -rnE {x} {r} -e '[0-9]+:[0-9]+|\\b[A-Z][A-Z0-9]+-T[0-9]+\\b' .",
                 f"grep -rn {x} --include='*.php' -e 'phpcs:ignore' -e 'phpcs:disable' ."]
         want = set()
         for c in cmds:

@@ -50,7 +50,8 @@ if '--refresh' in sys.argv:
         print('FAIL render: --refresh needs seconds (5 or more)')
         sys.exit(2)
 JSON_OUT = sys.argv[i + 1] if i != -1 else os.path.join(os.path.dirname(os.path.abspath(OUT)), 'progress.json')
-md = open(SRC, encoding='utf-8').read()
+with open(SRC, encoding='utf-8') as fh:
+    md = fh.read()
 
 STATUSES = ['todo', 'building', 'built', 'checked', 'fixed']
 # The shared phase ids, and which board phase each one follows.
