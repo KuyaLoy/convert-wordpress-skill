@@ -126,7 +126,12 @@ with `curl --resolve <host>:443:<server ip>` (GET only) before the A record chan
   Live has exactly ACF PRO, Contact Form 7, Yoast SEO and this list (Duplicator until the clean-up), nothing else
   unless the task asks (site.json `"task_plugins"`): `plugin-check.py --env live` proves it from `wp plugin list`.
   **Staging** (a public copy before live) gets ACF PRO, Contact Form 7 and Yoast SEO (Redirection if needed), none
-  of the list and no reCAPTCHA keys (`plugin-check.py --env staging`), and stays noindex (`--hidden`).
+  of the list and no reCAPTCHA keys (`plugin-check.py --env staging`), and stays noindex (`--hidden`). A Duplicator
+  import replaces wp-config, the root .htaccess and the Reading setting: the must-use file
+  `wp-content/mu-plugins/<prefix>-environment.php` (new-site.py writes it; it travels in the package) sets
+  `WP_ENVIRONMENT_TYPE` by host when wp-config does not (the live host production, a local address local, any other
+  host staging) and keeps staging noindex; `acf-json/.htaccess` blocks the field files inside the theme. After the
+  import, check: `wp eval 'echo wp_get_environment_type();'` says staging, and `live-qa.py --hidden` passes.
 - **Clean-up** once live QA is at 0 and the report is done: Duplicator's backups deleted, the plugin deactivated and
   deleted, its backups folder and any installer or archive gone; `plugin-check.py --env live --done --files`
   confirms it (RUNBOOK section 5).
@@ -135,9 +140,10 @@ with `curl --resolve <host>:443:<server ip>` (GET only) before the A record chan
   Media and Contact Form CFDB7 installed and active (ask first), then the profile's `extra_plugins` (the `required` ones
   must be active; a plugin that registers itself with an outside service on activation is activated again once DNS
   points here); read `debug.log` once; list the live plugins.
-- Leads portal (mandatory for a site with a lead form; on the live plugin checklist): the endpoint and key go into
-  the live wp-config (the developer pastes them; the theme never sends from local, development or staging),
-  `leads-check.py` answers OK, then one TEST lead per form shows in the portal's counts.
+- Leads portal (mandatory for a site with a lead form; on the live plugin checklist): the address and password go
+  into Theme Settings > Leads portal on live (the developer, as an administrator; wp-config constants win when
+  defined; the theme never sends from local, development or staging), `leads-check.py --site` on live answers OK,
+  then one TEST lead per form shows in the portal's counts.
 - Caching plugins on live (LiteSpeed Cache): purge everything after "Discourage search engines" changes, or
   pages keep the old robots meta for a week.
 - After DNS moves: run AutoSSL again (cPanel > SSL/TLS Status) and check the new certificate covers the apex and

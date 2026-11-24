@@ -59,6 +59,8 @@ def f(kind, key, name, label, **o):
             base.update({'maxlength': '', 'rows': o.pop('rows', 3), 'new_lines': ''})
         if kind == 'number':
             base.update({'min': '', 'max': '', 'step': '', 'prepend': '', 'append': ''})
+    elif kind == 'password':
+        base.update({'placeholder': '', 'prepend': '', 'append': ''})
     elif kind == 'true_false':
         base.update({'message': o.pop('message', ''), 'default_value': o.pop('default', 0), 'ui': 1,
                      'ui_on_text': '', 'ui_off_text': ''})
@@ -86,7 +88,7 @@ def f(kind, key, name, label, **o):
                      'return_format': 'id', 'min': o.pop('min', ''), 'max': o.pop('max', ''), 'elements': '',
                      'bidirectional': 0, 'bidirectional_target': []})
     elif kind == 'tab':
-        base.update({'placement': 'left', 'endpoint': 0, 'selected': 0})
+        base.update({'placement': o.pop('placement', 'top'), 'endpoint': 0, 'selected': 0})  # tabs across the top
         base['name'] = ''
     elif kind == 'group':
         base.update({'layout': 'block', 'sub_fields': o.pop('sub_fields')})
@@ -110,8 +112,9 @@ class G:
     def k(self, *parts):
         return f'field_{KEY}_' + '_'.join((self.p,) + parts)
 
-    def tab(self, label):
-        return f('tab', self.k('tab', label.lower().replace(' & ', '_').replace(' ', '_')), '', label)
+    def tab(self, label, **o):
+        """A tab: across the top by default (placement='left' only when the developer asks)."""
+        return f('tab', self.k('tab', label.lower().replace(' & ', '_').replace(' ', '_')), '', label, **o)
 
     def text(self, name, label, default='', *path, **o):
         return f('text', self.k(*path, name), name, label, default=default, **o)
@@ -164,6 +167,22 @@ INACTIVE_LOC = [[{'param': 'post_type', 'operator': '==', 'value': 'post'}]]
 # Theme Settings options page (Editors can open it: capability edit_pages). Its fields: the group below.
 pages[f'ui_options_page_{KEY}_theme_settings'] = options_page(f'{KEY}-theme-settings', 'Theme Settings',
                                                               description='Site-wide content: one place, many pages.')
+
+# Leads portal (always written; keep it when the spec below is replaced): forms-portal.php reads these two fields
+# (kitwp_leads_settings(); wp-config constants win when defined). Administrators only: the location below hides the
+# group from everyone else and forms-portal.php keeps the stored values on anyone else's save. Seeded empty: the
+# developer pastes the live values on live. The write key is a password field (masked) and is stored in the database.
+lp = G('ts')
+groups[f'group_{KEY}_leads_portal'] = field_group(f'group_{KEY}_leads_portal', 'Leads portal', [
+    lp.any('url', 'leads_endpoint', 'Leads portal address', width=60,
+           instructions='The address the leads portal gave for this site (it starts with https://). Every form '
+                        'sent on the live site also goes there. Empty: forms are emailed only.'),
+    lp.any('password', 'leads_key', 'Leads portal password', width=40,
+           instructions='The password the leads portal gave for this site, from its admin. Only administrators see '
+                        'it. Never send it by email or chat.'),
+], [[{'param': 'options_page', 'operator': '==', 'value': f'{KEY}-theme-settings'},
+     {'param': 'current_user_role', 'operator': '==', 'value': 'administrator'}]], menu_order=90,
+    description='Leads portal (forms-portal.php). Administrators only.')
 
 # ---------------------------------------------------------------- EXAMPLE SPEC (replace with the site's model)
 # Theme Settings: the fields the kit's PHP reads (helpers.php, schema.php, forms.php) plus the 404 copy.

@@ -147,6 +147,7 @@ LEADS_STUBS = r'''
 const KITWP_LEADS_PREFIX = 'TEST_LEADS';
 define( 'TEST_LEADS_ENDPOINT', 'https://portal.example.org/ingest/demo' );
 define( 'TEST_LEADS_KEY', 'lk_test_dummy_key' );
+function kitwp_setting( $n ) { return $GLOBALS['settings'][ $n ] ?? ''; }
 $GLOBALS['hooks'] = [];
 $GLOBALS['posts'] = [];
 function add_action( $hook, $fn ) { $GLOBALS['hooks'][ $hook ][] = $fn; }
@@ -190,6 +191,7 @@ class LeadsPortal(unittest.TestCase):
         self.assertEqual(len(hooks), 2, 'kitwp_leads_send must hook wpcf7_mail_sent and wpcf7_mail_failed')
         code = '<?php\n' + LEADS_STUBS + f"$GLOBALS['env'] = '{env}';\n"
         code += php_function(forms, 'kitwp_leads_tracking') + php_function(forms, 'kitwp_leads_send')
+        code += php_function(forms, 'kitwp_leads_settings')
         code += php_function(forms, 'kitwp_leads_allowed_fields')
         code += php_function('assets/theme/includes/forms.php', 'kitwp_lead_fields')
         for name in ('kitwp_attribution_fields', 'kitwp_attribution_touch', 'kitwp_attribution_url',

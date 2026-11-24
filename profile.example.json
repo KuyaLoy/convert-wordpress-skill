@@ -61,8 +61,9 @@
     }
   ],
   "plugin_zips": {
-    "_about": "Your plugin folder: paths on this machine to plugin zips you bought or own, keyed by a short name (acf_pro, and any of yours that extra_plugins names in \"zip\"). The only source for these plugins; plugin-versions.py shows each zip's version before go-live. Never licence keys here.",
+    "_about": "Your plugin folder: paths on this machine to plugin zips you bought or own, keyed by a short name (acf_pro, duplicator_pro, and any of yours that extra_plugins names in \"zip\"). The only source for these plugins; plugin-versions.py shows each zip's version before go-live. duplicator_pro: P1 setup installs Duplicator Pro from it (for the moves to staging and live); empty = you install it before the first package. Paths only: never licence keys here.",
     "acf_pro": "",
+    "duplicator_pro": "",
     "agency_plugin": ""
   },
   "_cache_plugin_about": "The cache plugin on live (on the live plugin checklist; never staging or local). Empty = LiteSpeed Cache. Name another when the host needs it (LiteSpeed Cache page cache needs a LiteSpeed server or QUIC.cloud).",
@@ -79,7 +80,7 @@
     "_site_badge_about": "The same badge for the site footer's bottom bar (SVG is fine on the web): kitwp_agency_badge(). Theme Settings > Branding can swap or hide it."
   },
   "leads_portal": {
-    "_about": "Your leads portal: every lead form goes there server to server (JSON, Bearer key), also when the email fails. Mandatory on live for a site with a lead form (empty = a go-live blocker; a site without forms: site.json \"leads_portal\": \"none: <reason>\"). The live wp-config holds <constant_prefix>_ENDPOINT and <constant_prefix>_KEY (the developer pastes them; never in the theme). Off on local, development and staging. admin: the portal admin URL; setup: how a project is made.",
+    "_about": "Your leads portal: every lead form goes there server to server (JSON, Bearer key), also when the email fails. Mandatory on live for a site with a lead form (empty = a go-live blocker; a site without forms: site.json \"leads_portal\": \"none: <reason>\"). The address and password go into Theme Settings > Leads portal on live (administrators only; the developer pastes them; stored in the database, so they travel in packages and backups); wp-config constants <constant_prefix>_ENDPOINT and <constant_prefix>_KEY win when defined (optional). Off on local, development and staging. admin: the portal admin URL; setup: how a project is made.",
     "constant_prefix": "",
     "admin": "",
     "setup": ""

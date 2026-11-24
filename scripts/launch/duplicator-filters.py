@@ -8,8 +8,9 @@ Files > Filters). One textarea: full paths, each ending with ";", one per line, 
 Example: python3 duplicator-filters.py C:/sites/example example
 --starter tw: the theme is _tw, so everything in its folder except theme/ (the part WordPress loads) is left out.
 --check: the paths are looked up on this machine and missing ones are marked, so you can see what exists.
-Left out: planning and handoff files, the seed and setup folders, the debug log, the theme's tests (parity
-screenshots can be gigabytes), node_modules, vendor, build configs and dotfiles, git folders (a cloned starter
+Left out: planning and handoff files (handoff-archive.md too), the seed and setup folders, the agent folders and
+files at the root (tasks, eod, .agents, .claude, AGENTS.md), the debug log, the theme's tests (parity screenshots
+can be gigabytes), node_modules, vendor, build configs and dotfiles, git folders (a cloned starter
 theme brings one), readme.html and wp-content/upgrade*.
 """
 import os
@@ -31,8 +32,9 @@ if len(args) < 2 or starter not in (None, 'barebones', 'tw'):
 root = args[0].replace('\\', '/').rstrip('/')
 t = f'wp-content/themes/{args[1]}'
 paths = [
-    '_plan', '_setup', 'BUILD-MAP.md', 'handoff.md', 'ai-handoff-summary.md', 'PLAN.md', 'readme.html', '.git',
-    'wp-content/debug.log', 'wp-content/upgrade', 'wp-content/upgrade-temp-backup',
+    '_plan', '_setup', 'BUILD-MAP.md', 'handoff.md', 'ai-handoff-summary.md', 'handoff-archive.md', 'PLAN.md',
+    'tasks', 'eod', '.agents', '.claude', 'AGENTS.md', 'readme.html', '.git', 'wp-content/debug.log',
+    'wp-content/upgrade', 'wp-content/upgrade-temp-backup',
 ]
 dev = ['.git', 'tests', 'node_modules', 'vendor', 'AGENTS.md', 'README.md', 'package.json', 'package-lock.json',
        'composer.json', 'composer.lock', 'phpcs.xml.dist', '.gitignore', '.gitattributes', '.editorconfig']

@@ -132,6 +132,7 @@ class EmailBlock(unittest.TestCase):
 @unittest.skipUnless(shutil.which('php'), 'needs PHP')
 class PortalFields(unittest.TestCase):
     FUNCS = [(PORTAL, 'kitwp_leads_tracking'), (PORTAL, 'kitwp_leads_allowed_fields'), (PORTAL, 'kitwp_leads_send'),
+             (PORTAL, 'kitwp_leads_settings'),
              (FORMS, 'kitwp_lead_fields')] + CORE[:4]
 
     def test_attribution_goes_to_the_portal(self):

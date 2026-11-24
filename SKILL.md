@@ -94,6 +94,11 @@ https://github.com/KuyaLoy/convert-wordpress-skill: ask the developer where thei
     `Next: <step> — waiting on <who>`. Send it to whoever started the work: a parent session (for example a Command
     Center) as well as your own chat; with no parent, the developer, with the recommended step first ("Proceed:
     <step>"). Every role and subagent reports upward this way; nobody waits unreported.
+16. **Kit files as shipped; checks with their output.** Kit files (the theme's includes, the must-use files, the
+    tools) are copied with the prefix swap only (`new-site.py` does it); any site change to a kit file is listed with
+    its reason (the file, the change, why) in the task's notes.md, or handoff.md > Changes Made without one. A check
+    is reported only with its output (the tool's OK or FAIL line and counts, pasted): never "passes", "seeded" or
+    "0 private" from memory.
 
 ## The phases
 
@@ -203,7 +208,8 @@ review); never for anything else.
    wp-config (local, debug log, no file editing, an `ACF_PRO_LICENSE` line), starts `serve-wp.py` when the local app
    has no site addresses, then `install-wp.py`: the default local admin from the profile (`local_admin`, e.g.
    `agency-dev`; local sites only), permalinks `/%postname%/`, "Discourage search engines", the fresh-install samples
-   removed, Contact Form 7 and Yoast SEO (checksums) and ACF PRO from the profile's zip, all active. `--dry-run`
+   removed, Contact Form 7 and Yoast SEO (checksums), ACF PRO from the profile's zip and Duplicator Pro from
+   `plugin_zips.duplicator_pro` when set, all active. `--dry-run`
    shows the steps first. Exit 1 lists open items (no ACF PRO zip or local password yet: the developer adds them to
    the profile, then run it again). ACF PRO activates itself when the profile has `acf_pro_license`; otherwise the
    developer pastes the licence. The business's language and date formats in Settings. Profile `extra_plugins` marked
@@ -281,8 +287,9 @@ text; both carry the profile's agency badge in the footer (`branding`); the emai
 Settings.
 Every lead also goes to the profile's leads portal (`leads_portal`), server to server, whether the email went out
 or failed: mandatory on live for a site with a lead form (no portal in the profile is a go-live blocker; a site
-without forms says so in site.json). The keys go only into the live wp-config; never from local, development or
-staging.
+without forms says so in site.json). Its address and password always live in Theme Settings > Leads portal
+(administrators only, seeded empty, pasted on live; wp-config constants win when defined); never sent from local,
+development or staging.
 Every lead form also says where the lead came from (form attribution, built in: UTM tags, ad click ids, landing
 page, referrer, first visit), in the lead email, CFDB7, the portal and `generate_lead`.
 Details: `references/forms-email.md`.
@@ -321,7 +328,7 @@ list is in the runbook).
 Backup of the live site (full if it is an old WordPress) > build the theme assets > a Duplicator backup
 with the filters from `python3 _plan/tools/launch/duplicator-filters.py <root> <theme>` (`--starter tw` for _tw;
 with Duplicator Pro and WP-CLI, `python3 _plan/tools/launch/package.py <wp_root> <theme>` builds and checks the
-package in one step) >
+package in one step and prints the archive's top level; report that output) >
 database and PHP on the host > the old site into a sibling folder (rollback: move it back) > installer >
 `installer.php` answers 404, no archive left > wp-config `production`, debug off > `.htaccess` from
 `htaccess-live.txt` > wp-admin: search engines allowed, permalinks saved, reCAPTCHA keys and any ACF licence (the

@@ -3,15 +3,21 @@
 
     python3 package.py <WordPress root> <theme folder> [--starter tw|barebones] [--dry-run] [--wp "<command>"]
                        [--password-file <path>] [-v]
+    python3 package.py --check-zip <archive.zip> <theme folder>     only the check, for a backup built in wp-admin
 
 It sets the Duplicator Pro template "launch" (the file filters from duplicator-filters.py, installer password on,
 installer name with hash), builds the backup with WP-CLI, checks the archive for private files, and copies the
-archive and installer to <root>/_setup/launch/upload/. A new installer password goes to a file OUTSIDE the project
-(default: the system temp folder). The developer pastes it into the installer, then deletes the file.
+archive and installer to <root>/_setup/launch/upload/. The check prints the archive's top level (each folder or file
+with its entry count) and fails on any private entry: _plan, _setup, tasks, eod, .agents, .claude, .git at the root,
+handoff*.md, ai-handoff-summary.md, BUILD-MAP.md, AGENTS.md (root or theme), debug.log, CF7's temporary uploads, and
+the theme's tests, node_modules and .git. Report a package with that output, never from memory. A new installer
+password goes to a file OUTSIDE the project (default: the system temp folder). The developer pastes it into the
+installer, then deletes the file.
 
 --dry-run  shows the filter counts and the steps, builds nothing.
 --wp       the WP-CLI command when `wp` is not on PATH, for example --wp "php C:/tools/wp-cli.phar".
 -v         lists every filtered path.
+--check-zip  the check only (listing and private entries).
 Exit codes: 0 ok, 1 usage, 2 Duplicator Pro not active, 3 build failed, 4 private files in the archive.
 """
 import argparse
@@ -31,11 +37,13 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 FILTERS = os.path.join(HERE, 'duplicator-filters.py')
 HELPER = os.path.join(HERE, 'duplicator-template.php')
 PASS_ENV = 'DUP_LAUNCH_INSTALLER_PASS'
-# Left out on top of duplicator-filters.py: agent folders and Contact Form 7's temporary uploads.
-EXTRA = ['.claude', 'tasks', 'wp-content/uploads/wpcf7_uploads']
-PRIVATE_ROOT = {'.claude', 'tasks', '_plan', '_setup', '.git'}
-PRIVATE_THEME = {'tests', 'node_modules', '.git'}
-PRIVATE_NAMES = {'debug.log', 'handoff.md', 'ai-handoff-summary.md', 'build-map.md'}
+# Left out on top of duplicator-filters.py (which leaves out the agent folders and files): Contact Form 7's
+# temporary uploads.
+EXTRA = ['wp-content/uploads/wpcf7_uploads']
+PRIVATE_ROOT = {'.claude', '.agents', 'tasks', 'eod', '_plan', '_setup', '.git', 'agents.md'}
+PRIVATE_THEME = {'tests', 'node_modules', '.git', 'agents.md'}
+PRIVATE_NAMES = {'debug.log', 'ai-handoff-summary.md', 'build-map.md'}
+HANDOFF = re.compile(r'^handoff.*\.md$')  # handoff.md, handoff-archive.md, anywhere
 DB_DUMP = re.compile(r'^dup-installer/dup_descriptors_[^/]+/db_dumps/[^/]+\.sql$')
 WPCONFIG = re.compile(r'^dup-installer/dup_descriptors_[^/]+/orig_files/source_site_wpconfig')
 OK, USAGE, NO_DUP, BUILD_FAILED, PRIVATE = 0, 1, 2, 3, 4
@@ -87,21 +95,55 @@ def private_hit(name, theme):
     if not parts:
         return False
     low = [x.lower() for x in parts]
-    if low[0] in PRIVATE_ROOT or low[-1] in PRIVATE_NAMES or 'wpcf7_uploads' in low:
+    if low[0] in PRIVATE_ROOT or low[-1] in PRIVATE_NAMES or HANDOFF.match(low[-1]) or 'wpcf7_uploads' in low:
         return True
     return len(parts) > 3 and parts[:3] == ['wp-content', 'themes', theme] and low[3] in PRIVATE_THEME
 
 
 def check_archive(path, theme):
-    """Read the zip's entry list. Returns dict(entries, hits, db, wpconfig). Raises zipfile.BadZipFile."""
+    """Read the zip's entry list. Returns dict(entries, top, hits, db, wpconfig). Raises zipfile.BadZipFile."""
     with zipfile.ZipFile(path) as z:
         names = [n.replace('\\', '/').lstrip('/') for n in z.namelist()]
+    top = {}
+    for n in names:
+        head = n.split('/')[0] + ('/' if '/' in n else '')
+        top[head] = top.get(head, 0) + 1
     return {
         'entries': len(names),
+        'top': top,
         'hits': [n for n in names if private_hit(n, theme)],
         'db': any(DB_DUMP.match(n) for n in names),
         'wpconfig': any(WPCONFIG.match(n) for n in names),
     }
+
+
+def listing(c):
+    """The archive's top level, one line each: the entry count and the name (folders end with /)."""
+    return '\n'.join(f'{n:>7}  {name}' for name, n in sorted(c['top'].items()))
+
+
+def report_archive(archive, theme):
+    """Print the verdict and the listing for one archive. Returns OK, PRIVATE or BUILD_FAILED."""
+    name = os.path.basename(archive)
+    try:
+        c = check_archive(archive, theme)
+    except (zipfile.BadZipFile, OSError):
+        print(f'FAIL package: {name} is not a readable zip')
+        return BUILD_FAILED
+    if c['hits']:
+        more = len(c['hits']) - 20
+        print(f'FAIL package: {len(c["hits"])} private entries in {name}; nothing copied')
+        print('\n'.join(c['hits'][:20]) + (f'\n... and {more} more' if more > 0 else ''))
+        return PRIVATE
+    if not c['db'] or not c['wpconfig']:
+        lack = ' and '.join(x for x, ok in (('the database dump', c['db']), ('source_site_wpconfig', c['wpconfig']))
+                            if not ok)
+        print(f'FAIL package: {name} has no {lack}')
+        return BUILD_FAILED
+    print(f'OK package: {name} ({size_text(os.path.getsize(archive))}), {c["entries"]} entries, 0 private')
+    print('Top level of the archive (entries, name):')
+    print(listing(c))
+    return OK
 
 
 def newest_package(backups, since):
@@ -164,6 +206,13 @@ def tail(text, n=20):
 
 
 def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv[:1] == ['--check-zip']:
+        if len(argv) != 3 or not os.path.isfile(argv[1]):
+            print('FAIL package: --check-zip needs an existing archive and the theme folder name\n'
+                  'usage: package.py --check-zip <archive.zip> <theme folder>')
+            return USAGE
+        return report_archive(argv[1], argv[2])
     ap = Parser(add_help=True, description='Build the launch package with Duplicator Pro.')
     ap.add_argument('root')
     ap.add_argument('theme')
@@ -254,29 +303,17 @@ def main(argv=None):
         print(tail(r.stderr + '\n' + r.stdout))
         return BUILD_FAILED
 
-    # 3. Check before anything is copied.
-    try:
-        c = check_archive(archive, a.theme)
-    except zipfile.BadZipFile:
-        print(f'FAIL package: {os.path.basename(archive)} is not a readable zip')
-        return BUILD_FAILED
-    if c['hits']:
-        print(f'FAIL package: {len(c["hits"])} private entries in {os.path.basename(archive)}; nothing copied')
-        print('\n'.join(c['hits'][:20]))
-        return PRIVATE
-    if not c['db'] or not c['wpconfig']:
-        lack = ' and '.join(x for x, ok in (('the database dump', c['db']), ('source_site_wpconfig', c['wpconfig']))
-                            if not ok)
-        print(f'FAIL package: {os.path.basename(archive)} has no {lack}')
-        return BUILD_FAILED
+    # 3. Check before anything is copied: the verdict and the listing are printed (report them as printed).
+    verdict = report_archive(archive, a.theme)
+    if verdict != OK:
+        return verdict
 
     # 4. Copy to _setup/launch/upload/, the installer without .bak.
     os.makedirs(upload, exist_ok=True)
     inst_name = os.path.basename(installer)[:-len('.bak')]
     shutil.copy2(archive, os.path.join(upload, os.path.basename(archive)))
     shutil.copy2(installer, os.path.join(upload, inst_name))
-    print(f'OK package: {os.path.basename(archive)} ({size_text(os.path.getsize(archive))}), installer {inst_name}, '
-          f'{c["entries"]} entries, 0 private')
+    print(f'Installer: {inst_name}')
     print(f'Copied to: {upload}')
     print(f'Installer password: in {pass_file} (paste it into the installer, then delete the file)')
     print('Next: upload both files to the live docroot and run the installer (references/launch.md, The move).')

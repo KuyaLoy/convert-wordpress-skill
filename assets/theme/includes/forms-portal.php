@@ -1,12 +1,55 @@
 <?php
 /**
- * Lead forms: the leads portal. Each lead also goes server to server to the portal (KITWP_LEADS_PREFIX), on live
- * only, also when the email fails.
+ * Lead forms: the leads portal. Each lead also goes server to server to the portal, on live only, also when the
+ * email fails. The endpoint and write key live in Theme Settings > Leads portal (administrators only); wp-config
+ * constants <KITWP_LEADS_PREFIX>_ENDPOINT and _KEY win when defined.
  *
  * @package kitwp
  */
 
 defined( 'ABSPATH' ) || exit;
+
+/**
+ * The portal's endpoint and write key: Theme Settings > Leads portal (always there; the developer pastes them on
+ * live as an administrator), unless wp-config defines <KITWP_LEADS_PREFIX>_ENDPOINT or _KEY, which win. The key is
+ * stored in the database: it travels in Duplicator packages and database backups. Never printed anywhere.
+ *
+ * @return array{endpoint: string, key: string, from: string} "from": where the values came from.
+ */
+function kitwp_leads_settings() {
+	$p    = KITWP_LEADS_PREFIX;
+	$from = [];
+	$out  = [];
+	foreach ( [ 'endpoint' => '_ENDPOINT', 'key' => '_KEY' ] as $name => $suffix ) {
+		if ( '' !== $p && defined( $p . $suffix ) ) {
+			$out[ $name ] = trim( (string) constant( $p . $suffix ) );
+			$from[]       = 'wp-config';
+		} else {
+			$out[ $name ] = trim( (string) kitwp_setting( 'leads_' . $name ) );
+			$from[]       = 'Theme Settings';
+		}
+	}
+	$out['from'] = implode( ' and ', array_unique( $from ) );
+	return $out;
+}
+
+/**
+ * Theme Settings > Leads portal is for administrators only: its group shows to them alone (the group's location),
+ * and a save by anyone else keeps the stored value, whatever the request posts. WP-CLI may set it.
+ *
+ * @param mixed $value   The value being saved.
+ * @param mixed $post_id ACF post id ("options").
+ * @param array $field   The field.
+ * @return mixed
+ */
+function kitwp_leads_settings_guard( $value, $post_id, $field ) {
+	if ( current_user_can( 'manage_options' ) || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
+		return $value;
+	}
+	return get_field( $field['key'], $post_id, false );
+}
+add_filter( 'acf/update_value/key=field_kitk_ts_leads_endpoint', 'kitwp_leads_settings_guard', 10, 3 );
+add_filter( 'acf/update_value/key=field_kitk_ts_leads_key', 'kitwp_leads_settings_guard', 10, 3 );
 
 /**
  * Tracking fields a leads portal usually asks for: the form's page, the visitor's IP, Google Ads and Meta click IDs,
@@ -70,7 +113,7 @@ function kitwp_leads_allowed_fields( $form ) {
 }
 
 /**
- * Send each lead form to the leads portal (KITWP_LEADS_PREFIX; endpoint and key from wp-config), server to server,
+ * Send each lead form to the leads portal (kitwp_leads_settings(): Theme Settings, or wp-config), server to server,
  * whether the email went out or failed: the portal is what still catches the lead when the host's mail is down. CF7
  * fires wpcf7_mail_sent or wpcf7_mail_failed for a submission (spam fires neither), and a request sends once. Off on
  * local, development and staging, so test submissions on a copy never reach the portal. Only the form's own fields
@@ -86,12 +129,12 @@ function kitwp_leads_send( $form ) {
 	if ( $kitwp_sent ) {
 		return;
 	}
-	$p = KITWP_LEADS_PREFIX;
-	if ( '' === $p || ! kitwp_is_lead_form( $form ) || ! defined( $p . '_ENDPOINT' ) || ! defined( $p . '_KEY' ) ) {
+	if ( ! kitwp_is_lead_form( $form ) ) {
 		return;
 	}
-	$endpoint = (string) constant( $p . '_ENDPOINT' );
-	$key      = (string) constant( $p . '_KEY' );
+	$settings = kitwp_leads_settings();
+	$endpoint = $settings['endpoint'];
+	$key      = $settings['key'];
 	if ( '' === $key || 0 !== strpos( $endpoint, 'https://' ) || in_array( wp_get_environment_type(), [ 'local', 'development', 'staging' ], true ) ) {
 		return;
 	}

@@ -169,32 +169,43 @@ On every lead form by default, no plugin, nothing to set up (`includes/forms-att
 
 ## The leads portal
 
-**Mandatory on live** for every site with a lead form: the host's mail sometimes fails, and the portal still
-catches the lead. The profile names it (`leads_portal.constant_prefix`, for example `ACME_LEADS`); an empty one is
-a go-live blocker. A site without a lead form says so in site.json: `"leads_portal": "none: <reason>"`.
-`kitwp_leads_send()` POSTs each lead form whether the email went out or failed (`wpcf7_mail_sent` and
+**Mandatory on live** for every site with a lead form: the host's mail sometimes fails, and the portal still catches the
+lead. The profile names it (`leads_portal`: the admin, how a project is made, and the optional `constant_prefix`, for
+example `ACME_LEADS`); none is a go-live blocker. A site without a lead form says so in site.json: `"leads_portal":
+"none: <reason>"`. `kitwp_leads_send()` POSTs each lead form whether the email went out or failed (`wpcf7_mail_sent` and
 `wpcf7_mail_failed`; CF7 fires one of them, spam neither; one send per submission): JSON with `form`, an
-`idempotency_key`, the posted fields and `source_url`, `ip_address`, `gclid`, `fbp`, `fbc`; header
-`Authorization: Bearer <key>`; 5 second timeout; 200 and 202 count as delivered; a failure is logged with the
-status only. The code is in from P3; only the keys wait for live.
+`idempotency_key`, the posted fields and `source_url`, `ip_address`, `gclid`, `fbp`, `fbc`; header `Authorization:
+Bearer <key>`; 5 second timeout; 200 and 202 count as delivered; a failure is logged with the status only. The code and
+the empty Theme Settings group are in from P3; only the values wait for live.
 
-- The endpoint and key live in wp-config only (`<PREFIX>_ENDPOINT`, `<PREFIX>_KEY`): the developer pastes them.
+- The address (endpoint) and password (write key) live in **Theme Settings > Leads portal**, always: an ACF group
+  of two fields (`leads_endpoint`, a URL; `leads_key`, a password field, masked) that `build_field_groups.py` always
+  writes, seeded empty. Administrators only: the group's location shows it to them alone, and a save by anyone else
+  keeps the stored values (`kitwp_leads_settings_guard()`). The developer pastes both on live, logged in as an
+  administrator. The key is never printed on the site or in an email; it is stored in the database, so it travels
+  in Duplicator packages and database backups (keep those private, and rotate the key in the portal admin if one
+  leaks).
+- wp-config constants `<PREFIX>_ENDPOINT` and `<PREFIX>_KEY` (the profile's `constant_prefix`) win when defined,
+  each on its own (`kitwp_leads_settings()` says which source it used).
 - Off while `WP_ENVIRONMENT_TYPE` is local, development or staging. A local copy with the live key would
   otherwise send its test leads to the real portal, where they often cannot be deleted one by one.
 - Only the form's own fields go, each capped in length (500 characters, 5000 for a message); the forwarded IP
   only when it is a valid public address, else REMOTE_ADDR.
 - Files, consent and the honeypot never go; leave out health details, dates of birth and other sensitive fields
   with the `kitwp_leads_skip_fields` filter (per form).
-- Prove the key without storing anything: `python3 _plan/tools/report/leads-check.py` (the developer runs it; the
-  key from `KITWP_LEADS_KEY` or a hidden prompt, never printed) sends a GET, which the portal answers 200 for a good
-  endpoint and key and stores nothing. 401: wrong key or the project is off; 404: wrong project slug. Run it before
-  launch with the live key, and on the go/no-go list. Never prove it with a POST from a script: that stores a real
-  lead, and test leads often cannot be deleted one by one.
+- Prove the key without storing anything: `python3 _plan/tools/report/leads-check.py` (the developer runs it; the key
+  from `KITWP_LEADS_KEY` or a hidden prompt, never printed) sends a GET, which the portal answers 200 for a good
+  endpoint and key and stores nothing. On the site itself: `leads-check.py --site [<root>]` (WP-CLI; `--wp "wp @live"`
+  for an alias) reads the values the site uses and sends the same GET from inside WordPress, so the key never leaves
+  PHP; it says where the values came from (Theme Settings or wp-config). 401: wrong key or the project is off; 404:
+  wrong project slug. Run it before launch with the live key, and on the go/no-go list. Never prove it with a POST from
+  a script: that stores a real lead, and test leads often cannot be deleted one by one.
 - Prove it on live: one TEST lead per form reaches the portal (its admin shows the count per form). The live plugin
   checklist (RUNBOOK section 4) has the item.
 - A WordPress site the kit did not build: the same sender goes in as a small must-use plugin
   (`wp-content/mu-plugins/leads-portal.php`) made from `kitwp_leads_send()`, `kitwp_leads_tracking()` and their two
-  hooks in the kit's `includes/forms-portal.php`, with the site's prefix and the constant prefix defined.
+  hooks in the kit's `includes/forms-portal.php`, with the site's prefix and the constant prefix defined (such a
+  site has no Theme Settings group: its endpoint and key go in the wp-config constants).
 
 ## Local mail capture
 

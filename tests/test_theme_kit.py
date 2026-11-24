@@ -244,6 +244,7 @@ PORTAL_STUBS = r'''
 const KITWP_LEADS_PREFIX = 'TEST_LEADS';
 define( 'TEST_LEADS_ENDPOINT', 'https://portal.example.org/ingest/demo' );
 define( 'TEST_LEADS_KEY', 'lk_test_dummy_key' );
+function kitwp_setting( $n ) { return $GLOBALS['settings'][ $n ] ?? ''; }
 $GLOBALS['posts'] = [];
 function kitwp_is_lead_form( $form ) { return true; }
 function wp_get_environment_type() { return 'production'; }
@@ -272,6 +273,7 @@ class Portal(unittest.TestCase):
     """The portal gets a validated IP and only the form's own fields, capped in length."""
 
     FUNCS = [(PORTAL, 'kitwp_leads_tracking'), (PORTAL, 'kitwp_leads_allowed_fields'), (PORTAL, 'kitwp_leads_send'),
+             (PORTAL, 'kitwp_leads_settings'),
              (FORMS, 'kitwp_lead_fields'), (INC + 'forms-attribution.php', 'kitwp_attribution_fields'),
              (INC + 'forms-attribution.php', 'kitwp_attribution_url'),
              (INC + 'forms-attribution.php', 'kitwp_attribution_touch'),

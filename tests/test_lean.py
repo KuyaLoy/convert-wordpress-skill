@@ -274,7 +274,8 @@ class LeadsPortal094(unittest.TestCase):
 
     def test_prefix_and_none(self):
         r, rb = self.render({'leads_portal': {'constant_prefix': 'acme_leads'}})
-        self.assertIn('`ACME_LEADS_ENDPOINT` and `ACME_LEADS_KEY` pasted into the live wp-config', rb)
+        self.assertIn('pasted into Theme Settings > Leads portal on live', rb)  # 0.9.12: Theme Settings, always
+        self.assertIn('wp-config `ACME_LEADS_ENDPOINT` and `ACME_LEADS_KEY` win when defined', rb)
         self.assertIn('leads-check.py', rb)
         self.assertNotIn('BLOCKER', rb)
         self.assertNotIn('leads portal: none', r.stdout)

@@ -87,8 +87,11 @@ again. Fields replace content, never structure, classes or order.
 - **Theme Settings** (options page `<key>-theme-settings`): an ACF options page saved as JSON
   (`ui_options_page_<key>_theme_settings.json`, written by the builder), so the developer and the client find it in
   ACF > Options Pages, not hidden in theme code; `acf.php` registers it in PHP only when ACF has not. Capability
-  `edit_pages`, so a client with the Editor role can use it. One group with **tabs** (Business details, Header and
-  menu, Footer, pop-up or sticky bar, 404...). Anything on two or more pages lives here, with tokens (`{phone}`,
+  `edit_pages`, so a client with the Editor role can use it. One group with **tabs** across the top (ACF placement
+  "top", the builder's default; `placement='left'` only when the developer asks) (Business details, Header and
+  menu, Footer, pop-up or sticky bar, 404...), plus the kit's **Leads portal** group (the portal's address and
+  password, administrators only: `references/forms-email.md`), which the builder always writes: keep it when the
+  example spec is replaced. Anything on two or more pages lives here, with tokens (`{phone}`,
   `{tel}`, `{email}`, `{year}`, `{legal_name}`, `{company_number}`, `{registration}`, more through the
   `kitwp_tokens` filter). Its defaults are the static copy. `kitwp_setting()` reads by field key, so a setting
   nobody saved still renders 1:1.
@@ -100,6 +103,10 @@ again. Fields replace content, never structure, classes or order.
   separators, breadcrumbs or the same words twice as fields. The templates still print the exact static HTML: the
   diffs prove it.
 - Component groups (heading, hero, FAQs, icon items, links) are inactive groups used through Clone fields.
+- Content the source shows only in its preview (pending sections, draft pages behind a flag): switch it with
+  `'production' !== wp_get_environment_type()`, so local and staging show it as the preview does and live does not.
+  Staging knows it is staging after a Duplicator import through the must-use environment file
+  (`references/launch.md` > Staging).
 - Field instructions carry the copy rules from the source (the copy brief): length, tone, what not to change.
 - Return formats: image ID, link array. Read with `get_field()` and escape at output.
 - The ACF menu is never hidden from administrators (the client does not see it: next section).

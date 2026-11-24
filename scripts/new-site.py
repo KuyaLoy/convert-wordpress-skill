@@ -240,7 +240,8 @@ values = {
     'EMAIL_BADGE_ALT': branding.get('alt', '').replace("'", "\\'"),
     'EMAIL_BADGE_WIDTH': str(int(branding.get('width', 120))),
     'SITE_BADGE': ('assets/brand/' + os.path.basename(branding['site_badge'])) if branding.get('site_badge') else '',
-    # Leads portal: the wp-config constant prefix (<PREFIX>_ENDPOINT, <PREFIX>_KEY); empty = no portal.
+    # Leads portal: its values live in Theme Settings > Leads portal; the profile's constant prefix names only the
+    # wp-config constants that win when defined (<PREFIX>_ENDPOINT, <PREFIX>_KEY).
     # The client's dashboard "Need help?" line (site.json or the profile; empty hides it).
     'CLIENT_HELP': str(site.get('client_help', profile.get('client_help', ''))).replace("'", "\\'"),
     'LEADS_PREFIX': re.sub(r'[^A-Z0-9_]', '', str(profile.get('leads_portal', {}).get('constant_prefix', '')).upper()),
@@ -276,16 +277,20 @@ values = {
 
 
 _lp = values['LEADS_PREFIX']
+# The profile has a portal when its leads_portal names anything (the prefix, the admin or how a project is made).
+_portal = any(str(v).strip() for k, v in (profile.get('leads_portal') or {}).items() if not str(k).startswith('_'))
 if NO_PORTAL.lower().startswith('none'):
     values['LEADS_ITEM'] = f'No leads portal for this site: "{NO_PORTAL}" (site.json).'
-elif _lp:
-    values['LEADS_ITEM'] = (f'The leads portal: the project for {site["domain"]} exists in the portal admin; '
-                            f'`{_lp}_ENDPOINT` and `{_lp}_KEY` pasted into the live wp-config (the developer); '
-                            '`leads-check.py` answers OK (a GET, nothing stored); one TEST lead per form shows in the '
-                            "portal's form counts.")
+elif _portal:
+    values['LEADS_ITEM'] = (f'The leads portal: the project for {site["domain"]} exists in the portal admin; its '
+                            'address and password pasted into Theme Settings > Leads portal on live (the developer, '
+                            'logged in as an administrator)'
+                            + (f'; wp-config `{_lp}_ENDPOINT` and `{_lp}_KEY` win when defined' if _lp else '')
+                            + '; `python3 _plan/tools/report/leads-check.py --site` on live answers OK (a GET, nothing '
+                            "stored); one TEST lead per form shows in the portal's form counts.")
 else:
-    values['LEADS_ITEM'] = ('BLOCKER: no leads portal in the profile (`leads_portal.constant_prefix`). Every live site '
-                            'with a lead form sends to it; a site without one says so in site.json: "leads_portal": '
+    values['LEADS_ITEM'] = ('BLOCKER: no leads portal in the profile (`leads_portal`). Every live site with a lead '
+                            'form sends to it; a site without one says so in site.json: "leads_portal": '
                             '"none: <reason>".')
 
 
@@ -778,6 +783,12 @@ if not a.plan_only:
     for f in ('AGENTS.md', 'phpcs.xml.dist', 'composer.json'):
         plan.append((os.path.join(A, 'theme', f), os.path.join(theme_root, f)))
     add_tree(os.path.join(S, 'parity'), os.path.join(theme_root, 'tests', 'parity'))
+    # Files that travel in the package so a staging copy stays staging after a Duplicator import (which replaces
+    # wp-config, the root .htaccess and the Reading setting): the environment by host, and the private-file block
+    # inside acf-json/.
+    plan.append((os.path.join(A, 'theme', 'acf-json', '.htaccess'), os.path.join(theme, 'acf-json', '.htaccess')))
+    plan.append((os.path.join(A, 'mu-plugin', 'kitwp-environment.php'),
+                 os.path.join(root, 'wp-content', 'mu-plugins', f'{prefix}-environment.php')))
 for tool in ('acf', 'seed', 'build-map', 'report', 'launch', 'setup'):
     add_tree(os.path.join(S, tool), os.path.join(root, '_plan', 'tools', tool))
 for f in ('analyze-source.py', 'snapshot-routes.mjs'):
@@ -993,7 +1004,7 @@ print(f"{'DRY RUN: ' if a.dry_run else ''}{len(written)} written, {len(kept)} ke
 print(f'theme: {rel(theme)} (starter {values["STARTER"]}), functions prefix {prefix}_, ACF keys {key}'
       + (' (not written yet: --plan-only)' if a.plan_only else ''))
 if values['LEADS_ITEM'].startswith('BLOCKER'):
-    notes.append('leads portal: none in the profile (leads_portal.constant_prefix): a go-live blocker for a site with '
+    notes.append('leads portal: none in the profile (leads_portal): a go-live blocker for a site with '
                  'a lead form; a site without one: site.json "leads_portal": "none: <reason>"')
 for n in notes:
     print('- ' + n)

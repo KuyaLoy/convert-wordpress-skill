@@ -5,6 +5,43 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.9.12] - 2026-11-24
+
+From a real build's retro: the leads portal lives in Theme Settings, packages leave agent files out, staging stays
+staging after a Duplicator import, ACF tabs sit across the top.
+
+### Added
+
+- **Theme Settings > Leads portal** (always): an ACF group the field builder always writes, with the portal's
+  address (URL) and password (write key, a masked password field), seeded empty. Administrators only: the group's
+  location shows it to them alone, and `kitwp_leads_settings_guard()` keeps the stored values on anyone else's save.
+  `kitwp_leads_settings()` reads it; wp-config `<PREFIX>_ENDPOINT` and `<PREFIX>_KEY` still win when defined. The
+  key is stored in the database, so it travels in Duplicator packages and backups (the docs say so).
+- **`leads-check.py --site [<root>]`** (`--wp "wp @live"` for an alias): checks the values the site itself uses,
+  with the GET sent from inside WordPress through WP-CLI, so the key never leaves PHP; says where they came from.
+- **The must-use environment file** `wp-content/mu-plugins/<prefix>-environment.php` (new-site.py writes it; it
+  travels in the package): `WP_ENVIRONMENT_TYPE` by host when wp-config does not set it (the live host production,
+  a local address local, any other host staging); staging is forced noindex (Reading setting, robots, header).
+- **`acf-json/.htaccess`** in the theme: the field files have no web access, and the block travels with the theme.
+- **`package.py --check-zip <archive> <theme>`**: the check alone, for a backup built in wp-admin. Every check
+  prints the archive's top level (entries per folder or file).
+- **Profile `plugin_zips.duplicator_pro`** (a path only): P1 setup (`install-wp.py`) installs Duplicator Pro from it
+  when set.
+- **SKILL.md rule 16:** kit files are copied with the prefix swap only (new-site.py); a site change to a kit file is
+  listed with its reason; a check is reported only with its output.
+
+### Changed
+
+- `duplicator-filters.py` leaves out root `eod/`, `tasks/`, `.agents/`, `.claude/`, `AGENTS.md` and
+  `handoff-archive.md`; `package.py` refuses them in the archive too (and any `handoff*.md`, root or theme
+  `AGENTS.md`).
+- ACF tabs: placement "top" by default (`G.tab(label, placement='left')` only when the developer asks).
+- The RUNBOOK's leads portal item: the address and password go into Theme Settings on live, then
+  `leads-check.py --site`; a profile with a portal but no constant prefix is no longer a blocker. Staging: the
+  environment check after the import.
+- Docs: SKILL.md, forms-email.md, launch.md, build.md (tabs, the Leads portal group, preview-only content by
+  environment), gotchas.md (3 lessons), phases-and-qa.md, profile.example.json.
+
 ## [0.9.11] - 2026-11-23
 
 The default plugin stack per environment: live gets exactly the kit's list, staging and local none of the

@@ -18,7 +18,9 @@ Run it after get-wordpress.py and make-wp-config.py (the plan OK covers the down
      run, Settings > Privacy names the site's published privacy-policy (or privacy) page once it exists;
   5. installs the starter plugins: Contact Form 7 and Yoast SEO from wordpress.org (every file checked against
      the official checksums), plus ACF PRO from the profile's plugin_zips.acf_pro (default) or Secure Custom Fields
-     from wordpress.org (--fields scf, only when the developer asks for it); a plugin folder that exists is kept;
+     from wordpress.org (--fields scf, only when the developer asks for it), and Duplicator Pro (for the moves to
+     staging and live) from plugin_zips.duplicator_pro when that path is set (empty: skipped, the developer installs
+     it before the first package); a plugin folder that exists is kept;
   6. activates them and reads new lines in wp-content/debug.log.
 Prints a short summary. Exit 0: all done; 1: done with open items listed (e.g. no ACF PRO zip); 2: refused.
 Live sites never use this script: the live admin gets its own strong password, typed by the developer.
@@ -99,9 +101,18 @@ user = (admin.get('username') or profile.get('admin_username') or '').strip()
 email = (admin.get('email') or '').strip() or (
     f'{user or "admin"}@{host}' if '.' in host and not host[0].isdigit() else f'{user or "admin"}@example.com')
 password = os.environ.get('KITWP_ADMIN_PASSWORD') or admin.get('password') or ''
-acf_zip = ((profile.get('plugin_zips') or {}).get('acf_pro') or '').strip()
-if acf_zip and not os.path.isabs(acf_zip) and a.profile:
-    acf_zip = os.path.join(os.path.dirname(os.path.abspath(a.profile)), acf_zip)
+
+
+def profile_zip(name):
+    """plugin_zips.<name> as a full path ('' when not set); a relative path is next to the profile."""
+    z = str((profile.get('plugin_zips') or {}).get(name) or '').strip()
+    if z and not os.path.isabs(z) and a.profile:
+        z = os.path.join(os.path.dirname(os.path.abspath(a.profile)), z)
+    return z
+
+
+acf_zip = profile_zip('acf_pro')
+dup_zip = profile_zip('duplicator_pro')
 
 PHP_CODE = r'''<?php
 error_reporting( E_ALL & ~E_DEPRECATED & ~E_NOTICE & ~E_WARNING );
@@ -358,6 +369,29 @@ if a.fields == 'acf':
         except Exception as e:  # noqa: BLE001
             opened.append(f'advanced-custom-fields-pro: zip refused: {e}')
             say(f'FAIL plugin advanced-custom-fields-pro: {e}')
+
+if dup_zip:  # Duplicator Pro: only from the developer's own zip, only when the profile names one
+    want.append('duplicator-pro')
+    if os.path.isdir(os.path.join(PLUGINS, 'duplicator-pro')):
+        say('plugin duplicator-pro: present, kept')
+    elif not os.path.isfile(dup_zip):
+        opened.append('duplicator-pro: plugin_zips.duplicator_pro points to no file (fix the path in the profile, '
+                      'or empty it to install Duplicator Pro by hand)')
+        say('OPEN plugin duplicator-pro: no file at plugin_zips.duplicator_pro')
+    elif a.dry_run:
+        say(f'plugin duplicator-pro: would unzip {os.path.basename(dup_zip)}')
+    else:
+        data = open(dup_zip, 'rb').read()
+        try:
+            safe_extract(data, PLUGINS, 'duplicator-pro')
+            say('plugin duplicator-pro: unzipped from the profile zip '
+                f'(sha256 {hashlib.sha256(data).hexdigest()[:12]}...)')
+        except Exception as e:  # noqa: BLE001
+            opened.append(f'duplicator-pro: zip refused: {e}')
+            say(f'FAIL plugin duplicator-pro: {e}')
+else:
+    say('plugin duplicator-pro: no plugin_zips.duplicator_pro in the profile: skipped '
+        '(install it before the first package)')
 
 # 3 and 6. Settings, samples, activation.
 if a.dry_run:

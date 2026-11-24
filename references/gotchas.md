@@ -176,6 +176,18 @@ Each was found late on a design-sourced build and forced a rework (`references/s
 - Deactivating Duplicator (Pro) leaves its backups, archive and installer included, in `wp-content/backups-dup-pro/`
   (`backups-dup-lite/` for the free one): delete the backups in Duplicator first, then the plugin, then check the
   folder is gone (`plugin-check.py --env live --done --files`). An inactive plugin still counts as installed.
+- A Duplicator import on staging replaced wp-config (WP_ENVIRONMENT_TYPE gone, so WordPress said production: the
+  pending sections hid, the site was no longer 1:1 with the preview, and lead forms would have reached the portal),
+  the root .htaccess (its private-file block gone) and the Reading setting (indexable). The kit's must-use
+  environment file and `acf-json/.htaccess` travel in the package and survive the import. Some staging servers
+  (nginx) ignore .htaccess entirely: there, block `/_plan`, `/_setup` and the theme's `acf-json/` in the server
+  config, or check that the package left them out (`package.py --check-zip`).
+- A package reported "0 private entries" from memory held `eod/`, `AGENTS.md` and `.agents/` at the root: agent
+  folders and files that the filters did not list. `duplicator-filters.py` and `package.py` now leave out and refuse
+  tasks, eod, .agents, .claude, AGENTS.md and every handoff*.md; report a package with `package.py`'s own output.
+- A chat copied kit modules "with the prefix only" that differed, and used a portal constant prefix of its own
+  (live leads would have been lost). Kit files go in through `new-site.py` (the prefix swap only); a site change to
+  one is listed with why; the portal's values live in Theme Settings, so a wrong prefix no longer loses leads.
 - A staging copy with a live-only plugin acts as if it were live: a cache plugin serves stale pages to the testers,
   CFDB7 keeps test leads, and a plugin that registers itself with an outside service on activation registers the
   staging address. Staging gets ACF PRO, Contact Form 7 and Yoast SEO only (`plugin-check.py --env staging`).

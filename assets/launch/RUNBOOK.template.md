@@ -32,7 +32,7 @@ Plan about 2 hours on a quiet day (not Friday). The developer does the hosting s
 <!-- if:portal -->
 - [ ] Leads portal ready: the project exists in the portal admin (domain {{LIVE_HOST}}) and
       `python3 _plan/tools/report/leads-check.py` with the live key answers OK (the developer runs it; a GET stores
-      nothing).
+      nothing). On live the address and password go into Theme Settings > Leads portal (section 4).
 <!-- /if:portal -->
 - [ ] Rollback understood (section 6).
 
@@ -133,7 +133,9 @@ Plan about 2 hours on a quiet day (not Friday). The developer does the hosting s
 **Staging** (a public copy before live, when the build has one): ACF PRO, Contact Form 7 and Yoast SEO only
 (<!-- if:redirects -->Redirection for the redirects, <!-- /if:redirects -->Duplicator for the move); none of the live
 plugin checklist and no reCAPTCHA keys (`plugin-check.py ... --env staging` says OK); it stays noindex
-(`live-qa.py --hidden`).
+(`live-qa.py --hidden`). The import replaces wp-config, the root .htaccess and the Reading setting: the must-use
+file `wp-content/mu-plugins/kitwp-environment.php` and the theme's `acf-json/.htaccess` travel in the package;
+`wp eval 'echo wp_get_environment_type();'` on staging says `staging` (paste the output).
 
 ## 5. Checks (references/qa-report.md has the full list)
 
