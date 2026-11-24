@@ -5,6 +5,13 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.9.13] - 2026-11-24
+
+### Fixed
+
+- `duplicator-filters.py` leaves out a Figma build's private root folder `_figma/`, and `package.py` (and
+  `--check-zip`) refuses an archive that contains it.
+
 ## [0.9.12] - 2026-11-24
 
 From a real build's retro: the leads portal lives in Theme Settings, packages leave agent files out, staging stays

@@ -8,9 +8,9 @@
 It sets the Duplicator Pro template "launch" (the file filters from duplicator-filters.py, installer password on,
 installer name with hash), builds the backup with WP-CLI, checks the archive for private files, and copies the
 archive and installer to <root>/_setup/launch/upload/. The check prints the archive's top level (each folder or file
-with its entry count) and fails on any private entry: _plan, _setup, tasks, eod, .agents, .claude, .git at the root,
-handoff*.md, ai-handoff-summary.md, BUILD-MAP.md, AGENTS.md (root or theme), debug.log, CF7's temporary uploads, and
-the theme's tests, node_modules and .git. Report a package with that output, never from memory. A new installer
+with its entry count) and fails on any private entry: _plan, _setup, _figma, tasks, eod, .agents, .claude, .git at the
+root, handoff*.md, ai-handoff-summary.md, BUILD-MAP.md, AGENTS.md (root or theme), debug.log, CF7's temporary uploads,
+and the theme's tests, node_modules and .git. Report a package with that output, never from memory. A new installer
 password goes to a file OUTSIDE the project (default: the system temp folder). The developer pastes it into the
 installer, then deletes the file.
 
@@ -40,7 +40,7 @@ PASS_ENV = 'DUP_LAUNCH_INSTALLER_PASS'
 # Left out on top of duplicator-filters.py (which leaves out the agent folders and files): Contact Form 7's
 # temporary uploads.
 EXTRA = ['wp-content/uploads/wpcf7_uploads']
-PRIVATE_ROOT = {'.claude', '.agents', 'tasks', 'eod', '_plan', '_setup', '.git', 'agents.md'}
+PRIVATE_ROOT = {'.claude', '.agents', 'tasks', 'eod', '_plan', '_setup', '_figma', '.git', 'agents.md'}
 PRIVATE_THEME = {'tests', 'node_modules', '.git', 'agents.md'}
 PRIVATE_NAMES = {'debug.log', 'ai-handoff-summary.md', 'build-map.md'}
 HANDOFF = re.compile(r'^handoff.*\.md$')  # handoff.md, handoff-archive.md, anywhere

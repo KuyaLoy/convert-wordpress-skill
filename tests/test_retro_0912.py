@@ -207,6 +207,15 @@ class Packaging(unittest.TestCase):
         self.assertTrue(r.stdout.startswith('FAIL package: 2 private entries'), r.stdout)
         self.assertIn('eod/today.md', r.stdout)
 
+    def test_figma_folder_left_out_and_refused(self):  # 0.9.13: a Figma build's private root folder
+        r = run('scripts/launch/duplicator-filters.py', 'C:/sites/shop', 'shop')
+        self.assertIn('C:/sites/shop/_figma;', r.stdout.splitlines())
+        bad = ['_figma/inventory.json', '_figma/frames/home.png']
+        self.assertEqual(sorted(pkg.check_archive(make_zip(GOOD + bad), 'shop')['hits']), sorted(bad))
+        r = run('scripts/launch/package.py', '--check-zip', make_zip(GOOD + bad), 'shop')
+        self.assertEqual(r.returncode, 4, r.stdout)
+        self.assertIn('_figma/inventory.json', r.stdout)
+
     def test_check_zip_usage(self):
         r = run('scripts/launch/package.py', '--check-zip', 'missing.zip', 'shop')
         self.assertEqual(r.returncode, 1)
