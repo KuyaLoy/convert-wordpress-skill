@@ -5,6 +5,23 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-11-25
+
+A slimmer SKILL.md, so every chat loads less: about 4,100 tokens (was about 7,800), every rule kept.
+
+### Changed
+
+- The steps of each phase (Start: intake, P0 to P6 Live QA) moved unchanged from SKILL.md to the new
+  `references/phase-steps.md`, one section per phase, opened at that phase's start. SKILL.md keeps the kit and
+  read table, the rules word for word, the phase list and a new "What each phase must prove" list with one
+  "open when" pointer per phase; Start: intake is a short list with its pointer.
+
+### Added
+
+- `tests/test_slim_0100.py`: every heading and line of the 0.9.16 SKILL.md is still in SKILL.md or a reference,
+  the rules and the phase list are unchanged, each phase points to its section, SKILL.md stays under 20,000
+  characters.
+
 ## [0.9.16] - 2026-11-25
 
 ### Changed
