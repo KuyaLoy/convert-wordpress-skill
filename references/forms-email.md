@@ -16,6 +16,7 @@ mail), `forms-local-mail.php` (local capture) and `forms-portal.php` (the leads 
 - The chat widget through CF7's REST endpoint
 - Where the lead came from (form attribution)
 - The leads portal
+- Where leads are stored: CFDB7 only
 - Local mail capture
 - Proving delivery
 
@@ -206,6 +207,15 @@ the empty Theme Settings group are in from P3; only the values wait for live.
   (`wp-content/mu-plugins/leads-portal.php`) made from `kitwp_leads_send()`, `kitwp_leads_tracking()` and their two
   hooks in the kit's `includes/forms-portal.php`, with the site's prefix and the constant prefix defined (such a
   site has no Theme Settings group: its endpoint and key go in the wp-config constants).
+
+## Where leads are stored: CFDB7 only
+
+Leads are stored only by Contact Form CFDB7, installed on live (the kit's plugin list). Never create a database
+table, custom post type, option rows, files or an admin page of your own for enquiries or submissions; local mail
+capture (_setup/mail) is local only. The email, CFDB7 and the leads portal are the three places a lead goes, and
+none of them is the theme's own code. `self-check.py` reports any such storage in the theme or a must-use plugin as
+`lead-storage` (a table created, a `$wpdb` write, or a post type or admin page named for enquiries, leads,
+submissions, contacts, messages or form entries): remove it, CFDB7 on live keeps the leads.
 
 ## Local mail capture
 

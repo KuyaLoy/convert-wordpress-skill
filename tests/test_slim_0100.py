@@ -56,14 +56,17 @@ class Slim(unittest.TestCase):
 
     def test_rules_and_phase_list_stay(self):
         rules = section(self.skill, 'Rules (always)')
-        self.assertEqual(re.findall(r'(?m)^(\d+)\. \*\*', rules), [str(n) for n in range(1, 17)])
+        nums = re.findall(r'(?m)^(\d+)\. \*\*', rules)
+        self.assertEqual(nums, [str(n) for n in range(1, len(nums) + 1)])
+        self.assertGreaterEqual(len(nums), 17)  # 0.10.1 added 17, leads stored by CFDB7 only
         phases = section(self.skill, 'The phases')
         for p in ('P0 Plan', 'P1 Setup', 'P2 Pages', 'P3 Forms and email', 'P4 SEO, security, speed',
                   'P5 Fix and QA loop', 'P6 Launch and live QA'):
             self.assertIn(f'| {p} |', phases)
         old = old_skill()
         if old:
-            self.assertEqual(rules, section(old, 'Rules (always)'))  # the hard rules word for word
+            # The 0.9.16 hard rules word for word; later releases only add rules after them.
+            self.assertTrue(rules.startswith(section(old, 'Rules (always)').rstrip('\n') + '\n'))
             self.assertEqual(phases, section(old, 'The phases'))
 
     def test_every_phase_proves_and_points(self):

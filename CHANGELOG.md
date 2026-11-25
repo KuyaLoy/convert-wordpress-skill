@@ -5,6 +5,20 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-11-25
+
+From a real build where the agent made its own database storage for enquiries.
+
+### Added
+
+- **Rule 17, leads: CFDB7 only.** Leads are stored only by Contact Form CFDB7, installed on live; never a table,
+  custom post type, option rows, files or an admin page of the build's own for enquiries or submissions; local mail
+  capture stays local. `references/forms-email.md` > Where leads are stored says the same; a gotcha records why.
+- **`self-check.py` class `lead-storage`:** in the theme or a must-use plugin, `CREATE TABLE` or `dbDelta`, and a
+  `$wpdb` write, `register_post_type`, `add_menu_page` or `add_submenu_page` whose call names enquiries, leads,
+  submissions, contacts, messages or form entries; one finding per line with file:line. The kit's own files are
+  allow-listed by path (the kit theme is clean without the list too).
+
 ## [0.10.0] - 2026-11-25
 
 A slimmer SKILL.md, so every chat loads less: about 4,100 tokens (was about 7,800), every rule kept.

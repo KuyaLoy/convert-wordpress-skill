@@ -107,6 +107,9 @@ https://github.com/KuyaLoy/convert-wordpress-skill: ask the developer where thei
     its reason (the file, the change, why) in the task's notes.md, or handoff.md > Changes Made without one. A check
     is reported only with its output (the tool's OK or FAIL line and counts, pasted): never "passes", "seeded" or
     "0 private" from memory.
+17. **Leads: CFDB7 only.** Leads are stored only by Contact Form CFDB7, installed on live (the kit's plugin list).
+    Never create a database table, custom post type, option rows, files or an admin page of your own for enquiries
+    or submissions; local mail capture (_setup/mail) is local only. `self-check.py` flags it (`lead-storage`).
 
 ## The phases
 

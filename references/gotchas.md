@@ -114,6 +114,9 @@ Each was found late on a design-sourced build and forced a rework (`references/s
 - CFDB7 gives `cfdb7_access` to administrators only, so an Editor never sees the enquiries. `client-admin.php`
   adds it at run time for users who can edit pages (nothing saved).
 - CF7 6.x moved its top-level menu to `wpcf7-dashboard` (older: `wpcf7`). Menu code handles both slugs.
+- An agent asked for a contact form may build its own enquiry storage (a table, a post type, an admin page). The
+  leads already go to the email, CFDB7 on live and the leads portal: storage of its own is a second, unprotected
+  copy of personal data. `self-check.py` flags it as `lead-storage` (rule 17).
 
 ## Static sources
 

@@ -1,10 +1,12 @@
 """0.9.6: the pre-QA self-check finds each kit-caused class on a small fake site, and nothing on a clean one."""
+import glob
 import json
 import os
+import shutil
 import tempfile
 import unittest
 
-from helpers import run
+from helpers import load, path, run
 
 GUARD = "<?php\n/**\n * File.\n */\n\ndefined( 'ABSPATH' ) || exit;\n"
 
@@ -76,6 +78,97 @@ class SelfCheck(unittest.TestCase):
         self.assertIn('the host rule reads www.www.', out)
         self.assertIn('{{DOMAIN}} is not filled', out)
         self.assertIn('js/readme.txt', out)
+
+
+STORE = GUARD + """function acme_store_lead( $data ) {
+	global $wpdb;
+	$wpdb->query( "CREATE TABLE {$wpdb->prefix}acme_enquiries ( id INT )" );
+	require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+	dbDelta( $sql );
+	$wpdb->insert(
+		$wpdb->prefix . 'acme_enquiries',
+		$data
+	);
+	$wpdb->get_var( 'SELECT 1' );
+}
+add_action( 'init', function () {
+	register_post_type( 'enquiry', [ 'public' => false ] );
+	register_post_type( 'project', [ 'public' => true ] );
+} );
+add_action( 'admin_menu', function () {
+	add_menu_page( 'Leads', 'Leads', 'manage_options', 'acme-leads', 'acme_store_lead' );
+	add_submenu_page( 'tools.php', 'Form entries', 'Form entries', 'manage_options', 'acme-form-entries', '__return_null' );
+	add_menu_page( 'Projects', 'Projects', 'edit_posts', 'acme-projects', '__return_null' );
+} );
+"""
+
+
+class LeadStorage(unittest.TestCase):
+    """0.10.1: leads are stored by Contact Form CFDB7 on live only; the build's own storage is a finding."""
+
+    def lead_lines(self, root):
+        r = run('scripts/report/self-check.py', root, '-v')
+        return r, [l for l in r.stdout.splitlines() if l.startswith('lead-storage: ')]
+
+    def test_every_pattern_caught(self):
+        root = site(False)
+        theme = os.path.join(root, 'wp-content', 'themes', 'acme')
+        with open(os.path.join(theme, 'includes', 'enquiries.php'), 'w', encoding='utf-8') as fh:
+            fh.write(STORE)
+        mu = os.path.join(root, 'wp-content', 'mu-plugins')
+        os.makedirs(mu)
+        with open(os.path.join(mu, 'contact-store.php'), 'w', encoding='utf-8') as fh:
+            fh.write(GUARD + '$wpdb->query( "INSERT INTO {$wpdb->prefix}contact_messages VALUES (1)" );\n')
+        r, lines = self.lead_lines(root)
+        self.assertEqual(r.returncode, 1, r.stdout)
+        self.assertIn('lead-storage', r.stdout.splitlines()[0])
+        where = [l.split(': ')[1] for l in lines]
+        self.assertEqual(where, ['includes/enquiries.php:9', 'includes/enquiries.php:11', 'includes/enquiries.php:12',
+                                 'includes/enquiries.php:19', 'includes/enquiries.php:23',
+                                 'includes/enquiries.php:24', 'mu-plugins/contact-store.php:7'], r.stdout)
+        self.assertIn('includes/enquiries.php:9: creates a table', r.stdout)  # one finding for the line
+        text = '\n'.join(lines)
+        self.assertIn('creates a table', text)
+        self.assertIn('writes with $wpdb', text)
+        self.assertIn('register_post_type for enquiries', text)
+        self.assertIn('add_menu_page for enquiries', text)
+        self.assertIn('add_submenu_page for enquiries', text)
+        self.assertIn('Contact Form CFDB7 on live only', text)
+        self.assertNotIn(':16:', text)  # $wpdb->get_var reads, it does not store
+        self.assertNotIn(':20:', text)  # the projects post type
+        self.assertNotIn(':25:', text)  # the projects menu
+
+    def test_kit_files_allow_listed_and_listed_whole(self):
+        mod = load('scripts/report/self-check.py', 'self_check_0101')
+        shipped = {os.path.relpath(p, path('assets', 'theme')).replace(os.sep, '/')
+                   for p in glob.glob(path('assets', 'theme', '**', '*.php'), recursive=True)} - {'functions.php'}
+        self.assertEqual(mod.KIT_FILES, shipped)
+        self.assertEqual(sorted(f[len('kitwp'):] for f in os.listdir(path('assets', 'mu-plugin'))
+                                if f.endswith('.php')), sorted(mod.KIT_MU))
+        root = site(False)
+        p = os.path.join(root, 'wp-content', 'themes', 'acme', 'includes', 'forms.php')
+        with open(p, 'w', encoding='utf-8') as fh:
+            fh.write(GUARD + "register_post_type( 'enquiry' );\n")
+        self.assertEqual(self.lead_lines(root)[1], [])  # a kit file by its path
+
+    def test_the_rule_word_for_word(self):
+        rule = ("Leads are stored only by Contact Form CFDB7, installed on live (the kit's plugin list). Never create a "
+                "database table, custom post type, option rows, files or an admin page of your own for enquiries or "
+                "submissions; local mail capture (_setup/mail) is local only.")
+        for doc in (('SKILL.md',), ('references', 'forms-email.md')):
+            with open(path(*doc), encoding='utf-8') as fh:
+                flat = ' '.join(fh.read().split())
+            self.assertIn(rule, flat, doc)
+
+    def test_kit_theme_is_clean_even_without_the_allow_list(self):
+        mod = load('scripts/report/self-check.py', 'self_check_0101b')
+        root = tempfile.mkdtemp()
+        mu = os.path.join(root, 'wp-content', 'mu-plugins')
+        shutil.copytree(path('assets', 'mu-plugin'), mu)
+        for kit in (mod.KIT_FILES, set()):
+            mod.KIT_FILES, out = kit, []
+            mod.check_lead_storage(path('assets', 'theme'), root, out)
+            self.assertEqual(out, [])
 
 
 if __name__ == '__main__':

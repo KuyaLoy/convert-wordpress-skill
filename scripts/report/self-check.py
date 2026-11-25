@@ -19,6 +19,9 @@ then one line per finding: "<class>: <where>: <what>". Exit 1 when anything is f
   launch         _setup/launch: an unfilled {{TOKEN}}, a doubled www in the host rule, acf-json or readme.html not
                  denied in htaccess-live.txt
   public         with --url: the acf-json files answer 200, or oEmbed shows the author
+  lead-storage   the theme or a must-use plugin stores leads itself: CREATE TABLE or dbDelta, a $wpdb write, or a
+                 register_post_type / add_menu_page / add_submenu_page named for enquiries, leads, submissions,
+                 contacts, messages or form entries (leads are stored by Contact Form CFDB7 on live only)
   tracking       with --profile naming a tracking plugin (tracking.plugin): the theme loads GTM itself or has ACF
                  tracking fields (GTM, head or body scripts): tracking goes through that plugin only
 """
@@ -41,6 +44,20 @@ CAST = re.compile(r'(?<!array_filter\( )\(\s*array\s*\)\s*(get_field|get_sub_fie
 GTM_CODE = re.compile(r'googletagmanager\.com/(gtm\.js|ns\.html)|\bGTM-(?!X+\b)[A-Z0-9]{5,}\b')
 TRACK_FIELD = re.compile(r'(^|_)(gtm|tag_manager|tracking|head_scripts?|body_scripts?|header_(code|scripts?)|'
                          r'footer_(code|scripts?)|analytics)(_|$)', re.I)
+LEAD_WORDS = re.compile(r'enquir|inquir|lead|submission|contact|message|form[-_ ]?entr', re.I)
+TABLE_MAKE = re.compile(r'CREATE\s+TABLE|\bdbDelta\s*\(', re.I)
+WPDB_WRITE = re.compile(r'\$wpdb\s*->\s*(insert|replace|update|query)\s*\(', re.I)
+LEAD_CALL = re.compile(r'\b(register_post_type|add_menu_page|add_submenu_page)\s*\(')
+# The kit's own files (theme-relative, and the must-use files by their end), skipped by lead-storage.
+KIT_FILES = {'includes/acf.php', 'includes/cleanup.php', 'includes/client-admin.php', 'includes/config.php',
+             'includes/forms-attribution.php', 'includes/forms-controls.php', 'includes/forms-lead-source.php',
+             'includes/forms-local-mail.php', 'includes/forms-mail.php', 'includes/forms-portal.php',
+             'includes/forms-spam.php', 'includes/forms.php', 'includes/head.php', 'includes/helpers-maps.php',
+             'includes/helpers.php', 'includes/media-svg.php', 'includes/media.php', 'includes/schema.php',
+             'includes/seed-forms.php', 'includes/seed-media.php', 'includes/seed-menus.php',
+             'includes/seed-pages.php', 'includes/seed-seo.php', 'includes/seed-settings.php', 'includes/seed.php',
+             'includes/seo.php', 'includes/snapshot.php', 'template-parts/sections/lead-form.php'}
+KIT_MU = ('-environment.php', '-lead-source.php')
 SKIP_DIRS = ('node_modules', 'vendor', 'tests', '.git', 'acf-json', 'starter-removed', 'dist', 'build')
 
 
@@ -187,6 +204,31 @@ def check_public(url, wp_root, theme, out):
         out.append(('public', '/wp-json/oembed/1.0/embed', 'shows the author: drop author_name and author_url'))
 
 
+def check_lead_storage(theme, wp_root, out):
+    """Leads are stored by Contact Form CFDB7 on live only: no table, write, post type or admin page of the build's
+    own for them, in the theme or a must-use plugin. Each call is read up to its ";" so a call over lines counts."""
+    places = [(p, os.path.relpath(p, theme).replace(os.sep, '/')) for p in files(theme, ('.php',))]
+    mu = os.path.join(wp_root, 'wp-content', 'mu-plugins')
+    places += [(p, 'mu-plugins/' + os.path.relpath(p, mu).replace(os.sep, '/')) for p in files(mu, ('.php',))]
+    for p, rel in places:
+        if rel in KIT_FILES or (rel.startswith('mu-plugins/') and rel.count('/') == 1 and rel.endswith(KIT_MU)):
+            continue
+        s = read(p)
+        hits = [(m, 'creates a table') for m in TABLE_MAKE.finditer(s)]
+        for rx, what in ((WPDB_WRITE, 'writes with $wpdb'), (LEAD_CALL, None)):
+            for m in rx.finditer(s):
+                end = s.find(';', m.end())
+                call = s[m.start():end if end != -1 else len(s)][:400]
+                if LEAD_WORDS.search(call):
+                    hits.append((m, what or f'{m.group(1)} for enquiries'))
+        lines = {}  # one finding per line: a table created wins over the write that runs it
+        for m, what in hits:
+            lines.setdefault(s[:m.start()].count(chr(10)) + 1, what)
+        for n in sorted(lines):
+            out.append(('lead-storage', f'{rel}:{n}',
+                        f'{lines[n]}: leads are stored by Contact Form CFDB7 on live only, remove it'))
+
+
 def check_tracking(theme, profile, out):
     """With a tracking plugin in the profile, the theme has no tracking of its own."""
     try:
@@ -256,6 +298,7 @@ def main(argv):
     check_php(theme, out)
     check_leftovers(theme, out)
     check_launch(wp_root, out)
+    check_lead_storage(theme, wp_root, out)
     if opt.get('--profile'):
         check_tracking(theme, opt['--profile'], out)
     if opt.get('--url'):

@@ -22,6 +22,6 @@ shell: PowerShell, cmd, Git Bash, a Mac or Linux terminal. Use the `python3` com
 | `scripts/acf/build_field_groups.py`, `sync.php` | ACF JSON, stable keys (`--check`); database sync |
 | `scripts/seed/export.mjs`, `export-pages.py` | Static content into `_setup/seed/` for Tools > Seeder |
 | `scripts/build-map/gate.py`, `render.py`, `live.py` | The phase gate; the private progress page, static and live (the database rows) |
-| `scripts/report/self-check.py` | Before every QA run: the classes a build catches itself (instructions, casts, guards, dead code, launch files) |
+| `scripts/report/self-check.py` | Before every QA run: the classes a build catches itself (instructions, casts, guards, dead code, launch files, lead storage of its own) |
 | `scripts/parity/` (the theme's `tests/parity/`) | `check-section.py` (one call per section), pixel, text, SEO and DOM diffs, `seodiff.py` (head tags and JSON-LD values), `changed-routes.py` (what a fix pass changed), `design-check.mjs` (states, motion, long content), `long-content.php`; mirror and server for cloud runs |
 | `scripts/update.py` | Updates this skill from GitHub (`--check` only looks); `/update-convert-wordpress-skill` runs it |
