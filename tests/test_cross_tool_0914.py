@@ -210,6 +210,10 @@ class Docs(unittest.TestCase):
         for word in ('request_user_input', 'spawn_agent', 'invoke_subagent', '$convert-to-wordpress', '/status',
                      '--refresh 30 --open', 'T3 Code'):
             self.assertIn(word, sec)
+        browser = next(l for l in sec.splitlines() if l.startswith('| Browser steps'))
+        self.assertIn("| The lead's Chrome through the chrome-devtools MCP (zoho-command-center 2.10.2 sets it up); "
+                      "list the pages first; act only on the task's own site tabs; the built-in browser pane only as a "
+                      "fallback |", browser)  # 0.9.16: Antigravity drives the lead's Chrome
 
     def test_scripts_table_moved_whole(self):
         listed = read(path('references', 'scripts.md'))

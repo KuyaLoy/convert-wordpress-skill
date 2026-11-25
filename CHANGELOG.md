@@ -5,6 +5,14 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.9.16] - 2026-11-25
+
+### Changed
+
+- `references/agents.md` > Per tool, Antigravity's browser steps: the lead's Chrome through the chrome-devtools MCP
+  (zoho-command-center 2.10.2 sets it up); list the pages first; act only on the task's own site tabs; the
+  built-in browser pane only as a fallback.
+
 ## [0.9.15] - 2026-11-24
 
 ### Changed
