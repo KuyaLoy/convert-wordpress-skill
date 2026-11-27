@@ -118,6 +118,15 @@ Each was found late on a design-sourced build and forced a rework (`references/s
   leads already go to the email, CFDB7 on live and any leads portal: storage of its own is a second, unprotected
   copy of personal data. `self-check.py` flags it as `lead-storage` (rule 17).
 
+- A CSS rule for a state (an error border) loses to a heavier base rule:
+  `input:not([type=hidden]):not([type=checkbox])` outweighs `.field:has(.form-note) input`. Wrap the base in
+  `:where()`. And never put a newer pseudo-class (`:user-invalid`) in the same selector list as the rule that
+  must work: a browser that does not know it drops the whole list.
+
+- Contact Form CFDB7 saves only the fields that are tags in the CF7 form (`cfdb7_strict_keys`, on by default):
+  hidden fields a script adds (attribution) are dropped. Add them in `cfdb7_before_save_data` from
+  `WPCF7_Submission::get_instance()->get_posted_data()`, escaped (CFDB7's admin prints stored values as they are).
+
 ## Static sources
 
 - Never inject GTM into built Next.js HTML: React hydration error #418 on every page.

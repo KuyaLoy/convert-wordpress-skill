@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Lead source
- * Description: Where each Contact Form 7 lead came from: the first visit and the latest campaign visit (browser storage only, first party), checked on the server, as a "Lead source" table in each enquiry email, in Contact Form CFDB7 and as fields for a leads portal. For a WordPress site the convert-to-wordpress kit did not build.
+ * Description: Where each Contact Form 7 lead came from, as the company attribution standard's eleven fields (Lead Source ... First Touch Referrer; browser storage only, first party), checked on the server: a "Lead Attribution" table in each enquiry email, labelled columns in Contact Form CFDB7 and fields for a leads portal or CRM connector. For a WordPress site the convert-to-wordpress kit did not build.
  * Version: {{VERSION}}
  * Requires PHP: 7.4
  * License: GPL-2.0-or-later
@@ -69,7 +69,7 @@ function kitwp_lead_source_script() {
 }
 
 /**
- * Add the "Lead source" table to the main email of every CF7 form (not Mail (2), the copy to the visitor).
+ * Add the "Lead Attribution" table to the main email of every CF7 form (not Mail (2), the copy to the visitor).
  *
  * @param array<string, mixed> $components Mail parts (subject, sender, body, recipient...).
  * @param object|null          $form       Contact form.
@@ -88,7 +88,7 @@ function kitwp_lead_source_mail( $components, $form = null, $mail = null ) {
 		$body  = (string) $components['body'];
 		$props = is_object( $form ) && method_exists( $form, 'prop' ) ? (array) $form->prop( 'mail' ) : [];
 		$html  = ! empty( $props['use_html'] ) || false !== stripos( $body, '</body>' ) || false !== stripos( $body, '</table>' );
-		$block = kitwp_attribution_table( kitwp_attribution_clean( (array) $sub->get_posted_data() ), (string) $sub->get_meta( 'url' ), $html );
+		$block = kitwp_attribution_table( (array) $sub->get_posted_data(), (string) $sub->get_meta( 'url' ), $html );
 		if ( ! $html ) {
 			$components['body'] = rtrim( $body ) . "\n\n" . $block . "\n";
 			return $components;

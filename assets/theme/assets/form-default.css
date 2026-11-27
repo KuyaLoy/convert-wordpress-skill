@@ -1,0 +1,98 @@
+/*
+ * The kit's default form layout, for a form the design does not have (site.json "form_class": "kitwp-form").
+ * includes/forms.php prints it inline once, before the first such form on a page. Labels above their fields, two
+ * short fields per row from 640px, the message and the button full width, inputs at least 16px (no zoom on phones),
+ * a visible focus ring and error state. Colours, fonts and the button come from the theme (currentColor, inherit,
+ * its .btn class); --kitwp-form-accent and --kitwp-form-error may be set by the theme.
+ */
+.kitwp-form {
+	--kitwp-form-accent: currentColor;
+	--kitwp-form-error: #b3261e;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 16px 20px;
+	width: 100%;
+	max-width: 760px;
+}
+@media (min-width: 640px) {
+	.kitwp-form {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+.kitwp-form > * {
+	grid-column: 1 / -1;
+}
+.kitwp-form > .field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 0;
+}
+@media (min-width: 640px) {
+	.kitwp-form > .field:not(.full):not(:has(textarea)) {
+		grid-column: auto;
+	}
+}
+.kitwp-form label {
+	font-weight: 600;
+	line-height: 1.3;
+}
+/* :where() keeps this rule weak, so the error state below wins. */
+.kitwp-form :where(input:not([type='hidden'], [type='checkbox'], [type='radio']), select, textarea) {
+	box-sizing: border-box;
+	width: 100%;
+	min-height: 48px;
+	padding: 12px 14px;
+	border: 1px solid #8a8a8a;
+	border-radius: 6px;
+	background: #fff;
+	color: #1a1a1a;
+	font: inherit;
+	font-size: max(16px, 1rem);
+	line-height: 1.4;
+}
+.kitwp-form textarea {
+	min-height: 140px;
+	resize: vertical;
+}
+.kitwp-form input:focus-visible,
+.kitwp-form select:focus-visible,
+.kitwp-form textarea:focus-visible,
+.kitwp-form button:focus-visible {
+	outline: 3px solid var(--kitwp-form-accent);
+	outline-offset: 2px;
+}
+/* Two rules: a browser without :user-invalid would drop the whole list. */
+.kitwp-form .field:has(.form-note) input,
+.kitwp-form .field:has(.form-note) select,
+.kitwp-form .field:has(.form-note) textarea {
+	border-color: var(--kitwp-form-error);
+	box-shadow: 0 0 0 1px var(--kitwp-form-error);
+}
+.kitwp-form input:user-invalid,
+.kitwp-form select:user-invalid,
+.kitwp-form textarea:user-invalid {
+	border-color: var(--kitwp-form-error);
+	box-shadow: 0 0 0 1px var(--kitwp-form-error);
+}
+.kitwp-form .form-note {
+	color: var(--kitwp-form-error);
+	font-size: 14px;
+}
+.kitwp-form > .form-note {
+	padding: 10px 12px;
+	border-left: 4px solid var(--kitwp-form-error);
+}
+.kitwp-form button[type='submit'] {
+	justify-self: start;
+	min-height: 48px;
+	font-size: max(16px, 1rem);
+	cursor: pointer;
+}
+.kitwp-form .hp {
+	position: absolute;
+	left: -9999px;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+}

@@ -13,7 +13,9 @@ SRC = INC + 'forms-lead-source.php'
 CORE = [(ATTR, 'kitwp_attribution_fields'), (ATTR, 'kitwp_attribution_touch'), (ATTR, 'kitwp_attribution_url'),
         (ATTR, 'kitwp_attribution_clean'), (SRC, 'kitwp_attribution_visits'), (SRC, 'kitwp_attribution_source'),
         (SRC, 'kitwp_attribution_rows'), (SRC, 'kitwp_attribution_table'),
-        (SRC, 'kitwp_attribution_title_colours')]
+        (SRC, 'kitwp_attribution_title_colours'), (SRC, 'kitwp_attribution_standard'),
+        (SRC, 'kitwp_attribution_extras'), (SRC, 'kitwp_attribution_date'), (SRC, 'kitwp_attribution_values'),
+        (SRC, 'kitwp_attribution_extra_rows'), (ATTR, 'kitwp_attribution_form_page')]
 PAID = {'utm_source': 'google', 'utm_medium': 'cpc', 'utm_campaign': 'spring', 'gclid': 'Cj0KCQ-test',
         'landing_page': 'https://example.org/offer/?email=a@b.example', 'referrer': 'https://www.google.com/',
         'first_source': 'newsletter', 'first_medium': 'email', 'first_seen': '2026-11-01',
@@ -29,98 +31,34 @@ def clean(posted, referer=''):
 class ServerChecks(unittest.TestCase):
     def test_allow_list_caps_and_addresses(self):
         got = clean(dict(PAID, utm_term='k' * 900, injected='x', utm_content=['array'], first_seen='yesterday',
-                         first_referrer='javascript:alert(1)', landing_page='https://example.org/' + 'p' * 900))
+                         first_referrer='javascript:alert(1)', landing_page='https://example.org/' + 'p' * 1200))
         self.assertEqual(len(got['utm_term']), 200)
-        self.assertEqual(len(got['landing_page']), 500)
+        self.assertEqual(len(got['landing_page']), 1000)  # 0.12.0: with its query
         for gone in ('injected', 'utm_content', 'first_seen', 'first_referrer'):
             self.assertNotIn(gone, got)
-        self.assertEqual(clean(PAID)['landing_page'], 'https://example.org/offer/')  # the query (an email) goes
+        self.assertEqual(clean(PAID)['landing_page'], 'https://example.org/offer/')  # an email parameter goes
 
     def test_no_javascript_takes_the_form_page_address(self):
         got = clean({}, 'https://example.org/contact/?utm_source=bing&utm_medium=cpc&msclkid=abc&name=Sam')
-        self.assertEqual((got['utm_source'], got['msclkid'], got['landing_page']),
-                         ('bing', 'abc', 'https://example.org/contact/'))
+        self.assertEqual((got['utm_source'], got['msclkid'], got['landing_page']),  # 0.12.0: with its query
+                         ('bing', 'abc', 'https://example.org/contact/?utm_source=bing&utm_medium=cpc&msclkid=abc'
+                                         '&name=Sam'))
         self.assertNotIn('name', got)
         self.assertEqual(clean({'utm_source': 'x'}, 'https://example.org/?utm_source=y')['utm_source'], 'x')
 
     def test_posted_filter_replaces_raw_values(self):
-        body = ('$_SERVER = []; echo json_encode( kitwp_attribution_posted( [ "your-name" => "Sam", '
+        body = ('function home_url( $p = "" ) { return "https://example.org" . $p; } '
+                '$_SERVER = []; echo json_encode( kitwp_attribution_posted( [ "your-name" => "Sam", '
                 '"utm_source" => " google ", "utm_term" => str_repeat( "t", 300 ), "gclid" => [ "x" ] ] ) );')
         got = php(CORE + [(ATTR, 'kitwp_attribution_posted')], body)
         self.assertEqual((got['your-name'], got['utm_source'], len(got['utm_term'])), ('Sam', 'google', 200))
         self.assertNotIn('gclid', got)
-
-
-MAIL_STUBS = r'''
-const KITWP_BRAND_COLOUR = '#123456';
-class WPCF7_Submission {
-	public static function get_instance() { return new self(); }
-	public function get_posted_data( $name = '' ) { return '' === $name ? $GLOBALS['posted'] : ( $GLOBALS['posted'][ $name ] ?? null ); }
-}
-function kitwp_lead_fields() { return []; }
-function kitwp_lead_data( $s ) { return [ 'page' => $GLOBALS['page'] ?? '' ]; }
-function kitwp_lead_extras( $l ) { return []; }
-'''
+        self.assertEqual(got['google_click_id'], 'none')  # 0.12.0: the standard's values are added
 
 
 @unittest.skipUnless(shutil.which('php'), 'needs PHP')
 class EmailBlock(unittest.TestCase):
-    def tag(self, posted, html=True, page='https://example.org/booking/'):
-        body = (f'$GLOBALS["posted"] = json_decode( {json.dumps(json.dumps(posted))}, true ); $GLOBALS["page"] = '
-                f'{json.dumps(page)}; echo json_encode( kitwp_lead_special_tags( null, "_kitk_source", '
-                f'{"true" if html else "false"} ) );')
-        return php(CORE + [(MAIL, 'kitwp_lead_special_tags'), (MAIL, 'kitwp_mail_h')], body, MAIL_STUBS)
-
-    def rows(self, out):
-        """The table as (label, cell text) pairs."""
-        import re
-        cells = re.findall(r'<tr>(.*?)</tr>', out)
-        return [tuple(re.sub(r'<br>', ' | ', re.sub(r'<(?!br)[^>]+>', '', c)).strip()
-                      for c in re.findall(r'<td[^>]*>(.*?)</td>', row)) for row in cells]
-
-    def test_direct_first_visit_as_the_existing_build_shows_it(self):
-        out = self.tag({'first_landing_page': 'https://example.org/', 'first_seen': '2026-11-23 09:45'})
-        self.assertIn('background-color:#123456;', out)  # the title row in the email's brand colour
-        self.assertEqual(self.rows(out), [
-            ('Lead source',),
-            ('First visit', 'Direct (typed in, bookmark or no source) | Landing page: https://example.org/ | '
-                            'When: 2026-11-23 09:45 UTC'),
-            ('Form sent from', 'https://example.org/booking/')])
-        self.assertIn('<b>Direct (typed in, bookmark or no source)</b>', out)
-
-    def test_paid_click_without_tags_and_a_google_search(self):
-        out = self.tag({'gclid': 'G1', 'landing_page': 'https://example.org/offer/', 'last_seen': '2026-11-23 10:00',
-                        'first_referrer': 'https://www.google.com/search', 'first_landing_page': 'https://example.org/',
-                        'first_seen': '2026-11-01 08:00'})
-        first, latest = self.rows(out)[1:3]
-        self.assertEqual(first[0], 'First visit')
-        self.assertTrue(first[1].startswith('Google search | From: https://www.google.com/search'), first)
-        self.assertEqual(latest, ('Latest campaign visit', 'Google Ads click | gclid: G1 | Landing page: '
-                                  'https://example.org/offer/ | When: 2026-11-23 10:00 UTC'))
-
-    def test_tags_words_and_escaping(self):
-        out = self.tag(dict(PAID, utm_campaign='<b>spring</b>', utm_term='plumber', utm_content='ad 2',
-                            last_seen='2026-11-23 10:00'))
-        latest = dict(r for r in self.rows(out) if len(r) == 2)['Latest campaign visit']
-        self.assertTrue(latest.startswith('google / cpc | Campaign: &lt;b&gt;spring&lt;/b&gt; | Keyword: plumber | '
-                                          'Ad: ad 2 | gclid: Cj0KCQ-test | From: https://www.google.com/'), latest)
-        self.assertIn('First visit', dict(r for r in self.rows(out) if len(r) == 2))
-        self.assertNotIn('<p', out)
-
-    def test_same_visit_shown_once_and_no_data(self):
-        same = {'utm_source': 'bing', 'landing_page': 'https://example.org/', 'last_seen': '2026-11-23 10:00',
-                'first_source': 'bing', 'first_landing_page': 'https://example.org/', 'first_seen': '2026-11-23 10:00'}
-        labels = [r[0] for r in self.rows(self.tag(same))]
-        self.assertEqual(labels, ['Lead source', 'First visit', 'Form sent from'])
-        none = self.rows(self.tag({}))
-        self.assertEqual(none[1], ("Not recorded (the visitor&#039;s browser did not run the page script).",))
-        self.assertEqual(none[2], ('Form sent from', 'https://example.org/booking/'))
-
-    def test_plain_text(self):
-        text = self.tag({'first_landing_page': 'https://example.org/', 'first_seen': '2026-11-23 09:45'}, html=False)
-        self.assertEqual(text, 'Lead source\nFirst visit: Direct (typed in, bookmark or no source)\n'
-                               '  Landing page: https://example.org/\n  When: 2026-11-23 09:45 UTC\n'
-                               'Form sent from: https://example.org/booking/')
+    """0.12.0: the table itself is tested in test_attribution_0120 (the company standard's eleven rows)."""
 
     def test_template_has_the_table_not_the_old_row(self):
         with open(path('assets/seed/lead-email.html'), encoding='utf-8') as fh:
@@ -191,7 +129,8 @@ class BrowserCapture(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stderr)
         filled, later, thanks, refresh = json.loads(r.stdout)
         self.assertEqual((filled['utm_source'], filled['utm_medium'], filled['gclid']), ('google', 'cpc', 'G1'))
-        self.assertEqual(filled['landing_page'], 'https://example.org/offer/')  # no query: the email stays out
+        self.assertEqual(filled['landing_page'],  # 0.12.0: with its query, the email parameter left out
+                         'https://example.org/offer/?utm_source=google&utm_medium=cpc&gclid=G1')
         self.assertEqual(filled['referrer'], 'https://www.google.com/search')
         self.assertNotIn('email', filled)
         self.assertRegex(filled['first_seen'], r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$')  # UTC

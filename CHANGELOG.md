@@ -5,6 +5,48 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-11-27
+
+The company attribution standard: every lead form on every page and landing page carries the same eleven labelled
+fields, looks right, and reaches the CRM.
+
+### Added
+
+- **The eleven attribution fields**, in this order, in the lead email, the CFDB7 columns, the leads portal and the
+  posted names a CRM maps: Lead Source, Google Ads Campaign ID, Google Click ID, Landing Page, Referrer, Lead
+  Source Date, Form Submitted From, First Touch Source, First Visit Date, First Touch Landing Page, First Touch
+  Referrer. The server works them out once as CF7 reads the post (a posted value under those names is replaced);
+  an empty one says "none". The other captured values (utm_*, utm_id, gbraid, wbraid, fbclid, msclkid) follow as
+  extra rows only when present.
+- **Google Ads Campaign ID:** `gad_campaignid`, else `utm_id`, else a numeric `utm_campaign`; the browser now keeps
+  `gad_campaignid` and `utm_id` with each visit.
+- **CFDB7 columns:** the eleven labels as columns in their order, then the extra rows (`cfdb7_before_save_data`);
+  the raw browser fields stay out of CFDB7 (the email and the portal keep them).
+- **The CRM box on the live checklist:** a profile `extra_plugins` entry with `"lead_forms": true` (the plugin that
+  connects the forms to a CRM or app) adds "every lead form mapped there with the eleven attribution fields; the
+  TEST lead shows them there" to RUNBOOK section 4.
+- **The kit's default form layout** for a design without a form (`site.json` `"form_class": "kitwp-form"`):
+  `assets/form-default.css`, printed inline once before the first form on a page. Labels above, two short fields
+  per row from 640px, the message full width, inputs 16px or more, focus and error states, the theme's `.btn`.
+  `scripts/report/form-layout.mjs` checks any form against it at 1280 and 390 wide.
+- **Upgrading a kit site** (forms-email.md): copy four files, re-test a lead.
+
+### Fixed
+
+- **Attribution never reached CFDB7.** CFDB7 (1.4.2) saves only the form's own tags by default
+  (`cfdb7_strict_keys`), so the hidden attribution fields were dropped. The kit now adds the eleven (and the extras)
+  from the CF7 submission in `cfdb7_before_save_data`, HTML-escaped as CFDB7 escapes its own values.
+
+### Changed
+
+- The lead email's "Lead source" table (First visit, Latest campaign visit, Form sent from) is now the "Lead
+  Attribution" table: the eleven rows, then the extras. Lead Source in words: Google Ads, Microsoft Ads, "source /
+  medium", Facebook / Instagram, a search engine, "<site> (link)", else "Direct" (was "Direct (typed in, bookmark
+  or no source)"); no page-script data: "Not recorded".
+- Landing pages keep their query string (the campaign tags), without any parameter whose value holds an "@";
+  referrers keep host and path only. Dates are YYYY-MM-DD in the site's time zone. Landing pages are capped at
+  1000 characters (was 500).
+
 ## [0.11.0] - 2026-11-27
 
 Fewer tokens per build, with every rule, phase, test and QA step kept. Rules 1 to 17 and "The phases" are word for

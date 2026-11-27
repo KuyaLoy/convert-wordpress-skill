@@ -154,8 +154,9 @@ file `wp-content/mu-plugins/kitwp-environment.php` and the theme's `acf-json/.ht
 <!-- if:forms -->
 - [ ] One real test lead per form ({{FORMS_LIST}}) with the real submit button: lands on /thank-you/, the email
       arrives, every recipient "Accepted" in cPanel > Track Delivery. Open the first form's page with
-      `?utm_source=qa&utm_medium=test&utm_campaign=launch&gclid=TEST`: its email's Lead source table
-      shows them (CFDB7 too), and GTM's preview shows `generate_lead` on /thank-you/.
+      `?gad_campaignid=123&gclid=TEST&utm_source=google`: its email's Lead Attribution table shows the eleven rows
+      in order with values (Lead Source "Google Ads", Campaign ID 123, Click ID TEST; CFDB7's columns too), a
+      plain visit's lead shows "Direct" and "none" rows, and GTM's preview shows `generate_lead` on /thank-you/.
 <!-- if:portal -->
       Each test lead also shows in the leads portal's form counts.
 <!-- /if:portal -->

@@ -16,7 +16,8 @@ shell: PowerShell, cmd, Git Bash, a Mac or Linux terminal. Use the `python3` com
 | `scripts/setup/install-wp.py` and the others | Install, admin, settings, plugins; the steps one by one when one needs repeating |
 | `scripts/report/text-check.py` | The docs' grep checks in Python, for any shell: `fill` (report), `plain` (client pack), `dupes`, `oneoff` (self-check), `placeholders` |
 | `scripts/report/leads-check.py` | With a leads portal in the profile: its endpoint and key with a GET (stores nothing; the key never printed) |
-| `scripts/launch/lead-source-plugin.py` | The Lead source table and form attribution as a must-use plugin for a WordPress site the kit did not build |
+| `scripts/launch/lead-source-plugin.py` | The Lead Attribution table and form attribution as a must-use plugin for a WordPress site the kit did not build |
+| `scripts/report/form-layout.mjs` | A lead form against the form layout standard at 1280 and 390 wide: labels above, fields per row, full-width message, 16px inputs, focus and error states |
 | `scripts/launch/plugin-versions.py` | Go/no-go: each plugin zip in the profile's folder with its version and file date |
 | `scripts/report/plugin-check.py` | The plugins per environment (local, staging, live) against the kit's list; `--done`: Duplicator gone after live QA |
 | `scripts/acf/build_field_groups.py`, `sync.php` | ACF JSON, stable keys (`--check`); database sync |

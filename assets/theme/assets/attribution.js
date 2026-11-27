@@ -17,11 +17,13 @@
  *
  * Two visits, as an existing company build keeps them: the first visit (kept `days`), and the latest campaign visit
  * (the last one that came with campaign tags, an ad click id or from another website). Each holds the campaign tags
- * (utm_source, utm_medium, utm_campaign, utm_term, utm_content), ad click ids (gclid, gbraid, wbraid, fbclid,
- * msclkid), its first page, the other site that sent it and its time (UTC). Addresses keep host and path only.
- * Each form gets them as hidden fields: the latest campaign visit as utm_*, the click ids, landing_page, referrer,
- * last_seen; the first visit as first_source, first_medium, first_campaign, first_term, first_content,
- * first_gclid ... first_msclkid, first_landing_page, first_referrer, first_seen. window.kitwpAttribution()
+ * (utm_source, utm_medium, utm_campaign, utm_term, utm_content, utm_id), ad click ids (gclid, gbraid, wbraid,
+ * fbclid, msclkid) and gad_campaignid, its first page (with its query string, without any parameter whose value
+ * holds an "@"), the other site that sent it (host and path only) and its time (UTC). Each form gets them as
+ * hidden fields: the latest campaign visit as utm_*, the click ids, gad_campaignid, landing_page, referrer,
+ * last_seen; the first visit as first_source, first_medium, first_campaign, first_term, first_content, first_id,
+ * first_gclid ... first_msclkid, first_gad_campaignid, first_landing_page, first_referrer, first_seen. The server
+ * works out the company standard's eleven fields from them (includes/forms-attribution.php). window.kitwpAttribution()
  * returns them (the chat widget adds them to its post). After a form is sent, the thank-you page pushes one generate_lead event to
  * the dataLayer with the form's name, source and medium (a refresh or a direct visit pushes nothing).
  */
@@ -31,8 +33,8 @@
 	var c = window.kitwpAttributionConfig || {};
 	var days = parseInt(c.days, 10);
 	days = isNaN(days) || days < 0 ? 90 : days;
-	var TAGS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
-	var CLICKS = ['gclid', 'gbraid', 'wbraid', 'fbclid', 'msclkid'];
+	var TAGS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'utm_id'];
+	var CLICKS = ['gclid', 'gbraid', 'wbraid', 'fbclid', 'msclkid', 'gad_campaignid'];
 	var now = Date.now();
 
 	function storage(kind) {
@@ -61,11 +63,29 @@
 			// full or blocked: nothing to keep
 		}
 	}
-	// Host and path only: a query can carry an email address or a name.
-	function page(url) {
+	// Host and path; with withQuery the query string too (the campaign tags), without any parameter whose value
+	// holds an "@" (an email address never goes in). Never the fragment.
+	function page(url, withQuery) {
 		try {
 			var u = new URL(url, window.location.href);
-			return /^https?:$/.test(u.protocol) ? u.origin + u.pathname : '';
+			if (!/^https?:$/.test(u.protocol)) {
+				return '';
+			}
+			var keep = withQuery
+				? u.search
+						.slice(1)
+						.split('&')
+						.filter(function (pair) {
+							var v = pair;
+							try {
+								v = decodeURIComponent(pair.replace(/\+/g, ' '));
+							} catch (e) {
+								// malformed escape: judged as it is
+							}
+							return pair !== '' && v.indexOf('@') === -1;
+						})
+				: [];
+			return u.origin + u.pathname + (keep.length ? '?' + keep.join('&') : '');
 		} catch (e) {
 			return '';
 		}
@@ -91,7 +111,7 @@
 	var local = days > 0 ? storage('localStorage') : null;
 
 	// This page view as a visit; it counts as a campaign visit when it came with tags, a click id or from another site.
-	var here = { t: now, landing: page(window.location.href), referrer: otherSite(document.referrer) };
+	var here = { t: now, landing: page(window.location.href, true), referrer: otherSite(document.referrer) };
 	Object.keys(arrived).forEach(function (k) {
 		here[k] = arrived[k];
 	});
@@ -261,7 +281,7 @@
 			var f = fields();
 			put(session, 'kitwp_lead', {
 				form: form.getAttribute('data-form-name') || '',
-				source: f.utm_source || (f.referrer ? 'referral' : f.gclid ? 'google' : 'direct'),
+				source: f.utm_source || (f.gclid || f.gad_campaignid ? 'google' : f.referrer ? 'referral' : 'direct'),
 				medium: f.utm_medium || (f.gclid ? 'cpc' : ''),
 				at: Date.now(),
 			});

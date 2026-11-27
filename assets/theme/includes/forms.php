@@ -76,7 +76,24 @@ function kitwp_quote_form_html( $args ) {
 	$status = $sub && (int) $sub->get_contact_form()->id() === $id ? (string) $sub->get_status() : '';
 	$html = kitwp_cf7_clean( $html, $ctx['prefix'], $status );
 	// The form's name for the generate_lead event (assets/attribution.js); parity checks ignore data attributes.
-	return (string) preg_replace( '/^<form /', '<form data-form-name="' . esc_attr( wpcf7_contact_form( $id )->title() ) . '" ', $html, 1 );
+	return kitwp_form_default_style() . (string) preg_replace( '/^<form /', '<form data-form-name="' . esc_attr( wpcf7_contact_form( $id )->title() ) . '" ', $html, 1 );
+}
+
+/**
+ * The kit's default form layout (assets/form-default.css) for a design without a form of its own: when the form
+ * class is "kitwp-form" (site.json "form_class"), printed inline once per page, before the first form. A design
+ * with its own form styles it with the static CSS instead, and this prints nothing.
+ *
+ * @return string The <style> element, or ''.
+ */
+function kitwp_form_default_style() {
+	static $printed = false;
+	$file           = get_stylesheet_directory() . '/assets/form-default.css';
+	if ( $printed || ! in_array( 'kitwp-form', explode( ' ', (string) KITWP_FORM_CLASS ), true ) || ! is_readable( $file ) ) {
+		return '';
+	}
+	$printed = true;
+	return '<style id="kitwp-form-default">' . wp_strip_all_tags( (string) file_get_contents( $file ) ) . "</style>\n"; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- a theme file.
 }
 
 /**

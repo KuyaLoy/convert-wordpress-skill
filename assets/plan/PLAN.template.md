@@ -11,7 +11,7 @@ Raised now, at the plan, not at the end. One line each: what this site lacks, wh
 
 | Area | This site today | We recommend | Size | Decision |
 |---|---|---|---|---|
-| Form attribution | Built in by the kit on every lead form (UTMs, ad click ids, landing page, referrer, first visit: email, CFDB7, portal, generate_lead) | Nothing to add, or: call tracking for phone leads | S | |
+| Form attribution | Built in by the kit on every lead form (the eleven standard fields, Lead Source to First Touch Referrer: email, CFDB7, portal, CRM, generate_lead) | Nothing to add, or: call tracking for phone leads | S | |
 | SEO | | (the kit's P4 covers titles, schema, old URLs, sitemap) e.g. Search Console and the sitemap submitted, redirects for old campaign URLs | | |
 | Site speed | | (the kit's P4 covers Core Web Vitals) e.g. image CDN, a host with HTTP/2 or HTTP/3 | | |
 | Testing | | (the kit's QA covers pixel, design, forms, live QA) e.g. uptime monitoring, a monthly form test | | |

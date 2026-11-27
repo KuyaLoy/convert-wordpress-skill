@@ -162,8 +162,9 @@ also go there, server to server, whether the email went out or failed; without o
 on live, and nothing blocks. With a portal, its address and password live in Theme Settings > Leads portal
 (administrators only, seeded empty, pasted on live; wp-config constants win when defined); never sent from local,
 development or staging.
-Every lead form also says where the lead came from (form attribution, built in: UTM tags, ad click ids, landing
-page, referrer, first visit), in the lead email, CFDB7, the portal and `generate_lead`.
+Every lead form also says where the lead came from (form attribution, built in: the company standard's eleven
+fields, Lead Source to First Touch Referrer), in the lead email, CFDB7's columns, the portal, the CRM mapping and
+`generate_lead`. A design without a form gets the kit's default form layout (`"form_class": "kitwp-form"`).
 Details: `references/forms-email.md`.
 
 ## P4 SEO, security, speed

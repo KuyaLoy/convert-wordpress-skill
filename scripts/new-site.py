@@ -175,6 +175,8 @@ LIVE_HOST, OTHER_HOST = ('www.' + BARE, BARE) if WWW else (BARE, 'www.' + BARE)
 # The site's lead forms in plain words, for the runbook's test leads (site.json "forms"; [] = no forms). The chat
 # (site.json "chat", or a chat_selector) is one of them. Without a list: the contact form, and a note to fill it.
 CHAT = site['chat'] if isinstance(site.get('chat'), bool) else bool(str(site.get('chat_selector') or '').strip())
+# The kit's default form layout ships only for a design without a form (site.json "form_class": "kitwp-form").
+FORM_DEFAULT = 'kitwp-form' in str(site.get('form_class', '')).split()
 BLOG = bool(site.get('blog'))
 FORMS = [str(x).strip() for x in (site['forms'] if isinstance(site.get('forms'), list) else ['the contact form'])
          if str(x).strip()]
@@ -257,12 +259,16 @@ values = {
     'CACHE_PLUGIN': str(site.get('cache_plugin') or profile.get('cache_plugin') or 'LiteSpeed Cache'),
     # The live plugin checklist's own lines (RUNBOOK section 4): the profile's extra_plugins that must be on live
     # ("required" or "live", with "where" "live" or "all"), each from its zip in plugin_zips. "where": "live" ones
-    # are installed here at launch and never on local or staging.
+    # are installed here at launch and never on local or staging. "lead_forms": true (it connects the lead forms to
+    # a CRM or app): one more box, every lead form mapped there with the eleven attribution fields.
     'LIVE_PLUGINS': '\n'.join(
         f"   - [ ] {p.get('name', '?')}: from your plugin folder"
         + (f" (`plugin_zips.{p['zip']}`)" if p.get('zip') else '')
         + (' (live only: never local or staging)' if str(p.get('where', '')).lower() == 'live' else '')
         + (f"; {p['live_note']}" if p.get('live_note') else '') + '.'
+        + ('\n     - [ ] Every lead form mapped in the app it connects to, with the eleven attribution fields in'
+           '\n           their order (Lead Source ... First Touch Referrer; forms-email.md): the TEST lead in'
+           '\n           section 5 shows them there.' if p.get('lead_forms') else '')
         for p in profile.get('extra_plugins', []) if isinstance(p, dict) and (p.get('required') or p.get('live'))
         and str(p.get('where') or 'live').lower() in ('live', 'all')
     ) or '   - (no live plugins of your own in the profile)',
@@ -466,6 +472,8 @@ def tidy_starter():
     # Kit and tool files the site has no use for.
     if not CHAT:
         move_aside(os.path.join(theme, 'assets', 'chat-save.js'))
+    if not FORM_DEFAULT:
+        move_aside(os.path.join(theme, 'assets', 'form-default.css'))
     move_aside(os.path.join(theme_root, 'tests', 'parity', 'swap'))  # swaptest.py output, made again when needed
     if starter != 'tw':
         if not BLOG:  # Barebones' post template; the kit answers 404 for posts' archives without a blog
@@ -814,6 +822,8 @@ plan += [
 # The chat lead pattern ships only for a site with a chat (site.json "chat"); an unused kit file is lint noise.
 if not CHAT:
     plan = [(s, d) for s, d in plan if not d.endswith(os.path.join('assets', 'chat-save.js'))]
+if not FORM_DEFAULT:
+    plan = [(s, d) for s, d in plan if not d.endswith(os.path.join('assets', 'form-default.css'))]
 # --launch-files: only the runbook and the live .htaccess, written again (the old ones kept, see below).
 LAUNCH = tuple(os.path.join(root, '_setup', 'launch', f) for f in ('RUNBOOK.md', 'htaccess-live.txt'))
 if a.launch_files:

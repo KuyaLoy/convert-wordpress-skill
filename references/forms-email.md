@@ -15,6 +15,8 @@ mail), `forms-local-mail.php` (local capture) and `forms-portal.php` (the leads 
 - Spam: honeypot and reCAPTCHA v3
 - The chat widget through CF7's REST endpoint
 - Where the lead came from (form attribution)
+- Upgrading a kit site to the attribution standard
+- Form layout
 - The leads portal
 - Where leads are stored: CFDB7 only
 - Local mail capture
@@ -123,50 +125,97 @@ seeder refuses an email file that is not a full HTML document and reports a form
 
 ## Where the lead came from (form attribution)
 
-On every lead form by default, no plugin, nothing to set up (`includes/forms-attribution.php`,
-`assets/attribution.js`):
+The company attribution standard, on every lead form on every page and landing page by default, no plugin,
+nothing to set up (`includes/forms-attribution.php`, `includes/forms-lead-source.php`, `assets/attribution.js`).
+Every lead carries these eleven fields, with these labels, in this order, in the lead email, the CFDB7 columns, the
+leads portal and the CRM mapping:
 
-- **Browser, first party only:** two visits, as an existing company build keeps them: the **first visit** (kept
-  `KITWP_ATTRIBUTION_DAYS`, 90; 0 = this visit only, for a site whose consent rules allow no stored data before
-  consent) and the **latest campaign visit** (the last one that came with campaign tags, an ad click id or from
-  another website). Each: the campaign tags (utm_source, utm_medium, utm_campaign, utm_term, utm_content), ad click
-  ids (gclid, gbraid, wbraid, fbclid, msclkid), its first page, the site that sent it, its time (UTC). Addresses
-  keep host and path, never the query. Nothing leaves the browser until the visitor sends a form; nothing goes to
-  a third party.
+| # | Label | Posted name | Value |
+|---|---|---|---|
+| 1 | Lead Source | `lead_source` | The latest touch in words (below) |
+| 2 | Google Ads Campaign ID | `google_ads_campaign_id` | `gad_campaignid`, else `utm_id`, else numeric `utm_campaign` |
+| 3 | Google Click ID | `google_click_id` | `gclid` |
+| 4 | Landing Page | `landing_page` | The latest touch's first page, with its query string |
+| 5 | Referrer | `referrer` | The other site that sent the latest touch (host and path) |
+| 6 | Lead Source Date | `lead_source_date` | The latest touch's date, YYYY-MM-DD in the site's time zone |
+| 7 | Form Submitted From | `form_submitted_from` | The page the form was sent from |
+| 8 | First Touch Source | `first_touch_source` | The first visit in words |
+| 9 | First Visit Date | `first_visit_date` | YYYY-MM-DD in the site's time zone |
+| 10 | First Touch Landing Page | `first_touch_landing_page` | With its query string |
+| 11 | First Touch Referrer | `first_touch_referrer` | Host and path |
+
+An empty value is "none", never a dropped row. The other captured values (utm_source, utm_medium, utm_campaign,
+utm_term, utm_content, utm_id, gbraid, wbraid, fbclid, msclkid) follow as extra rows only when present; the first
+visit's only when they differ from the latest touch's ("First Touch UTM Source"). In words: Google Ads (gclid,
+gbraid, wbraid or gad_campaignid), Microsoft Ads (msclkid), else "utm_source / utm_medium", else "Facebook /
+Instagram" (fbclid), else "Google search", "Bing search", "Yahoo search", "DuckDuckGo search" or "<site> (link)",
+else "Direct". No page-script data at all: Lead Source "Not recorded".
+
+- **Browser, first party only:** two visits: the **first visit** (kept `KITWP_ATTRIBUTION_DAYS`, 90; 0 = this visit
+  only, for a site whose consent rules allow no stored data before consent) and the **latest campaign visit** (the
+  last one that came with campaign tags, an ad click id or from another website; the latest touch, else the first
+  visit). Each: the campaign tags, the click ids, `gad_campaignid`, its first page (with its query, without any
+  parameter whose value holds an "@": an email address never goes in), the site that sent it, its time (UTC).
+  Nothing leaves the browser until the visitor sends a form; nothing goes to a third party.
 - **Consent:** with a consent banner, the first visit goes to localStorage only after the visitor accepts (ads or
   analytics, as the banner defines); until then, and after a decline, only this visit is kept (sessionStorage,
   gone with the visit), and a decline removes the stored visits. `KITWP_ATTRIBUTION_CONSENT` "auto" reads Google
   Consent Mode from the dataLayer; "banner" for a banner without Consent Mode, which calls
   `window.kitwpConsent(true | false)` when the visitor chooses and on each page with the stored choice; "none": no
   banner, stored as above.
-- **Hidden fields on every CF7 form** (the chat's post too). The latest campaign visit: `utm_source`,
-  `utm_medium`, `utm_campaign`, `utm_term`, `utm_content`, `gclid`, `gbraid`, `wbraid`, `fbclid`, `msclkid`,
-  `landing_page`, `referrer`, `last_seen`. The first visit: `first_source`, `first_medium`, `first_campaign`,
-  `first_term`, `first_content`, `first_gclid`, `first_gbraid`, `first_wbraid`, `first_fbclid`, `first_msclkid`,
-  `first_landing_page`, `first_referrer`, `first_seen`. Times: "YYYY-MM-DD HH:MM" UTC.
+- **Hidden fields on every CF7 form** (the chat's post too): the latest campaign visit as `utm_*`, the click ids,
+  `gad_campaignid`, `landing_page`, `referrer`, `last_seen`; the first visit as `first_source` ... `first_content`,
+  `first_id`, `first_gclid` ... `first_msclkid`, `first_gad_campaignid`, `first_landing_page`, `first_referrer`,
+  `first_seen`. Times: "YYYY-MM-DD HH:MM" UTC.
 - **Checked on the server** as CF7 reads the post (`wpcf7_posted_data`): only those names, scalar, cleaned, capped
-  (500 for the addresses, 16 for the times, 200 for the rest), http(s) addresses only; the rest is dropped. Without
-  JavaScript the form page's own address (the Referer) still gives its campaign tags and click ids. Reporting only:
-  never used to decide anything about a lead.
-- **Everywhere the lead goes:** the lead email's **Lead source** table under the details (`[_kitk_source]`,
-  `includes/forms-lead-source.php`): a title row in the email's brand colour (`KITWP_BRAND_COLOUR`; its text black
-  or white, whichever has the higher contrast; not a colour: #28292D with white), then "First visit", "Latest campaign
-  visit" (only when it differs from the first) and "Form sent from" (the page). Each visit starts with its source in
-  words (bold): utm_source / utm_medium; else "Google Ads click", "Facebook / Instagram click", "Microsoft Ads
-  click"; else "Google search", "Bing search", "Yahoo search", "DuckDuckGo search" or "<site> (link)"; else "Direct
-  (typed in, bookmark or no source)"; then Campaign, Keyword, Ad, the click ids, From, Landing page, "When: ... UTC".
-  No page-script data: "Not recorded (the visitor's browser did not run the page script)." The plain-text form has
-  the same rows. Contact Form CFDB7 stores the posted fields; a leads portal (when there is one) gets the same names as fields
-  (`gclid` from the visit); the dataLayer gets `generate_lead` on /thank-you/, once per sent form, with
-  `form_name` (the CF7 form's title), `lead_source` and `lead_medium`. A refresh pushes nothing.
+  (1000 for landing pages, 500 for referrers, 16 for the times, 200 for the rest), http(s) addresses only; the rest
+  is dropped. Then the server works out the eleven (a posted standard name is always replaced). Without JavaScript
+  the form page's own address (the Referer) still gives its campaign tags and click ids. Reporting only: never
+  used to decide anything about a lead.
+- **Everywhere the lead goes:** the lead email's **Lead Attribution** table under the details (`[_kitk_source]`):
+  a title row in the email's brand colour (`KITWP_BRAND_COLOUR`; its text black or white, whichever has the higher
+  contrast; not a colour: #28292D with white), the eleven rows, then the extra rows; the plain-text form has the
+  same "Label: value" lines. Contact Form CFDB7 stores the eleven as labelled columns in the same order, then the
+  extra rows (`cfdb7_before_save_data`, values from the CF7 submission: CFDB7 keeps only the form's own tags by
+  default, so hidden fields added by script never reach it alone; the raw browser fields stay out). A leads
+  portal and a CRM connector get the posted names. The dataLayer gets `generate_lead` on /thank-you/, once per
+  sent form, with `form_name` (the CF7 form's title), `lead_source` and `lead_medium`. A refresh pushes nothing.
+- **The CRM or app:** on live, every lead form is mapped in the app the profile's connector plugin feeds
+  (`extra_plugins` entry with `"lead_forms": true`: the live plugin checklist has the box) with the eleven posted
+  names above; the TEST lead shows them there.
 - **A WordPress site the kit did not build:** `python3 <kit>/scripts/launch/lead-source-plugin.py <out_dir>
   --brand '#rrggbb'` makes a must-use plugin from these same files (the loader and a `kitwp-lead-source/` folder):
   copy both into `wp-content/mu-plugins/`. It adds the table where the Mail tab has `<!-- kitwp-lead-source -->`,
   else before `</body>`, else at the end (a plain-text mail gets the rows as text), to the main email only; an error
   leaves the email as it was. `--consent banner` for a banner without Consent Mode. Never on a kit-built site.
-- **Prove it:** open a form page with `?utm_source=qa&utm_medium=test&utm_campaign=launch&gclid=TEST`, send a TEST
-  lead: the email's Lead source table and the portal show them; a lead from a plain visit shows "Direct (typed in,
-  bookmark or no source)".
+- **Prove it:** open a form page with `?gad_campaignid=123&gclid=TEST&utm_source=google`, send a TEST lead: the
+  email's Lead Attribution table and CFDB7 show the eleven labels in order with values (Lead Source "Google Ads",
+  Campaign ID 123, Click ID TEST); a lead from a plain visit shows Lead Source "Direct" and "none" rows.
+
+## Upgrading a kit site to the attribution standard
+
+A live site built with an older kit (0.9.9 to 0.11.x) is brought up to the standard as its own task, one step:
+
+1. Back up the theme, then copy from the kit over the theme's own copies (prefix swap only, as new-site.py does):
+   `includes/forms-attribution.php`, `includes/forms-lead-source.php`, `includes/forms-mail.php` and
+   `assets/attribution.js` (a site with the must-use plugin instead: run `lead-source-plugin.py` again and replace
+   both). A site whose `forms-mail.php` was changed by hand: copy only its `_kitk_source` line.
+2. PHPCS and `php -l` on the theme; then one TEST lead per form with the Prove-it address above: the email, CFDB7
+   and the CRM show the eleven rows. Old CFDB7 rows keep their old columns.
+
+## Form layout
+
+Every lead form on every page and landing page looks the same and looks right:
+
+- **The design has a form:** that form, 1:1 (the static markup and CSS; `site.json` `form_class` is its class).
+- **No form in the design** (a landing page or section without one): the kit default. Set `site.json`
+  `"form_class": "kitwp-form"`; `new-site.py` ships `assets/form-default.css` and the theme prints it inline once,
+  before the first form on the page (`kitwp_form_default_style()`). Labels above their fields, two short fields
+  per row from 640px (name and phone, email and service), the message and the button full width, inputs at least
+  16px (no zoom on phones), a visible focus ring, a red border and note on a field with an error, the theme's own
+  `.btn` for the button. `--kitwp-form-accent` and `--kitwp-form-error` take the theme's colours.
+- **Prove it:** `node _plan/tools/report/form-layout.mjs <page url> [--form <selector>]` at 1280 and 390 wide:
+  labels above, two per row on desktop and one on a phone, message full width, inputs 16px or more, a focus outline.
 
 ## The leads portal
 

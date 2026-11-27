@@ -26,6 +26,12 @@ CHANGED = {
         (None, '0.10.2: no portal is no longer a blocker (the paragraph above, rewritten)'),
     'without forms says so in site.json). Its address and password always live in Theme Settings > Leads portal':
         (None, '0.10.2: the paragraph above, rewritten'),
+    'Every lead form also says where the lead came from (form attribution, built in: UTM tags, ad click ids, landing':
+        ("Every lead form also says where the lead came from (form attribution, built in: the company standard's "
+         'eleven', '0.12.0: the company attribution standard'),
+    'page, referrer, first visit), in the lead email, CFDB7, the portal and `generate_lead`.':
+        ("fields, Lead Source to First Touch Referrer), in the lead email, CFDB7's columns, the portal, the CRM "
+         'mapping and', '0.12.0: the company attribution standard'),
 }
 
 

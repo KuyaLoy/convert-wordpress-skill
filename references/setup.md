@@ -93,7 +93,7 @@ The fields:
 | `map_default` | What the map shows until the address is confirmed, usually the city as words (`Leeds, UK`); empty = `area_served` |
 | `brand_colour`, `og_locale`, `timezone` | As the static site and the business use them (any country and language) |
 | `html_attributes` | The static `<html>` lang and dir, exactly (`lang="en"`, `lang="ar" dir="rtl"`): analyze-source.py reports them |
-| `form_class`, `chat_selector` | The static lead form's class, and the chat widget's root selector if any |
+| `form_class`, `chat_selector` | The static lead form's class (`kitwp-form` when the design has no form: the kit's default layout), and the chat widget's root selector if any |
 | `phone_display`, `phone_tel`, `email`, `gtm` | Business details and the GTM container |
 | `font_links` | The static `<head>`'s font `<link>` tags, exactly |
 | `lead.to`, `lead.bcc`, `lead.from` | Lead email recipients and sender |
