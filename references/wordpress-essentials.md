@@ -36,7 +36,8 @@ section names. `<kit>` is this skill's folder; in a project the tools are in `_p
 Live has exactly this list (Duplicator only until the clean-up) and nothing else unless the task asks for it
 (site.json `"task_plugins"`: names or `{"name", "slug", "where"}`). `scripts/report/plugin-check.py` proves it per
 environment from `wp plugin list` (missing, inactive, extra, a live-only plugin on staging, Duplicator left after
-the clean-up). reCAPTCHA v3 and the leads portal are on every live lead form, proven by one TEST lead per form.
+the clean-up). reCAPTCHA v3 (and the leads portal, when the profile names one) are on every live lead form, proven by one TEST
+lead per form.
 When the profile names a tracking plugin (`tracking.plugin`), tracking goes through it only: no ACF tracking fields
 or options, no GTM in the theme (`self-check.py --profile` flags both). Never ACF PRO and Secure Custom Fields
 active together. Read `wp-content/debug.log` after every install.

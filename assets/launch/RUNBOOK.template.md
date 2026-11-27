@@ -96,7 +96,9 @@ Plan about 2 hours on a quiet day (not Friday). The developer does the hosting s
 <!-- /if:redirects -->
    - [ ] reCAPTCHA v3: Contact > Integration > reCAPTCHA, the keys for {{LIVE_HOST}} (the developer pastes them),
          active on every form: the test leads in section 5 go through with it.
+<!-- if:leadsitem -->
    - [ ] {{LEADS_ITEM}}
+<!-- /if:leadsitem -->
    - [ ] {{CACHE_PLUGIN}} (the cache plugin): page cache and browser cache on; CSS and JS options one at a time, each
          followed by a parity spot check and `live-qa.py` (anything that changes a pixel or breaks a form goes off
          again); purge everything after "Discourage search engines" is unticked.
@@ -153,7 +155,7 @@ file `wp-content/mu-plugins/kitwp-environment.php` and the theme's `acf-json/.ht
 - [ ] One real test lead per form ({{FORMS_LIST}}) with the real submit button: lands on /thank-you/, the email
       arrives, every recipient "Accepted" in cPanel > Track Delivery. Open the first form's page with
       `?utm_source=qa&utm_medium=test&utm_campaign=launch&gclid=TEST`: its email's Lead source table
-      shows them (CFDB7 and the portal too), and GTM's preview shows `generate_lead` on /thank-you/.
+      shows them (CFDB7 too), and GTM's preview shows `generate_lead` on /thank-you/.
 <!-- if:portal -->
       Each test lead also shows in the leads portal's form counts.
 <!-- /if:portal -->

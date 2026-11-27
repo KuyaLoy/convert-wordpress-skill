@@ -89,9 +89,9 @@ again. Fields replace content, never structure, classes or order.
   ACF > Options Pages, not hidden in theme code; `acf.php` registers it in PHP only when ACF has not. Capability
   `edit_pages`, so a client with the Editor role can use it. One group with **tabs** across the top (ACF placement
   "top", the builder's default; `placement='left'` only when the developer asks) (Business details, Header and
-  menu, Footer, pop-up or sticky bar, 404...), plus the kit's **Leads portal** group (the portal's address and
-  password, administrators only: `references/forms-email.md`), which the builder always writes: keep it when the
-  example spec is replaced. Anything on two or more pages lives here, with tokens (`{phone}`,
+  menu, Footer, pop-up or sticky bar, 404...), plus the kit's **Leads portal** group when the profile names a portal (the portal's
+  address and password, administrators only: `references/forms-email.md`): keep it when the example spec is
+  replaced. Anything on two or more pages lives here, with tokens (`{phone}`,
   `{tel}`, `{email}`, `{year}`, `{legal_name}`, `{company_number}`, `{registration}`, more through the
   `kitwp_tokens` filter). Its defaults are the static copy. `kitwp_setting()` reads by field key, so a setting
   nobody saved still renders 1:1.

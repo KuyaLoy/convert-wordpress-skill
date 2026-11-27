@@ -45,7 +45,7 @@ Rules, enforced by gate.py (exit 0 the phase may close, 1 open items listed, 2 t
 ## All rules at the plan
 
 P0 decides everything that shapes the build, so no rule arrives mid-build and reopens finished work: every form
-and where its leads go (Contact Form 7 for each, the leads portal or `"leads_portal": "none: <reason>"`), how missing
+and where its leads go (Contact Form 7 for each; the leads portal only when the profile names one), how missing
 content is handled (seeded, marked placeholders), the live plugin checklist (RUNBOOK section 4), old URLs and
 redirects, whether the site has a blog, a chat or search. They go in PLAN.md and the Plan OK covers them.
 A skill update during a task applies at the next site or phase boundary (gate.py `--close`), never inside a QA run
@@ -122,7 +122,7 @@ Every QA run checks the items that apply to what the phase built (P5: all of the
 | Code | `php -l`, PHPCS clean (escaping helpers registered, no blanket ignores), the duplicate function check, every output escaped, globals prefixed, no notices in debug.log, no console errors | `check-section.py`, the theme's composer scripts; debug.log |
 | Code quality | Tokens, not one-off values (the search finds 0 in what the build wrote); only used kit files and helpers ship; sections under about 15 fields and 250 lines; one job per file, JS enqueued; no task or ticket IDs in comments; `npm run lint` passes | `references/build.md` > Code quality; the read-only check reads the changed files |
 | Data | Seeder second run says "same" everywhere | Tools > Seeder |
-| Forms (P3 on) | Every form posts with JavaScript off, 303 to /thank-you/, branded HTML email and auto-reply, honeypot and reCAPTCHA; the leads portal sender in (on mail sent and mail failed) and the Theme Settings > Leads portal group there (administrators only, empty until live), or site.json says "none"; form attribution: a post with UTMs and a click id shows them in the email's Lead source table, a plain one "Direct (typed in, bookmark or no source)" | Local mail in `_setup/mail/` |
+| Forms (P3 on) | Every form posts with JavaScript off, 303 to /thank-you/, branded HTML email and auto-reply, honeypot and reCAPTCHA; with a leads portal in the profile, its sender in (on mail sent and mail failed) and the Theme Settings > Leads portal group there (administrators only, empty until live); form attribution: a post with UTMs and a click id shows them in the email's Lead source table, a plain one "Direct (typed in, bookmark or no source)" | Local mail in `_setup/mail/` |
 | SEO (P4 on) | Titles, descriptions, canonicals, robots, theme-color, viewport, icons, og and twitter tags and every JSON-LD value equal to the source, with the same HTTP status; /thank-you/ noindex; old URLs 301 | `tests/parity/seodiff.py <source> <local url>`, `curl -I` (`curl.exe -I` in Windows PowerShell) |
 | Security (P4 on) | No secrets in files, private files 403, REST users hidden, file editing off, nonces and capability checks | `live-qa.py --hidden` style checks locally, a code read |
 | Speed (P4 on) | LCP preload and fetchpriority, sized srcset, nothing lazy above the fold, reserved media space, deferred JS; local Lighthouse not below the source | `references/seo-security.md` > Performance |

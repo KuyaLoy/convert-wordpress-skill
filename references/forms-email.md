@@ -156,7 +156,7 @@ On every lead form by default, no plugin, nothing to set up (`includes/forms-att
   click"; else "Google search", "Bing search", "Yahoo search", "DuckDuckGo search" or "<site> (link)"; else "Direct
   (typed in, bookmark or no source)"; then Campaign, Keyword, Ad, the click ids, From, Landing page, "When: ... UTC".
   No page-script data: "Not recorded (the visitor's browser did not run the page script)." The plain-text form has
-  the same rows. Contact Form CFDB7 stores the posted fields; the leads portal gets the same names as fields
+  the same rows. Contact Form CFDB7 stores the posted fields; a leads portal (when there is one) gets the same names as fields
   (`gclid` from the visit); the dataLayer gets `generate_lead` on /thank-you/, once per sent form, with
   `form_name` (the CF7 form's title), `lead_source` and `lead_medium`. A refresh pushes nothing.
 - **A WordPress site the kit did not build:** `python3 <kit>/scripts/launch/lead-source-plugin.py <out_dir>
@@ -170,18 +170,19 @@ On every lead form by default, no plugin, nothing to set up (`includes/forms-att
 
 ## The leads portal
 
-**Mandatory on live** for every site with a lead form: the host's mail sometimes fails, and the portal still catches the
-lead. The profile names it (`leads_portal`: the admin, how a project is made, and the optional `constant_prefix`, for
-example `ACME_LEADS`); none is a go-live blocker. A site without a lead form says so in site.json: `"leads_portal":
-"none: <reason>"`. `kitwp_leads_send()` POSTs each lead form whether the email went out or failed (`wpcf7_mail_sent` and
+**Optional, none by default.** Without a portal in the profile, leads go by email (with the Lead source table) and
+Contact Form CFDB7 on live (rule 17): no Theme Settings group, no runbook item, no leads-check step, nothing blocks
+the launch. The profile names a portal with `leads_portal.constant_prefix` (for example `ACME_LEADS`; also `admin`
+and how a project is made); then every lead form also sends there, which catches the lead when the host's mail
+fails. One site can still opt out in site.json: `"leads_portal": "none: <reason>"`. `kitwp_leads_send()` POSTs each lead form whether the email went out or failed (`wpcf7_mail_sent` and
 `wpcf7_mail_failed`; CF7 fires one of them, spam neither; one send per submission): JSON with `form`, an
 `idempotency_key`, the posted fields and `source_url`, `ip_address`, `gclid`, `fbp`, `fbc`; header `Authorization:
 Bearer <key>`; 5 second timeout; 200 and 202 count as delivered; a failure is logged with the status only. The code and
-the empty Theme Settings group are in from P3; only the values wait for live.
+the empty Theme Settings group (with a portal) are in from P3; only the values wait for live.
 
-- The address (endpoint) and password (write key) live in **Theme Settings > Leads portal**, always: an ACF group
-  of two fields (`leads_endpoint`, a URL; `leads_key`, a password field, masked) that `build_field_groups.py` always
-  writes, seeded empty. Administrators only: the group's location shows it to them alone, and a save by anyone else
+- The address (endpoint) and password (write key) live in **Theme Settings > Leads portal**: an ACF group of two
+  fields (`leads_endpoint`, a URL; `leads_key`, a password field, masked) that `build_field_groups.py` writes when
+  the profile names a portal, seeded empty. Administrators only: the group's location shows it to them alone, and a save by anyone else
   keeps the stored values (`kitwp_leads_settings_guard()`). The developer pastes both on live, logged in as an
   administrator. The key is never printed on the site or in an email; it is stored in the database, so it travels
   in Duplicator packages and database backups (keep those private, and rotate the key in the portal admin if one
@@ -212,7 +213,7 @@ the empty Theme Settings group are in from P3; only the values wait for live.
 
 Leads are stored only by Contact Form CFDB7, installed on live (the kit's plugin list). Never create a database
 table, custom post type, option rows, files or an admin page of your own for enquiries or submissions; local mail
-capture (_setup/mail) is local only. The email, CFDB7 and the leads portal are the three places a lead goes, and
+capture (_setup/mail) is local only. The email, CFDB7 and (when the profile names one) the leads portal are where a lead goes, and
 none of them is the theme's own code. `self-check.py` reports any such storage in the theme or a must-use plugin as
 `lead-storage` (a table created, a `$wpdb` write, or a post type or admin page named for enquiries, leads,
 submissions, contacts, messages or form entries): remove it, CFDB7 on live keeps the leads.

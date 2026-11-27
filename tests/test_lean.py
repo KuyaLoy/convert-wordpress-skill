@@ -251,8 +251,10 @@ class LivePlugins093(unittest.TestCase):
         self.assertIn('**Staging**', rb)
         self.assertNotIn('{{LIVE_PLUGINS}}', rb)
         self.assertIn('   - [ ] LiteSpeed Cache (the cache plugin)', rb)
-        self.assertIn('BLOCKER: no leads portal in the profile', rb)  # this test profile has none
-        self.assertIn('leads portal: none in the profile', r.stdout)
+        # 0.10.2: this test profile has no leads portal, and that is fine: no item, no blocker, no note.
+        self.assertNotIn('BLOCKER', rb)
+        self.assertNotIn('eads portal', rb)
+        self.assertNotIn('leads portal', r.stdout)
         self.assertIn('on live the cache plugin\n  LiteSpeed Cache', read(os.path.join(root, '_plan', 'PLAN.md')))
 
 
@@ -279,6 +281,8 @@ class LeadsPortal094(unittest.TestCase):
         self.assertIn('leads-check.py', rb)
         self.assertNotIn('BLOCKER', rb)
         self.assertNotIn('leads portal: none', r.stdout)
-        r, rb = self.render({}, leads_portal='none: a landing page without forms')
+        r, rb = self.render({'leads_portal': {'constant_prefix': 'acme_leads'}},
+                            leads_portal='none: a landing page without forms')
         self.assertIn('No leads portal for this site: "none: a landing page without forms"', rb)
+        self.assertNotIn('Leads portal ready', rb)
         self.assertNotIn('BLOCKER', rb)

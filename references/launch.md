@@ -123,7 +123,7 @@ changes.
   zip's version; `"where": "live"` ones are installed here first, never on local or staging), Contact Form CFDB7,
   Converter for Media (then the images regenerated), Redirection when the site has any redirect (every live
   redirect goes there, never `.htaccess` or theme code), the reCAPTCHA v3 keys on every form and the cache plugin
-  (LiteSpeed Cache unless the profile's `cache_plugin` names another), and the leads portal on every lead form.
+  (LiteSpeed Cache unless the profile's `cache_plugin` names another), and the leads portal on every lead form when the profile names one.
   Live has exactly ACF PRO, Contact Form 7, Yoast SEO and this list (Duplicator until the clean-up), nothing else
   unless the task asks (site.json `"task_plugins"`): `plugin-check.py --env live` proves it from `wp plugin list`.
   **Staging** (a public copy before live) gets ACF PRO, Contact Form 7 and Yoast SEO (Redirection if needed), none
@@ -141,7 +141,7 @@ changes.
   Media and Contact Form CFDB7 installed and active (ask first), then the profile's `extra_plugins` (the `required` ones
   must be active; a plugin that registers itself with an outside service on activation is activated again once DNS
   points here); read `debug.log` once; list the live plugins.
-- Leads portal (mandatory for a site with a lead form; on the live plugin checklist): the address and password go
+- Leads portal (only when the profile names one; then on the live plugin checklist): the address and password go
   into Theme Settings > Leads portal on live (the developer, as an administrator; wp-config constants win when
   defined; the theme never sends from local, development or staging), `leads-check.py --site` on live answers OK,
   then one TEST lead per form shows in the portal's counts.

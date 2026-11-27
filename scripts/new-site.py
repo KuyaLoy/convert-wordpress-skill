@@ -245,7 +245,8 @@ values = {
     # The client's dashboard "Need help?" line (site.json or the profile; empty hides it).
     'CLIENT_HELP': str(site.get('client_help', profile.get('client_help', ''))).replace("'", "\\'"),
     'LEADS_PREFIX': re.sub(r'[^A-Z0-9_]', '', str(profile.get('leads_portal', {}).get('constant_prefix', '')).upper()),
-    # The leads portal is mandatory for a site with a lead form; site.json "leads_portal": "none: <reason>" says why not.
+    # The leads portal is optional (0.10.2): only a profile with a constant prefix has one; then site.json
+    # "leads_portal": "none: <reason>" turns it off for one site.
     'LEADS_ITEM': '',
     # The theme answers 404 for archives, feeds and search unless the site has them (config.php KITWP_KEEP_BLOG,
     # KITWP_SITE_SEARCH): site.json "blog" and "search".
@@ -277,9 +278,11 @@ values = {
 
 
 _lp = values['LEADS_PREFIX']
-# The profile has a portal when its leads_portal names anything (the prefix, the admin or how a project is made).
-_portal = any(str(v).strip() for k, v in (profile.get('leads_portal') or {}).items() if not str(k).startswith('_'))
-if NO_PORTAL.lower().startswith('none'):
+# The leads portal is optional (0.10.2): the profile has one only when leads_portal.constant_prefix is filled. Without
+# it there is no portal at all: no runbook item, no leads-check step, no Theme Settings group, nothing blocks.
+_portal = bool(_lp)
+values['LEADS_PORTAL'] = 'yes' if _portal and not NO_PORTAL.lower().startswith('none') else 'no'
+if _portal and NO_PORTAL.lower().startswith('none'):
     values['LEADS_ITEM'] = f'No leads portal for this site: "{NO_PORTAL}" (site.json).'
 elif _portal:
     values['LEADS_ITEM'] = (f'The leads portal: the project for {site["domain"]} exists in the portal admin; its '
@@ -288,10 +291,6 @@ elif _portal:
                             + (f'; wp-config `{_lp}_ENDPOINT` and `{_lp}_KEY` win when defined' if _lp else '')
                             + '; `python3 _plan/tools/report/leads-check.py --site` on live answers OK (a GET, nothing '
                             "stored); one TEST lead per form shows in the portal's form counts.")
-else:
-    values['LEADS_ITEM'] = ('BLOCKER: no leads portal in the profile (`leads_portal`). Every live site with a lead '
-                            'form sends to it; a site without one says so in site.json: "leads_portal": '
-                            '"none: <reason>".')
 
 
 FLAGS = {}  # filled below, before the first fill(): redirects, tracking, forms, portal, chat, blog, www, trackplugin
@@ -370,7 +369,8 @@ def old_urls_planned():
 
 
 FLAGS.update(redirects=old_urls_planned(), tracking=TRACKING, forms=bool(FORMS), chat=CHAT, blog=BLOG, www=WWW,
-             portal=not NO_PORTAL.lower().startswith('none'), trackplugin=bool(_tracking.get('plugin')))
+             portal=values['LEADS_PORTAL'] == 'yes', leadsitem=bool(values['LEADS_ITEM']),
+             trackplugin=bool(_tracking.get('plugin')))
 if site.get('redirects') is False and FLAGS['redirects']:
     notes.append('site.json says "redirects": false, but _plan/OLD-SITE-URLS.md lists 301 rows: the launch files '
                  'include the Redirection steps')
@@ -1003,9 +1003,6 @@ if not a.dry_run:
 print(f"{'DRY RUN: ' if a.dry_run else ''}{len(written)} written, {len(kept)} kept (already there)")
 print(f'theme: {rel(theme)} (starter {values["STARTER"]}), functions prefix {prefix}_, ACF keys {key}'
       + (' (not written yet: --plan-only)' if a.plan_only else ''))
-if values['LEADS_ITEM'].startswith('BLOCKER'):
-    notes.append('leads portal: none in the profile (leads_portal): a go-live blocker for a site with '
-                 'a lead form; a site without one: site.json "leads_portal": "none: <reason>"')
 for n in notes:
     print('- ' + n)
 if kept:

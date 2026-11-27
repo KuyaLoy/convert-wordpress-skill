@@ -9,10 +9,23 @@ import unittest
 
 from helpers import KIT, path
 
-# Lines 0.10.0 changed on purpose (the old wording, and why).
+# Lines later releases changed on purpose: the old wording -> (its new wording, or None when rewritten, and why).
 CHANGED = {
     '**Open first:** an existing project: `ai-handoff-summary.md`, then gate.py (Start: intake, step 1). A new one: Start:':
-        'Start: intake is now a short list with a pointer',
+        (None, '0.10.0: Start: intake is now a short list with a pointer'),
+    'leads portal; a skill update during a task applies at the next site or phase boundary, never inside a QA run.':
+        ('leads portal (only when the profile names one); a skill update during a task applies at the next site or '
+         'phase boundary, never inside a QA run.', '0.10.2: the leads portal is optional'),
+    'built; every form and where its leads go (CF7 for each, the leads portal or "none: <reason>"), missing content as':
+        ('built; every form and where its leads go (CF7 for each; the leads portal only when the profile names one), '
+         'missing content as', '0.10.2: the leads portal is optional'),
+    "Every lead also goes to the profile's leads portal (`leads_portal`), server to server, whether the email went out":
+        ('Only when the profile names a leads portal (`leads_portal.constant_prefix`; optional, none by default) does '
+         'every lead', '0.10.2: the leads portal is optional'),
+    'or failed: mandatory on live for a site with a lead form (no portal in the profile is a go-live blocker; a site':
+        (None, '0.10.2: no portal is no longer a blocker (the paragraph above, rewritten)'),
+    'without forms says so in site.json). Its address and password always live in Theme Settings > Leads portal':
+        (None, '0.10.2: the paragraph above, rewritten'),
 }
 
 
@@ -49,7 +62,10 @@ class Slim(unittest.TestCase):
         old = old_skill()
         for line in old.splitlines():
             t = line.strip()
-            if t and t not in CHANGED:
+            if t in CHANGED:
+                new = CHANGED[t][0]
+                self.assertTrue(new is None or new in have, f'changed line missing: {new}')
+            elif t:
                 self.assertIn(t, have, f'lost from 0.9.16 SKILL.md: {t}')
         for h in re.findall(r'(?m)^##? .+$', old):
             self.assertTrue(h in self.skill or h in self.steps, f'heading lost: {h}')
@@ -67,7 +83,11 @@ class Slim(unittest.TestCase):
         if old:
             # The 0.9.16 hard rules word for word; later releases only add rules after them.
             self.assertTrue(rules.startswith(section(old, 'Rules (always)').rstrip('\n') + '\n'))
-            self.assertEqual(phases, section(old, 'The phases'))
+            was = section(old, 'The phases')
+            for a, (b, _) in CHANGED.items():
+                if b:
+                    was = was.replace(a, b)
+            self.assertEqual(phases, was)  # word for word, apart from the listed changes
 
     def test_every_phase_proves_and_points(self):
         prove = section(self.skill, 'What each phase must prove')

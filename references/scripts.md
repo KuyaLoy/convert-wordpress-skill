@@ -15,7 +15,7 @@ shell: PowerShell, cmd, Git Bash, a Mac or Linux terminal. Use the `python3` com
 | `scripts/setup/setup.py` | P1-01 in one call: database, get-wordpress, make-wp-config, serve-wp (if needed), install-wp |
 | `scripts/setup/install-wp.py` and the others | Install, admin, settings, plugins; the steps one by one when one needs repeating |
 | `scripts/report/text-check.py` | The docs' grep checks in Python, for any shell: `fill` (report), `plain` (client pack), `dupes`, `oneoff` (self-check), `placeholders` |
-| `scripts/report/leads-check.py` | The leads portal endpoint and key with a GET (stores nothing; the key never printed) |
+| `scripts/report/leads-check.py` | With a leads portal in the profile: its endpoint and key with a GET (stores nothing; the key never printed) |
 | `scripts/launch/lead-source-plugin.py` | The Lead source table and form attribution as a must-use plugin for a WordPress site the kit did not build |
 | `scripts/launch/plugin-versions.py` | Go/no-go: each plugin zip in the profile's folder with its version and file date |
 | `scripts/report/plugin-check.py` | The plugins per environment (local, staging, live) against the kit's list; `--done`: Duplicator gone after live QA |

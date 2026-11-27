@@ -33,6 +33,7 @@ import time
 
 KEY = 'kitk'                     # ACF key prefix (new-site.py fills it)
 THEME = '{{THEME}}'              # theme folder name
+LEADS_PORTAL = '{{LEADS_PORTAL}}' == 'yes'  # new-site.py: yes only when the profile names a leads portal
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 THEME_DIR = os.path.join(ROOT, 'wp-content', 'themes', THEME)
 if os.path.exists(os.path.join(THEME_DIR, 'theme', 'functions.php')):  # _tw: WordPress loads <theme>/theme/
@@ -168,21 +169,23 @@ INACTIVE_LOC = [[{'param': 'post_type', 'operator': '==', 'value': 'post'}]]
 pages[f'ui_options_page_{KEY}_theme_settings'] = options_page(f'{KEY}-theme-settings', 'Theme Settings',
                                                               description='Site-wide content: one place, many pages.')
 
-# Leads portal (always written; keep it when the spec below is replaced): forms-portal.php reads these two fields
-# (kitwp_leads_settings(); wp-config constants win when defined). Administrators only: the location below hides the
-# group from everyone else and forms-portal.php keeps the stored values on anyone else's save. Seeded empty: the
-# developer pastes the live values on live. The write key is a password field (masked) and is stored in the database.
-lp = G('ts')
-groups[f'group_{KEY}_leads_portal'] = field_group(f'group_{KEY}_leads_portal', 'Leads portal', [
-    lp.any('url', 'leads_endpoint', 'Leads portal address', width=60,
-           instructions='The address the leads portal gave for this site (it starts with https://). Every form '
-                        'sent on the live site also goes there. Empty: forms are emailed only.'),
-    lp.any('password', 'leads_key', 'Leads portal password', width=40,
-           instructions='The password the leads portal gave for this site, from its admin. Only administrators see '
-                        'it. Never send it by email or chat.'),
-], [[{'param': 'options_page', 'operator': '==', 'value': f'{KEY}-theme-settings'},
-     {'param': 'current_user_role', 'operator': '==', 'value': 'administrator'}]], menu_order=90,
-    description='Leads portal (forms-portal.php). Administrators only.')
+# Leads portal (only when the profile names a portal, 0.10.2; keep it when the spec below is replaced): forms-portal.php
+# reads these two fields (kitwp_leads_settings(); wp-config constants win when defined). Administrators only: the
+# location below hides the group from everyone else and forms-portal.php keeps the stored values on anyone else's
+# save. Seeded empty: the developer pastes the live values on live. The write key is a password field (masked) and is
+# stored in the database.
+if LEADS_PORTAL:
+    lp = G('ts')
+    groups[f'group_{KEY}_leads_portal'] = field_group(f'group_{KEY}_leads_portal', 'Leads portal', [
+        lp.any('url', 'leads_endpoint', 'Leads portal address', width=60,
+               instructions='The address the leads portal gave for this site (it starts with https://). Every form '
+                            'sent on the live site also goes there. Empty: forms are emailed only.'),
+        lp.any('password', 'leads_key', 'Leads portal password', width=40,
+               instructions='The password the leads portal gave for this site, from its admin. Only administrators see '
+                            'it. Never send it by email or chat.'),
+    ], [[{'param': 'options_page', 'operator': '==', 'value': f'{KEY}-theme-settings'},
+         {'param': 'current_user_role', 'operator': '==', 'value': 'administrator'}]], menu_order=90,
+        description='Leads portal (forms-portal.php). Administrators only.')
 
 # ---------------------------------------------------------------- EXAMPLE SPEC (replace with the site's model)
 # Theme Settings: the fields the kit's PHP reads (helpers.php, schema.php, forms.php) plus the 404 copy.

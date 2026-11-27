@@ -115,13 +115,14 @@ def php_array(d):
 
 
 class FieldGroups(unittest.TestCase):
-    """The builder: the Leads portal group always, administrators only; tabs across the top by default."""
+    """The builder: the Leads portal group with a portal, administrators only; tabs across the top by default."""
 
     @classmethod
     def setUpClass(cls):
         cls.root = tempfile.mkdtemp()
         tool = os.path.join(cls.root, '_plan', 'tools', 'acf', 'build_field_groups.py')
-        write(tool, read(path('scripts', 'acf', 'build_field_groups.py')).replace('{{THEME}}', 'shop'))
+        write(tool, read(path('scripts', 'acf', 'build_field_groups.py')).replace('{{THEME}}', 'shop')
+              .replace('{{LEADS_PORTAL}}', 'yes'))  # a profile with a portal (0.10.2: optional)
         os.makedirs(os.path.join(cls.root, 'wp-content', 'themes', 'shop'))
         cls.out = subprocess.run([sys.executable, tool], capture_output=True, text=True)
         cls.json = os.path.join(cls.root, 'wp-content', 'themes', 'shop', 'acf-json')
@@ -333,7 +334,7 @@ class LeadsCheckSite(unittest.TestCase):
 
 
 class RunbookLeadsItem(unittest.TestCase):
-    """A portal without a constant prefix is a portal: Theme Settings holds its values."""
+    """0.10.2: no constant prefix means no portal, even when other leads_portal keys are filled."""
 
     def test_portal_without_prefix(self):
         tmp = tempfile.mkdtemp()
@@ -343,10 +344,9 @@ class RunbookLeadsItem(unittest.TestCase):
         r = run('scripts/new-site.py', site_json(root), '--plan-only', '--profile', prof)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         rb = read(os.path.join(root, '_setup', 'launch', 'RUNBOOK.md'))
-        self.assertIn('its address and password pasted into Theme Settings > Leads portal on live (the developer, '
-                      'logged in as an administrator); `python3 _plan/tools/report/leads-check.py --site` on live', rb)
-        self.assertNotIn('win when defined', rb)
-        self.assertNotIn('BLOCKER: no leads portal', rb)
+        self.assertNotIn('Leads portal', rb)
+        self.assertNotIn('leads-check.py', rb)
+        self.assertNotIn('BLOCKER', rb)
 
 
 class DuplicatorProZip(unittest.TestCase):

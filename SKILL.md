@@ -131,7 +131,7 @@ One agent builds the whole site. No role-play team in the chat: the old roles ar
 in tools without subagents; a faster model where the tool lets you pick). Findings go in BUILD-MAP.md "QA findings"
 (`open` > `fixed` after a re-check, or `decided`).
 **All rules at the plan:** P0 decides the forms and where leads go, placeholders, the live plugin checklist and the
-leads portal; a skill update during a task applies at the next site or phase boundary, never inside a QA run.
+leads portal (only when the profile names one); a skill update during a task applies at the next site or phase boundary, never inside a QA run.
 
 ```
 python3 _plan/tools/build-map/gate.py BUILD-MAP.md           # 0 may close, 1 open items listed, 2 a rule broken
@@ -181,7 +181,7 @@ A phase closes only through gate.py, with QA's findings logged (rule 6); the pro
   the board.
 - **P3 Forms and email:** every form posts without JavaScript and answers 303 to `/thank-you/`; branded HTML email
   and auto-reply; honeypot and reCAPTCHA v3; form attribution in every lead; the leads portal wired through Theme
-  Settings (never sent from local or staging).
+  Settings only when the profile names one (never sent from local or staging).
 - **P4 SEO, security, speed:** head tags and JSON-LD equal to the source, `/thank-you/` noindex, old URLs as 301s;
   hardening and accessibility; the Core Web Vitals items built in.
 - **P5 Fix and QA loop:** one full QA run, then fix passes until a re-check finds 0 and no finding is `open`; launch

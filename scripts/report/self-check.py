@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Pre-QA self-check: the finding classes a build can catch itself, run before every QA run so QA finds fewer.
 
-    python3 self-check.py <wp_root> [--theme <theme dir>] [--url http://site.test]
+    python3 self-check.py <wp_root> [--theme <name or folder>] [--url http://site.test]
                           [--profile <kit>/profile.local.json] [-v]
 
 It checks less than QA does, never instead of QA: the classes that cost a real build 4 QA runs (launch files,
@@ -75,6 +75,20 @@ def read(p):
             return fh.read()
     except OSError:
         return ''
+
+
+def resolve_theme(wp_root, value):
+    """--theme as a folder name under wp-content/themes, a path from the WordPress root or this folder, or a full path.
+    A _tw theme's outer folder gives its theme/ folder (the part WordPress loads)."""
+    for cand in ([value] if os.path.isabs(value) else
+                 [os.path.join(wp_root, 'wp-content', 'themes', value), os.path.join(wp_root, value), value]):
+        if os.path.isdir(cand):
+            inner = os.path.join(cand, 'theme')
+            if not os.path.isfile(os.path.join(cand, 'functions.php')) and \
+                    os.path.isfile(os.path.join(inner, 'functions.php')):
+                cand = inner
+            return os.path.abspath(cand)
+    return None
 
 
 def find_theme(wp_root):
@@ -289,9 +303,11 @@ def main(argv):
         print(__doc__)
         return 2
     wp_root = args[0]
-    theme = opt.get('--theme') or find_theme(wp_root)
+    theme = resolve_theme(wp_root, opt['--theme']) if opt.get('--theme') else find_theme(wp_root)
     if not theme or not os.path.isdir(theme):
-        print(f'FAIL self-check: no kit theme found under {wp_root}/wp-content/themes (pass --theme)')
+        print(f'FAIL self-check: no theme folder "{opt["--theme"]}" (a name under wp-content/themes, or a path)'
+              if opt.get('--theme') else
+              f'FAIL self-check: no kit theme found under {wp_root}/wp-content/themes (pass --theme)')
         return 2
     out = []
     check_instructions(theme, out)

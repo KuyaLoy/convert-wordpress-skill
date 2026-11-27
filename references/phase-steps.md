@@ -61,7 +61,7 @@ section. Paths are relative to the skill folder.
   CSS-variable tokens; the choice and one reason); spam protection (CF7 reCAPTCHA v3 plus the static honeypot, badge
   position); editor (block editor unless classic); pages the static site lacks, like a blog (site design, new URLs
   flagged to SEO); old URLs to redirect (Redirection only if any); git; for a multilingual source, how languages are
-  built; every form and where its leads go (CF7 for each, the leads portal or "none: <reason>"), missing content as
+  built; every form and where its leads go (CF7 for each; the leads portal only when the profile names one), missing content as
   marked placeholders, a chat or search if the source has one, the live plugin checklist. All of it now, so no rule
   reopens finished work later. The OK message lists the downloads of P1 (WordPress, theme, ACF PRO zip, Contact Form
   7, Yoast SEO).
@@ -157,9 +157,9 @@ Message-ID on the domain; local mail to the admin and `_setup/mail/`; a chat wid
 or `<br>`). Every notification and every auto-reply (Mail (2)) uses the branded HTML template, never CF7's plain
 text; both carry the profile's agency badge in the footer (`branding`); the email logo and badge come from Theme
 Settings.
-Every lead also goes to the profile's leads portal (`leads_portal`), server to server, whether the email went out
-or failed: mandatory on live for a site with a lead form (no portal in the profile is a go-live blocker; a site
-without forms says so in site.json). Its address and password always live in Theme Settings > Leads portal
+Only when the profile names a leads portal (`leads_portal.constant_prefix`; optional, none by default) does every lead
+also go there, server to server, whether the email went out or failed; without one, leads go by email and CFDB7
+on live, and nothing blocks. With a portal, its address and password live in Theme Settings > Leads portal
 (administrators only, seeded empty, pasted on live; wp-config constants win when defined); never sent from local,
 development or staging.
 Every lead form also says where the lead came from (form attribution, built in: UTM tags, ad click ids, landing

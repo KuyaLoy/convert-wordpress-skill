@@ -5,6 +5,22 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.10.2] - 2026-11-27
+
+### Changed
+
+- **The leads portal is optional, none by default.** A profile names one only with `leads_portal.constant_prefix`;
+  without it, leads go by email (with the Lead source table) and Contact Form CFDB7 on live, and new-site.py writes
+  no blocker, no runbook or live-checklist item and no leads-check step, and the field builder writes no Theme
+  Settings "Leads portal" group. A profile with a prefix keeps everything as before (one site can still opt out
+  with site.json `"leads_portal": "none: <reason>"`). SKILL.md, phase-steps.md, forms-email.md, launch.md,
+  phases-and-qa.md, wordpress-essentials.md, build.md, gotchas.md, scripts.md and profile.example.json say so.
+
+### Fixed
+
+- `self-check.py --theme` takes a folder name under `wp-content/themes`, a path from the WordPress root or the
+  current folder, or a full path; a _tw theme's outer folder gives its `theme/` folder. A wrong name says so.
+
 ## [0.10.1] - 2026-11-25
 
 From a real build where the agent made its own database storage for enquiries.

@@ -80,7 +80,7 @@
     "_site_badge_about": "The same badge for the site footer's bottom bar (SVG is fine on the web): kitwp_agency_badge(). Theme Settings > Branding can swap or hide it."
   },
   "leads_portal": {
-    "_about": "Your leads portal: every lead form goes there server to server (JSON, Bearer key), also when the email fails. Mandatory on live for a site with a lead form (empty = a go-live blocker; a site without forms: site.json \"leads_portal\": \"none: <reason>\"). The address and password go into Theme Settings > Leads portal on live (administrators only; the developer pastes them; stored in the database, so they travel in packages and backups); wp-config constants <constant_prefix>_ENDPOINT and <constant_prefix>_KEY win when defined (optional). Off on local, development and staging. admin: the portal admin URL; setup: how a project is made.",
+    "_about": "Optional, none by default: leave constant_prefix empty and leads go by email and CFDB7 only (no Theme Settings group, no runbook item, nothing blocks). Fill constant_prefix to turn on your leads portal: every lead form then also goes there server to server (JSON, Bearer key), also when the email fails; its address and password go into Theme Settings > Leads portal on live (administrators only; the developer pastes them; stored in the database, so they travel in packages and backups); wp-config constants <constant_prefix>_ENDPOINT and <constant_prefix>_KEY win when defined. Off on local, development and staging. A site can opt out: site.json \"leads_portal\": \"none: <reason>\". admin: the portal admin URL; setup: how a project is made.",
     "constant_prefix": "",
     "admin": "",
     "setup": ""
