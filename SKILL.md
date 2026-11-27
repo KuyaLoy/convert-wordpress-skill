@@ -157,40 +157,39 @@ one call when the state changes, the rest unchanged: `▶ RUNNING | <title>` whi
 
 ## Start: intake
 
-Open `references/phase-steps.md` > Start: intake at the start of a new project (each step, the questions, the
-commands).
-
-- **An existing project:** read `ai-handoff-summary.md`, run gate.py, continue from the Next action.
-- **A new one, three commands:** `doctor.py` (this computer; `python3` = the command it prints), `start.py` (the
-  folder, the handoff files, the working copy and the study of the source), `new-site.py --plan-only` (plan, tools,
-  BUILD-MAP.md). Ask once, in one batch, only what the task, the profile and doctor.py do not answer.
+Open `references/phase-steps.md` > Start: intake. An existing project: the summary, gate.py, the Next action. A new
+one: `doctor.py`, `start.py`, `new-site.py --plan-only`; ask once, in one batch, only what is still open.
 
 ## What each phase must prove
 
 Open `references/phase-steps.md` > the phase's heading at the start of each phase: its steps, commands and details.
-A phase closes only through gate.py, with QA's findings logged (rule 6); the proof is the tools' output (rule 16).
+A phase closes only through gate.py, with QA's findings logged (rule 6). At its close, report each item as
+`Pass|Fail | item | evidence`; evidence (in brackets) is the tool's output, pasted (rule 16); none is Fail.
 
-- **P0 Plan (no code):** `PLAN.md`, `CONTENT-MODEL.md` and `OLD-SITE-URLS.md` written; every page and its sections on
-  the board; every decision taken now (forms and where leads go, placeholders, the live plugin checklist, the leads
-  portal); the recommended additions raised; the developer's **Plan OK** in the chat.
-- **P1 Setup:** WordPress, ACF PRO, Contact Form 7 and Yoast SEO active from one `setup.py` run; the theme
-  activated and PHPCS clean; the golden master against itself and the swap test at 0.000%; ACF synced (nothing to
-  sync) and the seeder's second run "same"; header and footer at 0 in the region and DOM checks.
-- **P2 Pages:** every section static and diffed to 0 before its fields, then `check-section.py` OK and the board row
-  `built`; states, motion and long-content checks within their marks; thank-you and 404 pages; every placeholder on
-  the board.
-- **P3 Forms and email:** every form posts without JavaScript and answers 303 to `/thank-you/`; branded HTML email
-  and auto-reply; honeypot and reCAPTCHA v3; form attribution in every lead; the leads portal wired through Theme
-  Settings only when the profile names one (never sent from local or staging).
-- **P4 SEO, security, speed:** head tags and JSON-LD equal to the source, `/thank-you/` noindex, old URLs as 301s;
-  hardening and accessibility; the Core Web Vitals items built in.
-- **P5 Fix and QA loop:** one full QA run, then fix passes until a re-check finds 0 and no finding is `open`; launch
-  prep done (clean-up, `RUNBOOK.md`, `htaccess-live.txt`, the editing guide); the developer's **Go-live**.
-- **P6 Launch:** each manual step given one at a time; the package checked (its output reported); `installer.php`
-  answers 404; production with debug off; the live plugin checklist ticked; a rollback when a check fails.
-- **P6 Live QA and the report:** `live-qa.py` and tracking checks pass; PageSpeed Insights reported honestly; three
-  test leads confirmed by the developer; `report.html` filled with verified facts (`text-check.py fill` OK), the
-  PDF, the client pack, the task comment and the stakeholder message.
+- **P0 Plan (no code):** `PLAN.md`, `CONTENT-MODEL.md`, `OLD-SITE-URLS.md`; every page and section on the board
+  (gate.py); forms and where leads go, placeholders, the live plugin checklist, the leads portal, the recommended
+  additions (PLAN.md); **Plan OK** (`ok <date>`).
+- **P1 Setup:** WordPress, ACF PRO, CF7, Yoast SEO active (one `setup.py` run OK); theme active (PHPCS 0); golden
+  master against itself and swap test 0.000% (parity, swaptest.py); nothing to sync (sync.php); seeder second run
+  "same"; header and footer 0 (region-check.mjs, domdiff.py).
+- **P2 Pages:** every section static, diff 0 before its fields, then `check-section.py` OK and the row `built`;
+  states, motion, long content within their marks (design-check.mjs); thank-you 200 noindex, 404 page 404
+  (curl -I); every placeholder on the board (text-check.py placeholders).
+- **P3 Forms and email:** every form, JavaScript off, answers 303 to `/thank-you/` (curl); branded HTML email,
+  auto-reply, honeypot, reCAPTCHA v3, the Lead source table (`_setup/mail/`, the markup); a leads portal only when
+  the profile names one (Theme Settings group), never sent from local or staging.
+- **P4 SEO, security, speed:** head tags and JSON-LD equal to the source (seodiff.py 0); `/thank-you/` noindex, old
+  URLs 301, private files 403, REST users hidden (curl -I); one H1, heading order, aria-labels, alt
+  (check-section.py); local Lighthouse not below the source.
+- **P5 Fix and QA loop:** one full QA run, then a re-check with 0 found and none `open` (gate.py); clean-up
+  (text-check.py oneoff, self-check.py 0); `RUNBOOK.md`, `htaccess-live.txt`, the editing guide; **Go-live**
+  (`ok <date>`).
+- **P6 Launch:** each manual step one at a time (the developer's "done"); the package (package.py output);
+  `installer.php` 404 (curl -I); production, debug off (wp-config); the live plugin checklist (RUNBOOK section 4,
+  plugin-check.py --env live); a failed check rolled back.
+- **P6 Live QA and the report:** `live-qa.py`, track.mjs OK; PageSpeed Insights mobile and desktop (scores as
+  measured); three test leads (the developer's confirmation); `report.html` (`text-check.py fill` OK); the PDF,
+  client pack, task comment and stakeholder message.
 
 ## Scripts
 

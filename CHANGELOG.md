@@ -5,6 +5,31 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-11-27
+
+Fewer tokens per build, with every rule, phase, test and QA step kept. Rules 1 to 17 and "The phases" are word for
+word as before.
+
+### Changed
+
+- **What each phase must prove** (SKILL.md) is a list of objective items, each with its evidence in brackets (the
+  tool's output); at a phase close each one is reported as `Pass|Fail | item | evidence`, and an item without
+  evidence is Fail. Lines that could not be checked ("raised", "built in", "reported honestly") name what shows
+  them now. The stop report's Done line carries those lines at a phase close.
+- **The read-only QA check** is always a reader that never saw the build: a subagent run in the background, else a
+  new chat with the same brief. The chat that built it never stands in.
+- **Script checks are named, not restated:** the self-check's class list lives in the script's header (and
+  `references/scripts.md`); build.md's four grep lines are now one line for their twin, `text-check.py oneoff`.
+- Start: intake in SKILL.md is two lines (the steps stay in `references/phase-steps.md`). SKILL.md 16,969 -> 16,851
+  bytes.
+
+### Removed
+
+- Lines that only told the agent to check its own work (they make it over-check, at more tokens and no better
+  result): "re-read the changed files with the checklist as if someone else wrote them" (phases-and-qa.md), "or
+  re-read the changed files with the QA checklist" and "checked by you afterwards" (agents.md). The real checks
+  stay: QA, self-check.py, gate.py and the tests.
+
 ## [0.10.2] - 2026-11-27
 
 ### Changed

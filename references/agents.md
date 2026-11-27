@@ -160,13 +160,13 @@ a minified bundle tens of thousands. So:
 
 When the agent can start subagents, use them where the team needs a second pair of eyes or parallel hands:
 
-- the read-only QA check at the end of each phase: a fresh subagent that did not write the code (each tool's call
-  is in > Per tool), on a faster model where the tool lets you pick, e.g. Sonnet; without subagents, a new chat
-  with the same brief (the brief is in `references/phases-and-qa.md`);
-- a long mechanical job (seeding a batch of pages, exporting content), checked by you afterwards;
+- the read-only QA check at the end of each phase: a fresh subagent that did not write the code, run in the
+  background (each tool's call is in > Per tool), on a faster model where the tool lets you pick, e.g. Sonnet;
+  without subagents, a new chat with the same brief (the brief is in `references/phases-and-qa.md`);
+- a long mechanical job (seeding a batch of pages, exporting content); its result goes through the phase's QA;
 - independent research (plugin docs, a host's limits) whose sources go into PLAN.md (Research sources).
 
-Without subagents, run the QA check in a new chat, or re-read the changed files with the QA checklist.
+Without subagents, run the QA check in a new chat that never saw the build.
 
 ## Agents without skill support
 

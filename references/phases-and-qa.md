@@ -65,13 +65,9 @@ Everything else waits, so the build keeps moving and every fix is made once, wit
 ## The self-check before every QA run
 
 `python3 _plan/tools/report/self-check.py <wp_root> --url <local url> --profile <kit>/profile.local.json` before every
-QA run (phase QA, the P5 full run, each re-check). It finds the classes a build can catch itself, the ones that cost a
-real build four full QA runs: field instructions missing or in developer words, `(array)` on a field read, a theme PHP
-file without the ABSPATH guard, a `phpcs:ignore` without its reason, functions never called, file paths that do not
-exist, files over 300 lines, starter leftovers, unfilled or wrong launch files, acf-json or the oEmbed author public,
-and with the profile's tracking plugin, GTM or ACF tracking fields in the theme (tracking goes through the plugin only).
-Fix what it finds first (it is the build's own work, not a QA finding), then run QA. It checks less than QA, never
-instead of it.
+QA run (phase QA, the P5 full run, each re-check). It finds the classes a build can catch itself (the list is in
+the script's own header; `references/scripts.md`). Fix what it finds first (it is the build's own work, not a QA
+finding), then run QA. It checks less than QA, never instead of it.
 
 ## The fix loop: one full run, then re-check what changed
 
@@ -129,10 +125,11 @@ Every QA run checks the items that apply to what the phase built (P5: all of the
 
 ## The read-only QA check
 
-Each QA run ends with one fresh, read-only check, so the author never approves their own work: a subagent where the
-tool has them (on a faster model where it lets you pick: in Claude Code `model: "sonnet"`), else a new chat with the
-same brief. It reads the numbers first (the scripts' summaries, `report/design-check.json`) and opens images only for
-failing rows. It reads, runs read-only commands and reports; it changes nothing.
+Each QA run ends with one fresh, read-only check by a reader that never saw the build, so the author never approves
+their own work: a subagent run in the background where the tool has them (on a faster model where it lets you pick:
+in Claude Code `model: "sonnet"`), else a new chat with the same brief. The chat that built it never stands in.
+It reads the numbers first (the scripts' summaries, `report/design-check.json`) and opens images only for failing
+rows. It reads, runs read-only commands and reports; it changes nothing.
 Brief it in a few lines:
 
 ```
@@ -144,7 +141,7 @@ Reply with findings only, one line each: where | what | blocker, major or minor.
 ```
 
 Add its findings to the list (no duplicates of the scripts' findings). Without subagents: a new chat with the same
-brief, or re-read the changed files with the checklist as if someone else wrote them.
+brief.
 
 ## The progress page
 
@@ -208,7 +205,7 @@ Every turn that ends without the work going on ends with this report, never a ba
 done, a checkpoint or a new chat, a pause (usage limits too), a block, waiting for a gate, an answer or a manual step.
 
 ```
-Done: <what was finished, with the numbers that prove it>
+Done: <what was finished, with the numbers that prove it; at a phase close its `Pass|Fail | item | evidence` lines>
 State: <phase, sections built and checked, findings open, anything not verified>
 Decisions: <each one taken on your own, with the default chosen> (or "none")
 Next: <step> — waiting on <who>
