@@ -127,6 +127,17 @@ a minified bundle tens of thousands. So:
   pattern and a line limit instead.
 - Let the scripts do the copying and the checking: they print a summary and write the detail to a file. Read that
   file only when something failed.
+- Long output goes to a log, not the chat (rule 18): a command that can print more than about 50 lines (WP-CLI
+  lists, PHPCS, Playwright and QA runs, Lighthouse, composer, npm, logs) writes to `_plan/logs/<step>.log`
+  (`mkdir _plan/logs` once; `<command> > _plan/logs/phpcs.log 2>&1`; in PowerShell `<command> *>&1 | Out-File
+  -Encoding utf8 _plan/logs/phpcs.log`, as 5.1 writes UTF-16 otherwise).
+  The chat shows its result line and the failures only (the last 20 lines, or a search for `FAIL|ERROR`); open the
+  log only when they do not explain the problem. `_plan/` is private (rule 9): blocked on the web, left out of the
+  package. A check or QA report keeps the command, the result line and the log path.
+- Compact flags first: `wp ... --format=count`, or `--format=json --fields=<only the ones needed>`; `wp
+  search-replace ... --report-changed-only`; `git status --porcelain`; `vendor/bin/phpcs -q --report=summary` (the
+  full report into a log only when it finds something); `composer install --no-interaction --no-progress`; `npm
+  install --no-audit --no-fund --loglevel=error`; `-q` or `--quiet` where a tool has it.
 - Screenshots only for a failure, cropped to the region. Batch shell commands.
 - Context: from 50% finish the section or page, checkpoint (board, both handoff files), send the stop report and
   continue in a new chat ("continue the WordPress conversion"); at 75% checkpoint at the next safe point. Where to

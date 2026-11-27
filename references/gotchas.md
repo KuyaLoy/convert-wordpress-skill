@@ -3,6 +3,9 @@
 Each one cost real time on a build. Read the section you are working in; add new lessons here and in the
 project's handoff.md (Failed Attempts) as they happen.
 
+Its lessons come from real builds: a 36-page Next.js export, a PHP and Tailwind landing page, and a clinic site
+taken live on cPanel.
+
 ## WordPress and PHP
 
 - A form field named `name`, `s`, `p`, `m`, `page` or `year` (any public query var) makes the form post answer 404:

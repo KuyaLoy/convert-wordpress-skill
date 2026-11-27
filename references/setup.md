@@ -285,8 +285,9 @@ ACF PRO, Contact Form 7 and Yoast SEO, installed by install-wp.py in P1 (the Pla
 
 ## PHP checks (PHPCS, php -l, duplicates)
 
-- `composer install` once in the theme folder, then `vendor/bin/phpcs` (WordPress security, i18n, prefixes,
-  PHPCompatibilityWP for PHP 8.1 to 8.4).
+- `composer install --no-interaction --no-progress` once in the theme folder, then `vendor/bin/phpcs -q
+  --report=summary` (WordPress security, i18n, prefixes, PHPCompatibilityWP for PHP 8.1 to 8.4); when it finds
+  something, the full report (`vendor/bin/phpcs -q`) into `_plan/logs/phpcs.log` (rule 18).
 - `php -l <file>` after every save.
 - The duplicate function check after every PHP save; it must print nothing:
   `grep -h "^function" includes/*.php | sed 's/(.*//' | sort | uniq -d` (any shell: `text-check.py dupes .` in the

@@ -32,6 +32,10 @@ CHANGED = {
     'page, referrer, first visit), in the lead email, CFDB7, the portal and `generate_lead`.':
         ("fields, Lead Source to First Touch Referrer), in the lead email, CFDB7's columns, the portal, the CRM "
          'mapping and', '0.12.0: the company attribution standard'),
+    'Every script, with what it does: `references/scripts.md`. Run them with the `python3` (or `node`)':
+        ('Every script and how to run it: `references/scripts.md`.', '0.13.0: how to run them is in scripts.md'),
+    'command doctor.py printed, from any shell.':
+        (None, '0.13.0: the line above; scripts.md says which python3 command and that any shell works'),
 }
 
 

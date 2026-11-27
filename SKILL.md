@@ -12,9 +12,6 @@ wp-admin: content in ACF PRO, forms and emails in Contact Form 7. Optimized by d
 Insights aimed at a pass (a target, not a must). Any stack, any kind of
 business, any country and language.
 
-Its lessons come from real builds: a 36-page Next.js export, a PHP and Tailwind landing page, and a clinic site
-taken live on cPanel.
-
 **Open first:** an existing project: `ai-handoff-summary.md`, then gate.py (Start: intake). A new one: Start:
 intake below. Each phase: `references/phases-and-qa.md` at its start. Not in Claude Code (Codex, Antigravity, T3
 Code, others): `references/agents.md` > Per tool, for what each Claude-only step becomes there.
@@ -110,6 +107,8 @@ https://github.com/KuyaLoy/convert-wordpress-skill: ask the developer where thei
 17. **Leads: CFDB7 only.** Leads are stored only by Contact Form CFDB7, installed on live (the kit's plugin list).
     Never create a database table, custom post type, option rows, files or an admin page of your own for enquiries
     or submissions; local mail capture (_setup/mail) is local only. `self-check.py` flags it (`lead-storage`).
+18. **Long output to a log.** Output over about 50 lines goes to `_plan/logs/`; the chat and reports get the
+    command, result line, failures and log path. Compact flags: `references/agents.md` > Spend fewer tokens.
 
 ## The phases
 
@@ -193,8 +192,7 @@ A phase closes only through gate.py, with QA's findings logged (rule 6). At its 
 
 ## Scripts
 
-Every script, with what it does: `references/scripts.md`. Run them with the `python3` (or `node`)
-command doctor.py printed, from any shell.
+Every script and how to run it: `references/scripts.md`.
 
 ## Done means
 

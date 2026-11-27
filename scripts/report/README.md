@@ -27,8 +27,11 @@ real check is PageSpeed Insights (pagespeed.web.dev) on staging and live:
 
 ```
 npx -y lighthouse@12 https://example.com --quiet --chrome-flags="--headless=new" \
-  --only-categories=performance,accessibility,best-practices,seo --output=json --output-path=lh.json
+  --only-categories=performance,accessibility,best-practices,seo --output=json --output-path=_plan/logs/lighthouse.json
 ```
+
+The JSON is large: read only the scores (`node -e "const r=require('./_plan/logs/lighthouse.json');for(const c of
+Object.values(r.categories))console.log(c.id,Math.round(c.score*100))"`), the rest only for a failure.
 
 Set `CHROME_PATH` when Chrome is not found (for example a Playwright Chromium). In a container add `--no-sandbox` to
 the Chrome flags.

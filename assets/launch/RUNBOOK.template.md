@@ -79,9 +79,11 @@ Plan about 2 hours on a quiet day (not Friday). The developer does the hosting s
 1. Settings > Reading: untick "Discourage search engines". Settings > Permalinks: Save.
 2. Local addresses: the installer replaced the local address, but other local hosts (a sister site's `.test` link,
    a setting saved with `localhost`) stay in the content and settings. Replace them, dry run first, then check:
-   - [ ] `wp search-replace '//{{LOCAL_HOST}}' '//{{LIVE_HOST}}' --all-tables --dry-run`, then without `--dry-run`;
-         the same for each other local host the check below finds (its live address from the client or the plan).
-   - [ ] `wp search-replace 'http://{{LIVE_HOST}}' 'https://{{LIVE_HOST}}' --all-tables` (links saved over http).
+   - [ ] `wp search-replace '//{{LOCAL_HOST}}' '//{{LIVE_HOST}}' --all-tables --dry-run --report-changed-only`, then
+         without `--dry-run`; the same for each other local host the check below finds (its live address from the
+         client or the plan).
+   - [ ] `wp search-replace 'http://{{LIVE_HOST}}' 'https://{{LIVE_HOST}}' --all-tables --report-changed-only` (links
+         saved over http).
    - [ ] `wp db search '[a-z0-9-]+\.test|localhost' --all-tables --regex` finds nothing (no WP-CLI: the same search in
          phpMyAdmin); live-qa.py's "local" check (section 5) finds no local host on any page.
 3. **The live plugin checklist** (the one list; live only, staging gets none of it). Live has exactly ACF PRO,

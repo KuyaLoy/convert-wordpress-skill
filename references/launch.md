@@ -171,7 +171,8 @@ gives that role a short, plain wp-admin (`references/build.md` > The client's wp
 
 Duplicator works on most hosts. Without cPanel: the same steps through the host's file manager, database tool and
 PHP settings. With shell access: WP-CLI (`wp db export`, copy the files, `wp db import`,
-`wp search-replace 'http://<local_host>' 'https://<domain>' --skip-columns=guid`), then the same wp-config,
+`wp search-replace 'http://<local_host>' 'https://<domain>' --skip-columns=guid --report-changed-only`), then the
+same wp-config,
 `.htaccess` and wp-admin steps. Ask the developer which path the host allows.
 
 ## Changes on live after launch

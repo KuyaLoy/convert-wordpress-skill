@@ -92,7 +92,8 @@ done, not the eye.
 ## Checks before a change is done
 
 1. Build the CSS and JS after any source change (<!-- starter:barebones -->`npm run build`<!-- /starter:barebones --><!-- starter:tw -->`npm run dev`<!-- /starter:tw -->).
-2. `php -l` on changed files; `composer install` once, then `vendor/bin/phpcs`; the duplicate function check
+2. `php -l` on changed files; `composer install --no-interaction --no-progress` once, then
+   `vendor/bin/phpcs -q --report=summary` (the full report into a log when it finds something); the duplicate function check
    (`grep -h "^function" <!-- starter:tw -->theme/<!-- /starter:tw -->includes/*.php | sed 's/(.*//' | sort | uniq -d` prints nothing).
 3. One call per section: `python3 tests/parity/check-section.py <route> --section <selector>` (pixel, text, DOM,
    php -l, PHPCS, duplicates; one line back). Design checks (`design-check.mjs --states --motion`) at the end of a page.

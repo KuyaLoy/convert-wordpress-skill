@@ -221,7 +221,7 @@ reply with the same `Next:` line.
 middle of a section or a QA run. The checkpoint (handoff.md's Next action, or the task's checkpoint.md) names the
 exact next step: the command, the file and the route, not "continue P5". A resume re-checks only what can have
 changed since: the local site answers, the database is there, gate.py, and the files the checkpoint lists as
-touched since the last check (git status or their times). It does not re-read the whole plan or re-run QA.
+touched since the last check (`git status --porcelain` or their times). It does not re-read the whole plan or re-run QA.
 
 Check the chat's context use at each step (in Claude Code: the usage tool, or `/context`).
 

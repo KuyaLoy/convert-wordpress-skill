@@ -5,6 +5,29 @@ follows [Keep a Changelog](https://keepachangelog.com).
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-11-27
+
+Lean tool output: long command output stops filling the chat. No rule, phase or check removed.
+
+### Added
+
+- **Rule 18, long output to a log:** output over about 50 lines (WP-CLI lists, PHPCS, Playwright and QA runs,
+  Lighthouse, composer, npm, logs) goes to `_plan/logs/<step>.log`; the chat gets the result line and the failures
+  only, and a check or QA report keeps the command, the result line and the log path. `_plan/` stays private
+  (blocked on the web, left out of the package). How, with the PowerShell form: `references/agents.md` > Spend
+  fewer tokens.
+- **Compact flags** in the same section and where the kit writes its commands: `wp ... --format=count` or
+  `--format=json --fields=...`, `wp search-replace ... --report-changed-only` (RUNBOOK section 2, launch.md > Other
+  hosts), `git status --porcelain` (resume), `vendor/bin/phpcs -q --report=summary` and `composer install
+  --no-interaction --no-progress` (setup.md, the theme's AGENTS.md), `npm install --no-audit --no-fund
+  --loglevel=error`. Local Lighthouse writes its JSON to `_plan/logs/lighthouse.json` and the agent reads only the
+  scores (tools README).
+
+### Changed
+
+- SKILL.md stays at 16,848 bytes: the "Its lessons come from real builds" lines moved word for word to the top of
+  `references/gotchas.md`, and "## Scripts" points to `references/scripts.md`, which already says how to run them.
+
 ## [0.12.0] - 2026-11-27
 
 The company attribution standard: every lead form on every page and landing page carries the same eleven labelled
