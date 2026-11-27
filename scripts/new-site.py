@@ -242,6 +242,8 @@ values = {
     'EMAIL_BADGE_ALT': branding.get('alt', '').replace("'", "\\'"),
     'EMAIL_BADGE_WIDTH': str(int(branding.get('width', 120))),
     'SITE_BADGE': ('assets/brand/' + os.path.basename(branding['site_badge'])) if branding.get('site_badge') else '',
+    # The agency badge stays unless the task recorded that the client asked (site.json "agency_badge_hide").
+    'BADGE_HIDE_NOTE': str(site.get('agency_badge_hide') or '').strip().replace('\\', '').replace("'", "\\'"),
     # Leads portal: its values live in Theme Settings > Leads portal; the profile's constant prefix names only the
     # wp-config constants that win when defined (<PREFIX>_ENDPOINT, <PREFIX>_KEY).
     # The client's dashboard "Need help?" line (site.json or the profile; empty hides it).

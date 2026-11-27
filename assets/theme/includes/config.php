@@ -50,6 +50,13 @@ const KITWP_SITE_BADGE_ALT    = '{{EMAIL_BADGE_ALT}}';
 const KITWP_SITE_BADGE_HEIGHT = 40;
 
 /**
+ * The agency badge is in every site's footer and both emails. Theme Settings > Branding "Hide agency badge" works
+ * only when the build recorded that the client asked for it (site.json "agency_badge_hide": the task's note, for
+ * example "client asked, task ABC-12"); empty: the toggle does nothing. self-check.py and live-qa.py read it too.
+ */
+const KITWP_BADGE_HIDE_NOTE = '{{BADGE_HIDE_NOTE}}';
+
+/**
  * Leads portal (mandatory on live for a site with a lead form): every lead form is also POSTed (JSON, Bearer key) to
  * the endpoint with the write key from Theme Settings > Leads portal (administrators only; the developer pastes them
  * on live), also when the email fails. wp-config constants <PREFIX>_ENDPOINT and <PREFIX>_KEY win when defined; the

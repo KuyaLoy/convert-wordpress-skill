@@ -104,7 +104,7 @@ class RunbookPerSite(unittest.TestCase):
         self.assertIn("wp db search '[a-z0-9-]+\\.test|localhost' --all-tables --regex", rb)
         self.assertIn('Google Tag Manager ID GTM-AB12CD', rb)
         self.assertIn('live-qa.py https://acme.example.org --gtm GTM-AB12CD --local acme.test '
-                      '--theme wp-content/themes/acme`', rb)
+                      '--theme wp-content/themes/acme --wp "wp @live"`', rb)  # 0.12.0: --wp
         self.assertIn('track.mjs https://acme.example.org GTM-AB12CD', rb)
         self.assertNotIn('Redirection', rb.replace('no\n      Redirection plugin', '').replace(
             '(the Redirection plugin then joins the live plugins)', ''))
@@ -144,7 +144,7 @@ class RunbookPerSite(unittest.TestCase):
         self.assertTrue(r.stdout.startswith('OK new-site: launch files written'), r.stdout)
         rb = launch(root, 'RUNBOOK.md')
         self.assertIn('   - [ ] Redirection: Tools > Redirection, import `_setup/seed/redirects.json`', rb)
-        self.assertIn('--redirects _setup/seed/redirects.json`', rb)
+        self.assertIn('--redirects _setup/seed/redirects.json --wp "wp @live"`', rb)
         self.assertIn('Tools > Redirection > 404s weekly', rb)
         self.assertIn('Old-URL redirects live in Tools > Redirection', launch(root, 'htaccess-live.txt'))
         old = [d for d in os.listdir(os.path.join(root, '_setup', 'launch')) if d.startswith('before-')]

@@ -2,7 +2,7 @@
 """Pre-QA self-check: the finding classes a build can catch itself, run before every QA run so QA finds fewer.
 
     python3 self-check.py <wp_root> [--theme <name or folder>] [--url http://site.test]
-                          [--profile <kit>/profile.local.json] [-v]
+                          [--profile <kit>/profile.local.json] [--wp "<WP-CLI command>"] [-v]
 
 It checks less than QA does, never instead of QA: the classes that cost a real build 4 QA runs (launch files,
 dead code, field instructions, unsafe casts). Line 1: "OK self-check: 0 found" or "FAIL self-check: <n> found";
@@ -24,6 +24,12 @@ then one line per finding: "<class>: <where>: <what>". Exit 1 when anything is f
                  contacts, messages or form entries (leads are stored by Contact Form CFDB7 on live only)
   tracking       with --profile naming a tracking plugin (tracking.plugin): the theme loads GTM itself or has ACF
                  tracking fields (GTM, head or body scripts): tracking goes through that plugin only
+  branding       a kit theme without the agency badge in its footer (no <prefix>_agency_badge() call), or without
+                 its default image or link in config.php; a seeded form (_setup/seed/forms.json) whose email or
+                 auto-reply template is not the branded HTML one (logo and badge mail-tags); with --url: the home
+                 page has no badge, linked; with --wp (WP-CLI, for example --wp wp): a CF7 form's email or auto-reply
+                 in the database is not the branded HTML template. The badge parts are skipped when config.php's
+                 <PREFIX>_BADGE_HIDE_NOTE records that the client asked (site.json "agency_badge_hide")
 """
 import glob
 import json
@@ -32,6 +38,9 @@ import re
 import sys
 import urllib.error
 import urllib.request
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import branding_check  # noqa: E402 (the shared branding checks, next to this script)
 
 LAYOUT = {'tab', 'message', 'accordion', 'group', 'repeater', 'flexible_content', 'clone'}
 DEV_WORDS = re.compile(r'\b(slug|token|array|repeater|post type|taxonomy|hook|constant|meta key|field key|'
@@ -273,6 +282,52 @@ def check_tracking(theme, profile, out):
                 stack += list(lay.get('sub_fields') or [])
 
 
+def check_branding(theme, wp_root, url, wp, out):
+    """The agency badge in the footer and the branded emails (kit themes only: they define <prefix>_agency_badge())."""
+    php = {os.path.relpath(p, theme).replace(os.sep, '/'): read(p) for p in files(theme, ('.php',))}
+    if not any(re.search(r'function\s+[a-z0-9]+_agency_badge\s*\(', s) for s in php.values()):
+        return
+    config = next((s for rel, s in php.items() if rel.endswith('includes/config.php')), '')
+    note = re.search(r"_BADGE_HIDE_NOTE\s*=\s*'([^']*)'", config)
+    hidden = bool(note and note.group(1).strip() and '{{' not in note.group(1))
+    if not hidden:
+        # A call in a template (the footer), comments left out: the kit's includes/ only define and mention it.
+        calls = [rel for rel, s in php.items() if '/includes/' not in '/' + rel and re.search(
+            r'(?<!function )\b[a-z0-9]+_agency_badge\s*\(', re.sub(r'/\*.*?\*/|//[^\n]*', '', s, flags=re.S))]
+        if not calls:
+            out.append(('branding', 'footer', 'no agency badge: call <prefix>_agency_badge() in the footer\'s bottom '
+                        'bar (add one in the footer\'s style when the design has none)'))
+        for const, what in (('SITE_BADGE', 'footer badge image'), ('SITE_BADGE_LINK', 'badge link'),
+                            ('EMAIL_BADGE', 'email badge PNG'), ('EMAIL_BADGE_LINK', 'email badge link')):
+            m = re.search(r"_%s\s*=\s*'([^']*)'" % const, config)
+            if m and (not m.group(1).strip() or '{{' in m.group(1)):
+                out.append(('branding', 'includes/config.php', f'no default {what} ({const}): fill the profile\'s '
+                            'branding and run new-site.py again'))
+        if url:
+            why = branding_check.badge_problem(fetch(url.rstrip('/') + '/'))
+            if why:
+                out.append(('branding', url, why))
+    seed = os.path.join(wp_root, '_setup', 'seed')
+    try:
+        with open(os.path.join(seed, 'forms.json'), encoding='utf-8') as fh:
+            forms = json.load(fh)
+    except (OSError, ValueError):
+        forms = {}
+    for key, form in (forms.items() if isinstance(forms, dict) else []):
+        for field, name in (('body_file', 'email'), ('autoreply_file', 'auto-reply')):
+            f = (form or {}).get(field) if isinstance(form, dict) else None
+            body = read(os.path.join(seed, f)) if f and os.path.isfile(os.path.join(seed, f)) else ''
+            why = branding_check.template_problem(body) if body else f'no {field}'
+            if why:
+                out.append(('branding', f'_setup/seed/forms.json {key}', f'{name}: {why}'))
+    if wp:
+        mails, why = branding_check.read_mails(wp, wp_root)
+        if mails is None:
+            out.append(('branding', 'WP-CLI', f'CF7 emails not checked: {why}'))
+        for form, what in branding_check.mail_problems(mails or []):
+            out.append(('branding', f'CF7 "{form}"', what))
+
+
 def status(url):
     try:
         with urllib.request.urlopen(url, timeout=15) as r:
@@ -294,7 +349,7 @@ def fetch(url):
 def main(argv):
     args = [a for a in argv if a != '-v']
     opt = {}
-    for k in ('--theme', '--url', '--profile'):
+    for k in ('--theme', '--url', '--profile', '--wp'):
         if k in args:
             i = args.index(k)
             opt[k] = args[i + 1]
@@ -315,6 +370,7 @@ def main(argv):
     check_leftovers(theme, out)
     check_launch(wp_root, out)
     check_lead_storage(theme, wp_root, out)
+    check_branding(theme, wp_root, opt.get('--url', ''), opt.get('--wp', ''), out)
     if opt.get('--profile'):
         check_tracking(theme, opt['--profile'], out)
     if opt.get('--url'):

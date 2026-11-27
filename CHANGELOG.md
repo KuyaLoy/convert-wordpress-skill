@@ -30,6 +30,14 @@ fields, looks right, and reaches the CRM.
   per row from 640px, the message full width, inputs 16px or more, focus and error states, the theme's `.btn`.
   `scripts/report/form-layout.mjs` checks any form against it at 1280 and 390 wide.
 - **Upgrading a kit site** (forms-email.md): copy four files, re-test a lead.
+- **The agency badge is a hard rule:** in every site's footer, even when the design has none (a bottom bar in the
+  footer's style), and at the end of both emails. The seeder pre-fills Theme Settings > Branding with the
+  profile's badge (Media Library) and link. "Hide agency badge" works only when site.json `agency_badge_hide`
+  records that the client asked (config.php `KITWP_BADGE_HIDE_NOTE`).
+- **Branding checks:** `self-check.py` class `branding` (no footer badge call, no default badge or link, a seeded
+  form whose email or auto-reply is not the branded HTML template; with `--url` the home page's badge, with `--wp`
+  the forms in the database) and `live-qa.py` check 11 (the badge, linked, on every checked page; with `--wp` every
+  CF7 email and auto-reply branded; without `--wp` that part is a FAIL). Shared code: `scripts/report/branding_check.py`.
 
 ### Fixed
 

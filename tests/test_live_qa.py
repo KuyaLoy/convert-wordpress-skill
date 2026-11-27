@@ -7,6 +7,7 @@ import unittest
 import urllib.parse
 
 from helpers import load, run
+from test_branding_0120 import BRANDED, fake_wp
 
 TOOL = 'scripts/report/live-qa.py'
 PAGES = {'/': 'Home', '/about/': 'About', '/thank-you/': 'Thanks', '/contact/': 'Contact'}
@@ -36,6 +37,9 @@ class Site(http.server.BaseHTTPRequestHandler):
         if p in PAGES:
             robots = 'noindex, follow' if p == '/thank-you/' else 'index, follow'
             local = '<a href="http://shop.test/old/">old</a>' if leaky else ''
+            # 0.12.0: the agency badge in the footer (the leaky site has none).
+            local += '' if leaky else ('<footer><a href="https://agency.example/" data-shop-badge="agency">'
+                                       '<img src="/badge.svg" alt="Agency"></a></footer>')
             if p == '/contact/':  # a CF7 form; the clean site loads reCAPTCHA, the leaky one has no keys
                 local += '<form class="wpcf7-form init"></form>' + (
                     '' if leaky else '<script src="https://www.google.com/recaptcha/api.js?render=abc&ver=3.0"></script>')
@@ -95,7 +99,7 @@ class LiveQa(unittest.TestCase):
     def test_clean_site_all_pass(self):
         out_json = os.path.join(self.tmp, 'clean.json')
         r, out = self.qa(self.clean, '--redirects', self.redirects, '--routes', '/,/about/', '--image', '/hero.jpg',
-                         '--json', out_json)
+                         '--json', out_json, '--wp', fake_wp(self.tmp, BRANDED))
         self.assertEqual(r.returncode, 0, out + r.stderr)
         self.assertIn('PASS Pages: 3 pages checked, each answers 200', out)
         self.assertIn('PASS Missing page: a made-up path answers 404 twice', out)
@@ -104,6 +108,8 @@ class LiveQa(unittest.TestCase):
         self.assertIn('PASS Private files: 22 private paths checked, none is public', out)
         self.assertIn('PASS WebP:', out)
         self.assertIn('SKIP Host rules', out)
+        self.assertIn('PASS Agency badge: 3 pages checked, each has the agency badge, linked', out)
+        self.assertIn('PASS Branded emails: 2 emails and auto-replies use the branded HTML template', out)
         self.assertTrue(out.rstrip().splitlines()[-2].startswith('RESULT: ALL PASS'), out)
         with open(out_json, encoding='utf-8') as fh:
             data = json.load(fh)
@@ -121,6 +127,8 @@ class LiveQa(unittest.TestCase):
         self.assertIn('FAIL Old links: /never-set/ answers 404 (expected 301 to /about/)', out)
         self.assertIn('FAIL Private files: /handoff.md is public (200)', out)
         self.assertIn('FAIL Local leftovers: / still links to a local address: http://shop.test', out)
+        self.assertIn('FAIL Agency badge: / no agency badge in the footer', out)
+        self.assertIn('FAIL Branded emails: not checked: pass --wp', out)
         self.assertRegex(out, r'RESULT: \d+ FAIL')
 
     def test_hidden_flips_robots(self):

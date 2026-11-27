@@ -84,12 +84,12 @@ add_filter( 'wpcf7_mail_components', 'kitwp_mail_no_empty_img', 20 );
 /**
  * The agency badge in the email footers: Theme Settings > Branding "Email badge" (a PNG at 2x from the Media
  * Library) and "Agency badge link", else the defaults in config.php (KITWP_EMAIL_BADGE*). "Hide agency badge"
- * hides it here too.
+ * hides it here too, only when the build recorded that the client asked (KITWP_BADGE_HIDE_NOTE).
  *
  * @return array{src: string, link: string, alt: string} Empty src or link: no badge.
  */
 function kitwp_email_badge() {
-	if ( kitwp_setting( 'agency_badge_hide' ) ) {
+	if ( kitwp_setting( 'agency_badge_hide' ) && '' !== KITWP_BADGE_HIDE_NOTE ) {
 		return [
 			'src'  => '',
 			'link' => '',

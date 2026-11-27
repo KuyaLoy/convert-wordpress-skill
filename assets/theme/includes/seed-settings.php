@@ -106,6 +106,61 @@ function kitwp_seed_settings() {
 		++$report['updated'];
 		$GLOBALS['kitwp_seed_changed'][] = $name;
 	}
+	return kitwp_seed_agency_badge( $report );
+}
+
+/**
+ * Theme Settings > Branding pre-filled with the profile's agency badge: the theme's default files (KITWP_SITE_BADGE,
+ * KITWP_EMAIL_BADGE) go into the Media Library once and fill "Agency badge" and "Email badge", the default link
+ * fills "Agency badge link". Only empty fields are filled: a value set in wp-admin is kept.
+ *
+ * @param array<string, int> $report The settings report so far.
+ * @return array<string, int>
+ */
+function kitwp_seed_agency_badge( $report ) {
+	require_once ABSPATH . 'wp-admin/includes/file.php';
+	require_once ABSPATH . 'wp-admin/includes/media.php';
+	require_once ABSPATH . 'wp-admin/includes/image.php';
+	add_filter( 'upload_mimes', 'kitwp_seed_svg_mime' );
+	add_filter( 'wp_check_filetype_and_ext', 'kitwp_seed_svg_filetype', 10, 3 );
+	$images = [
+		'agency_badge' => [ KITWP_SITE_BADGE, KITWP_SITE_BADGE_ALT ],
+		'email_badge'  => [ KITWP_EMAIL_BADGE, KITWP_EMAIL_BADGE_ALT ],
+	];
+	foreach ( $images as $name => [ $rel, $alt ] ) {
+		$file = get_stylesheet_directory() . '/' . $rel;
+		if ( '' === $rel || kitwp_setting( $name ) || ! is_readable( $file ) ) {
+			continue;
+		}
+		$id = kitwp_media_by_source( 'theme:' . $rel );
+		if ( ! $id ) {
+			$tmp = wp_tempnam( basename( $rel ) );
+			$id  = copy( $file, $tmp ) ? media_handle_sideload(
+				[
+					'name'     => basename( $rel ),
+					'tmp_name' => $tmp,
+				],
+				0,
+				'',
+				[ 'post_title' => $alt ]
+			) : 0;
+			if ( ! $id || is_wp_error( $id ) ) {
+				wp_delete_file( $tmp );
+				++$report['unknown'];
+				continue;
+			}
+			update_post_meta( $id, '_kitk_source', 'theme:' . $rel );
+			update_post_meta( $id, '_wp_attachment_image_alt', $alt );
+		}
+		update_field( 'field_kitk_ts_' . $name, (int) $id, 'option' );
+		++$report['updated'];
+	}
+	if ( '' !== KITWP_SITE_BADGE_LINK && ! kitwp_setting( 'agency_link' ) ) {
+		update_field( 'field_kitk_ts_agency_link', KITWP_SITE_BADGE_LINK, 'option' );
+		++$report['updated'];
+	}
+	remove_filter( 'upload_mimes', 'kitwp_seed_svg_mime' );
+	remove_filter( 'wp_check_filetype_and_ext', 'kitwp_seed_svg_filetype', 10 );
 	return $report;
 }
 

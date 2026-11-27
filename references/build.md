@@ -44,9 +44,14 @@ again. Fields replace content, never structure, classes or order.
   description, canonical and Open Graph come from the SEO plugin.
 - **`<html>` and `<body>`** as static: the lang and dir from `KITWP_HTML_ATTRIBUTES` (site.json `html_attributes`),
   no `body_class()` if the static body has no class.
-- **Agency badge:** when the profile has `branding.site_badge`, call `kitwp_agency_badge()` in the footer's bottom
-  bar (next to the copyright or credits). Theme Settings > Branding swaps the image and link or hides it. It is
-  the one addition to the static footer, so the footer parity check allows that element.
+- **Agency badge (hard rule):** on every site, even when the design has none: call `kitwp_agency_badge()` in the
+  footer's bottom bar (next to the copyright or credits); a footer without a bottom bar gets one, in the footer's
+  own style (its colours, type and spacing). The badge is dynamic: Theme Settings > Branding "Agency badge" (Media
+  Library) and "Agency badge link", pre-filled by the seeder from the profile's `branding` (site_badge, link).
+  "Hide agency badge" works only when site.json `agency_badge_hide` holds the task's note that the client asked
+  (config.php `KITWP_BADGE_HIDE_NOTE`); otherwise the toggle does nothing. It is the one addition to the static
+  footer, so the footer parity check allows that element. `self-check.py` and `live-qa.py` fail without it, its
+  image or its link (class and group `branding`).
 - **Favicon:** the Site Icon (Settings > General), seeded from the static build's square icon (at least 512 px):
   settings.json `"site_icon": "/brand/icon-512.png"`. The static icons in `assets/brand/` (favicon.svg,
   favicon-32.png, apple-touch-icon.png) are only the fallback while no Site Icon is set; then `/favicon.ico`

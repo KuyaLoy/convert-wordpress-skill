@@ -93,6 +93,7 @@ The fields:
 | `map_default` | What the map shows until the address is confirmed, usually the city as words (`Leeds, UK`); empty = `area_served` |
 | `brand_colour`, `og_locale`, `timezone` | As the static site and the business use them (any country and language) |
 | `html_attributes` | The static `<html>` lang and dir, exactly (`lang="en"`, `lang="ar" dir="rtl"`): analyze-source.py reports them |
+| `agency_badge_hide` | Empty (the default): the agency badge is in the footer and both emails. Only when the task says the client asked: that note (for example "client asked, task ABC-12"); the Theme Settings toggle then works |
 | `form_class`, `chat_selector` | The static lead form's class (`kitwp-form` when the design has no form: the kit's default layout), and the chat widget's root selector if any |
 | `phone_display`, `phone_tel`, `email`, `gtm` | Business details and the GTM container |
 | `font_links` | The static `<head>`'s font `<link>` tags, exactly |

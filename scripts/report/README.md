@@ -10,6 +10,7 @@ report template to `_setup/launch/report.html`. Nothing here sends anything: eve
 | `live-qa-console.js` | The same checks inside a browser tab on the live site, for hosts whose bot filter blocks scripts. Set `window.LIVE_QA` first (see the file), paste, then read `window.__liveQa.summary` | browser console or a browser tool |
 | `track.mjs` | Real-browser proof: the GTM container loaded, the dataLayer events, the tag hosts per page (the ads conversion only on /thank-you/) | `node track.mjs https://example.com GTM-XXXXXXX / /thank-you/` |
 | `shots.mjs` | Live screenshots for the report: `path:width:name` (390 or less = phone) | `node shots.mjs https://example.com /:1440:home-desktop /thank-you/:1440:thankyou-desktop /a-page/:390:page-mobile` |
+| `branding_check.py` | The agency badge and branded-email checks that self-check.py and live-qa.py share (not run on its own) | - |
 | `form-layout.mjs` | A lead form against the form layout standard (references/forms-email.md > Form layout) at 1280 and 390 wide | `node form-layout.mjs https://example.test/contact/` |
 | `pdf.mjs` | The report HTML to an A4 PDF, with other PDFs (the editing guide) appended | `node pdf.mjs report.html Final-Live-Check.pdf Editing-Guide.pdf` |
 | `pw.mjs` | Finds Playwright: the local install first, then a global one | (used by the scripts above) |

@@ -229,7 +229,8 @@ groups[f'group_{KEY}_theme_settings'] = field_group(f'group_{KEY}_theme_settings
           instructions='The badge at the bottom of the footer. Empty: the theme default.'),
     g.any('url', 'agency_link', 'Agency badge link', width=40, instructions='Empty: the theme default.'),
     g.any('true_false', 'agency_badge_hide', 'Hide agency badge', width=25,
-          instructions='On: the footer shows no agency badge.'),
+          instructions='On: the footer and the emails show no agency badge. Works only when the client asked for it '
+                       'and the build recorded that.'),
     g.tab('404'),
     g.text('e404_heading', 'Heading (H1)', '', width=75,
            instructions='The heading on the page visitors see when an address does not exist.'),

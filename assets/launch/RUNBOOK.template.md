@@ -142,7 +142,7 @@ file `wp-content/mu-plugins/kitwp-environment.php` and the theme's `acf-json/.ht
 
 ## 5. Checks (references/qa-report.md has the full list)
 
-- [ ] `python3 _plan/tools/report/live-qa.py https://{{LIVE_HOST}}<!-- if:tracking --> --gtm {{GTM_ID}}<!-- /if:tracking --> --local {{LOCAL_HOST}} --theme wp-content/themes/{{THEME}}<!-- if:redirects --> --redirects _setup/seed/redirects.json<!-- /if:redirects -->`
+- [ ] `python3 _plan/tools/report/live-qa.py https://{{LIVE_HOST}}<!-- if:tracking --> --gtm {{GTM_ID}}<!-- /if:tracking --> --local {{LOCAL_HOST}} --theme wp-content/themes/{{THEME}}<!-- if:redirects --> --redirects _setup/seed/redirects.json<!-- /if:redirects --> --wp "wp @live"`
 <!-- if:redirects -->
       (export the real redirects first, the seed file is a sample)
 <!-- /if:redirects -->
@@ -157,6 +157,7 @@ file `wp-content/mu-plugins/kitwp-environment.php` and the theme's `acf-json/.ht
       `?gad_campaignid=123&gclid=TEST&utm_source=google`: its email's Lead Attribution table shows the eleven rows
       in order with values (Lead Source "Google Ads", Campaign ID 123, Click ID TEST; CFDB7's columns too), a
       plain visit's lead shows "Direct" and "none" rows, and GTM's preview shows `generate_lead` on /thank-you/.
+      Both emails are the branded template, with the agency badge linked.
 <!-- if:portal -->
       Each test lead also shows in the leads portal's form counts.
 <!-- /if:portal -->

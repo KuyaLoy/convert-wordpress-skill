@@ -27,6 +27,10 @@ ends with ALL PASS or N FAIL.
 9. WebP: with --image, a request that accepts WebP gets image/webp.
 10. reCAPTCHA: every checked page with a Contact Form 7 form loads the reCAPTCHA script (the live keys are in);
    with --hidden (staging, which gets no keys) it must not. No form on the checked pages: a note.
+11. Branding: every checked page has the agency badge in its footer, linked, with its image (--badge-hide-note
+   "<the task's note>" when the client asked to hide it); with --wp "wp @live" every Contact Form 7 form's email and
+   auto-reply is the branded HTML template (logo and badge mail-tags). Without --wp that part is a FAIL (a note
+   with --hidden).
 Host rules and the certificate are skipped for an IP address or localhost, or with --skip hosts,tls.
 Exit 0 when all pass, 1 on any FAIL, 2 on a usage error, 3 when the host's bot filter blocked the run (then use
 live-qa-console.js in a real browser). Standard library only.
@@ -48,6 +52,9 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import branding_check  # noqa: E402 (the shared branding checks, next to this script)
+
 UA = ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
       'Chrome/130.0.0.0 Safari/537.36')
 ACCEPT_HTML = 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
@@ -59,7 +66,8 @@ PRIVATE = ['/_plan/', '/_setup/', '/tasks/', '/.claude/', '/.git/', '/.git/HEAD'
            '/readme.html', '/.htaccess', '/wp-config.php']
 LOCAL_RE = re.compile(r'(?:https?:)?\\?/\\?/(?:[a-z0-9-]+\.)*(?:[a-z0-9-]+\.test|localhost)(?![a-z0-9.-])', re.I)
 ATTR_RE = re.compile(r'([\w:-]+)\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)')
-GROUPS = ('pages', 'missing', 'seo', 'content', 'local', 'redirects', 'hosts', 'private', 'tls', 'webp', 'recaptcha')
+GROUPS = ('pages', 'missing', 'seo', 'content', 'local', 'redirects', 'hosts', 'private', 'tls', 'webp', 'recaptcha',
+          'branding')
 RECAPTCHA_RE = re.compile(r'(?:google\.com|recaptcha\.net)/recaptcha/(?:api|enterprise)\.js', re.I)
 CF7_RE = re.compile(r'class=["\'][^"\']*\bwpcf7(?:-form)?\b', re.I)
 CERT_DAYS = 14
@@ -301,6 +309,8 @@ def parse(argv):
     p.add_argument('--leftovers', default='', help='more private names, for example x_archive.zip,x_installer.php')
     p.add_argument('--hidden', action='store_true', help='before launch: expect noindex and a blocking robots.txt')
     p.add_argument('--image', default='', help='an image URL or path for the WebP check')
+    p.add_argument('--wp', default='', help='WP-CLI for the live site, for example "wp @live": the CF7 email check')
+    p.add_argument('--badge-hide-note', default='', help="the task's note when the client asked to hide the badge")
     p.add_argument('--skip', default='', help='checks to leave out, comma list: ' + ','.join(GROUPS))
     p.add_argument('--delay', type=float, default=0.5, help='seconds between requests (default 0.5)')
     p.add_argument('--timeout', type=float, default=30, help='seconds to wait for each answer (default 30)')
@@ -486,6 +496,28 @@ def main(argv=None):
                       ('none loads reCAPTCHA (staging)' if a.hidden else 'each loads the reCAPTCHA script'))
         else:
             rep.note('reCAPTCHA', 'no Contact Form 7 form on the checked pages: add the contact page to --routes')
+
+    # 11. Branding: the agency badge on every page, linked; every CF7 email and auto-reply branded.
+    if 'branding' not in skip:
+        if a.badge_hide_note:
+            rep.note('Agency badge', f'hidden, the client asked: {a.badge_hide_note}')
+        else:
+            items = []
+            for p in ok_pages:
+                why = branding_check.badge_problem(got[p].text)
+                items.append((not why, f'{p} {why}' if why else f'{p} has the agency badge, linked'))
+            rep.group('Agency badge', items, f'{len(ok_pages)} pages checked, each has the agency badge, linked')
+        if not a.wp and a.hidden:
+            rep.note('Branded emails', 'not checked on staging: pass --wp "wp @staging" to check them')
+        elif not a.wp:
+            rep.group('Branded emails', [(False, 'not checked: pass --wp "wp @live" (WP-CLI on the live site)')])
+        else:
+            mails, why = branding_check.read_mails(a.wp, timeout=a.timeout + 60)
+            items = [(False, f'not checked: {why}')] if mails is None else [
+                (False, f'"{form}" {what}') for form, what in branding_check.mail_problems(mails)]
+            rep.group('Branded emails', items or [(True, f'{len(mails)} emails and auto-replies use the branded '
+                                                           'template')],
+                      f'{len(mails or [])} emails and auto-replies use the branded HTML template')
 
     # Local leftovers.
     if 'local' not in skip:

@@ -84,11 +84,15 @@ seeder refuses an email file that is not a full HTML document and reports a form
   sign-off). Never CF7's plain-text default: it reads as an afterthought next to the branded lead email.
   forms.json per form: `autoreply_file`, `autoreply_subject`, `autoreply_to` (`[email]`; the referral-style form
   that has `referrerEmail` uses that), `autoreply_reply_to` (the client's inbox). "Use HTML content type" on.
-- **Agency badge in both footers:** when the profile's `branding` names a badge, the lead email and the
-  auto-reply end with it, linked (`[_<key>_badge]`, set in config.php `<PREFIX>_EMAIL_BADGE*`; the builder copies
-  the PNG to `theme/assets/email/`). Use a **PNG at 2x** (email clients do not show SVG or WebP). A white badge
-  sits on the brand-colour footer strip that both templates have.
-- The site's own footer can carry the same badge (SVG is fine on the web) when the profile asks for it.
+- **Agency badge in both footers, always:** every form's lead email and auto-reply use the branded HTML template
+  (`lead-email.html`, `autoreply-email.html`: the logo and badge mail-tags) and end with the badge, linked (hidden
+  only with the client's recorded request, as the footer badge: build.md). `self-check.py` (the seeded forms; the
+  database with `--wp`) and `live-qa.py --wp "wp @live"` fail on a form whose email or auto-reply is not the
+  branded template, is plain text or has no auto-reply. The badge is `[_<key>_badge]`: Theme Settings > Branding
+  "Email badge", else config.php `<PREFIX>_EMAIL_BADGE*` (the builder copies the PNG to `theme/assets/email/`).
+  Use a **PNG at 2x** (email clients do not show SVG or WebP). A white badge sits on the brand-colour footer strip
+  that both templates have.
+- The site's own footer always carries the same badge (SVG is fine on the web): build.md > Agency badge.
 - Check both emails on live: one test lead per form, then look at the client's copy (lead email) and the
   visitor's copy (auto-reply): same header, same footer, badge showing and linked.
 

@@ -243,15 +243,16 @@ function kitwp_site_domain() {
 }
 
 /**
- * The agency badge for the site footer's bottom bar (call it where the static footer has its credits). Theme
- * Settings > Branding: "Agency badge" (image) and "Agency badge link" replace the defaults, "Hide agency badge"
- * removes it; the defaults are KITWP_SITE_BADGE* (from the profile's branding). Prints nothing without an image
- * or a link.
+ * The agency badge for the site footer's bottom bar, on every site (call it where the static footer has its
+ * credits; a footer without a bottom bar gets one in the footer's style). Theme Settings > Branding: "Agency badge"
+ * (Media Library image) and "Agency badge link", pre-filled by the seeder from the profile's branding; the theme
+ * files KITWP_SITE_BADGE* are the fallback. "Hide agency badge" counts only with KITWP_BADGE_HIDE_NOTE (the client
+ * asked). Prints nothing without an image or a link: self-check.py and live-qa.py then fail.
  *
  * @return void
  */
 function kitwp_agency_badge() {
-	if ( kitwp_setting( 'agency_badge_hide' ) ) {
+	if ( kitwp_setting( 'agency_badge_hide' ) && '' !== KITWP_BADGE_HIDE_NOTE ) {
 		return;
 	}
 	$id  = (int) kitwp_setting( 'agency_badge' );
